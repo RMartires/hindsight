@@ -1,0 +1,147 @@
+"use client";
+
+import { useCallback, useRef, useState } from "react";
+import type {
+  AgentStatusEvent,
+  AnalyzeResponse,
+  DebateEvent,
+  DecisionEvent,
+  StreamState,
+  StreamStatus,
+} from "@/lib/types";
+
+const INITIAL_STATE: StreamState = {
+  status: "idle",
+  agents: {},
+  reports: {},
+  debates: [],
+  decision: null,
+  traceId: null,
+  error: null,
+};
+
+export function useAgentStream() {
+  const [state, setState] = useState<StreamState>(INITIAL_STATE);
+  const sourceRef = useRef<EventSource | null>(null);
+
+  const reset = useCallback(() => {
+    if (sourceRef.current) {
+      sourceRef.current.close();
+      sourceRef.current = null;
+    }
+    setState(INITIAL_STATE);
+  }, []);
+
+  const startAnalysis = useCallback(
+    async (ticker: string, tradeDate: string, analysts?: string[]) => {
+      reset();
+      setState((s) => ({ ...s, status: "connecting" }));
+
+      try {
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ticker: ticker.toUpperCase(),
+            trade_date: tradeDate,
+            analysts: analysts || [
+              "market",
+              "fundamentals",
+              "news",
+              "social",
+            ],
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`API error: ${res.status}`);
+        }
+
+        const data: AnalyzeResponse = await res.json();
+
+        setState((s) => ({
+          ...s,
+          status: "streaming",
+          traceId: data.trace_id,
+        }));
+
+        const source = new EventSource(`/api/stream/${data.run_id}`);
+        sourceRef.current = source;
+
+        source.addEventListener("agent_status", (e) => {
+          const event: AgentStatusEvent = JSON.parse(e.data);
+          setState((s) => ({
+            ...s,
+            agents: { ...s.agents, [event.agent]: event.status },
+          }));
+        });
+
+        source.addEventListener("report", (e) => {
+          const event = JSON.parse(e.data);
+          setState((s) => ({
+            ...s,
+            reports: { ...s.reports, [event.section]: event.content },
+          }));
+        });
+
+        source.addEventListener("debate", (e) => {
+          const event: DebateEvent = JSON.parse(e.data);
+          setState((s) => ({
+            ...s,
+            debates: [...s.debates, event],
+          }));
+        });
+
+        source.addEventListener("decision", (e) => {
+          const event: DecisionEvent = JSON.parse(e.data);
+          setState((s) => ({ ...s, decision: event }));
+        });
+
+        source.addEventListener("error", (e) => {
+          if (e instanceof MessageEvent) {
+            const event = JSON.parse(e.data);
+            setState((s) => ({ ...s, error: event.message }));
+          }
+        });
+
+        source.addEventListener("done", (e) => {
+          const event = JSON.parse((e as MessageEvent).data);
+          setState((s) => ({
+            ...s,
+            status: "done",
+            traceId: event.trace_id || s.traceId,
+          }));
+          source.close();
+          sourceRef.current = null;
+        });
+
+        source.onerror = () => {
+          setState((s) => ({
+            ...s,
+            status: "error",
+            error: s.error || "Connection lost",
+          }));
+          source.close();
+          sourceRef.current = null;
+        };
+      } catch (err) {
+        setState((s) => ({
+          ...s,
+          status: "error",
+          error: err instanceof Error ? err.message : "Unknown error",
+        }));
+      }
+    },
+    [reset]
+  );
+
+  const cancel = useCallback(() => {
+    if (sourceRef.current) {
+      sourceRef.current.close();
+      sourceRef.current = null;
+    }
+    setState((s) => ({ ...s, status: "done" }));
+  }, []);
+
+  return { ...state, startAnalysis, cancel, reset };
+}
