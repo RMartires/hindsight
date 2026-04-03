@@ -9,13 +9,14 @@ import time
 import uuid
 from typing import Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from stream_handler import run_analysis
 from langfuse_api import fetch_trace, get_public_link
+from supabase_runs import fetch_run_row, supabase_enabled
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -57,6 +58,34 @@ class AnalyzeResponse(BaseModel):
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "active_runs": len(runs)}
+
+
+@app.get("/api/run-snapshot")
+async def run_snapshot(
+    trace_id: Optional[str] = Query(None),
+    run_id: Optional[str] = Query(None),
+):
+    if not trace_id and not run_id:
+        raise HTTPException(
+            status_code=400, detail="Provide trace_id or run_id query parameter"
+        )
+    if not supabase_enabled():
+        return {"hit": False}
+    row = fetch_run_row(trace_id=trace_id, run_id=run_id)
+    if not row:
+        return {"hit": False}
+    st = row.get("status")
+    if st == "completed":
+        return {
+            "hit": True,
+            "status": "completed",
+            "payload": row.get("payload") or {},
+            "ticker": row.get("ticker"),
+            "trade_date": row.get("trade_date"),
+        }
+    if st == "failed":
+        return {"hit": True, "status": "failed"}
+    return {"hit": False}
 
 
 @app.post("/api/analyze", response_model=AnalyzeResponse)

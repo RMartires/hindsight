@@ -1,7 +1,7 @@
 "use client";
 
 import { useAgentStream } from "@/hooks/useAgentStream";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import LeftRail from "@/components/LeftRail";
 import ActivePipeline from "@/components/ActivePipeline";
@@ -14,7 +14,7 @@ import {
 /** Full analyst set for every run (sidebar selector removed). */
 const ALL_ANALYSTS: PipelineAnalystKey[] = [...ANALYST_ORDER];
 
-export default function Home() {
+function HomeDashboard() {
   const {
     status,
     agents,
@@ -30,11 +30,20 @@ export default function Home() {
     toolCalls,
     startAnalysis,
     cancel,
+    restoredRunContext,
   } = useAgentStream();
 
   const [draftTicker, setDraftTicker] = useState("");
   const [draftTradeDate, setDraftTradeDate] = useState("");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (restoredRunContext) {
+      setDraftTicker(restoredRunContext.ticker);
+      setDraftTradeDate(restoredRunContext.tradeDate);
+    }
+  }, [restoredRunContext]);
+
   return (
     <>
       <AppHeader
@@ -89,5 +98,13 @@ export default function Home() {
         </div>
       </main>
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeDashboard />
+    </Suspense>
   );
 }

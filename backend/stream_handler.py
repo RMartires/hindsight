@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import threading
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Set
 
@@ -13,6 +12,7 @@ from pipeline_topology import (
     maybe_graph_step_keys,
 )
 from tool_stream import extract_tool_events_from_chunk
+from supabase_runs import upsert_terminal_run
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,43 @@ def _utc_iso() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def _new_snapshot(run_id: str, trace_id: Optional[str], session_id: Optional[str]) -> dict:
+    return {
+        "status": "streaming",
+        "agents": {},
+        "reports": {},
+        "debates": [],
+        "decision": None,
+        "traceId": trace_id,
+        "runId": run_id,
+        "sessionId": session_id,
+        "activityLog": [],
+        "error": None,
+        "pipelineTopology": None,
+        "lastGraphStep": None,
+        "toolCalls": [],
+    }
+
+
+def _merge_snapshot(snap: dict, event_type: str, data: dict) -> None:
+    if event_type == "agent_status":
+        snap["agents"][data["agent"]] = data["status"]
+    elif event_type == "pipeline_topology":
+        snap["pipelineTopology"] = data
+    elif event_type == "graph_step":
+        snap["lastGraphStep"] = data
+    elif event_type == "report":
+        snap["reports"][data["section"]] = data["content"]
+    elif event_type == "debate":
+        snap["debates"].append(data)
+    elif event_type == "decision":
+        snap["decision"] = data
+    elif event_type == "tool_call":
+        snap["toolCalls"].append(data)
+    elif event_type == "error":
+        snap["error"] = data.get("message")
+
+
 def run_analysis(
     run_id: str,
     ticker: str,
@@ -55,6 +92,12 @@ def run_analysis(
 
     This replicates the chunk-inspection logic from cli/main.py:1091-1192.
     """
+    snapshot = _new_snapshot(run_id, trace_id, session_id)
+
+    def emit(event_type: str, data: dict):
+        _emit(queue, loop, event_type, data)
+        _merge_snapshot(snapshot, event_type, data)
+
     try:
         config = build_config()
         selected = [a for a in ANALYST_ORDER if a in analysts]
@@ -81,7 +124,7 @@ def run_analysis(
 
         try:
             topo = build_topology_payload(graph.graph, selected)
-            _emit(queue, loop, "pipeline_topology", topo)
+            emit("pipeline_topology", topo)
         except Exception:
             logger.warning("Failed to emit pipeline_topology", exc_info=True)
 
@@ -98,9 +141,7 @@ def run_analysis(
                 agent_statuses[name] = status
                 if status == "pending":
                     return
-                _emit(
-                    queue,
-                    loop,
+                emit(
                     "agent_status",
                     {"agent": name, "status": status, "time": _utc_iso()},
                 )
@@ -146,7 +187,7 @@ def run_analysis(
                     update_agent(agent_name, "completed")
                     if report_key not in emitted_reports:
                         emitted_reports.add(report_key)
-                        _emit(queue, loop, "report", {
+                        emit("report", {
                             "section": report_key,
                             "content": chunk[report_key],
                         })
@@ -173,14 +214,14 @@ def run_analysis(
 
                 if bull_hist and "bull_debate" not in emitted_reports:
                     emitted_reports.add("bull_debate")
-                    _emit(queue, loop, "debate", {
+                    emit("debate", {
                         "phase": "investment",
                         "speaker": "Bull Researcher",
                         "content": bull_hist,
                     })
                 if bear_hist and "bear_debate" not in emitted_reports:
                     emitted_reports.add("bear_debate")
-                    _emit(queue, loop, "debate", {
+                    emit("debate", {
                         "phase": "investment",
                         "speaker": "Bear Researcher",
                         "content": bear_hist,
@@ -190,7 +231,7 @@ def run_analysis(
                     update_agent("Bull Researcher", "completed")
                     update_agent("Bear Researcher", "completed")
                     update_agent("Research Manager", "completed")
-                    _emit(queue, loop, "debate", {
+                    emit("debate", {
                         "phase": "investment",
                         "speaker": "Research Manager",
                         "content": judge,
@@ -202,7 +243,7 @@ def run_analysis(
             if trader_plan and "trader_plan" not in emitted_reports:
                 emitted_reports.add("trader_plan")
                 update_agent("Trader", "completed")
-                _emit(queue, loop, "report", {
+                emit("report", {
                     "section": "trader_investment_plan",
                     "content": trader_plan,
                 })
@@ -219,7 +260,7 @@ def run_analysis(
                 if agg and "risk_agg" not in emitted_reports:
                     emitted_reports.add("risk_agg")
                     update_agent("Aggressive Analyst", "in_progress")
-                    _emit(queue, loop, "debate", {
+                    emit("debate", {
                         "phase": "risk",
                         "speaker": "Aggressive Analyst",
                         "content": agg,
@@ -227,7 +268,7 @@ def run_analysis(
                 if con and "risk_con" not in emitted_reports:
                     emitted_reports.add("risk_con")
                     update_agent("Conservative Analyst", "in_progress")
-                    _emit(queue, loop, "debate", {
+                    emit("debate", {
                         "phase": "risk",
                         "speaker": "Conservative Analyst",
                         "content": con,
@@ -235,7 +276,7 @@ def run_analysis(
                 if neu and "risk_neu" not in emitted_reports:
                     emitted_reports.add("risk_neu")
                     update_agent("Neutral Analyst", "in_progress")
-                    _emit(queue, loop, "debate", {
+                    emit("debate", {
                         "phase": "risk",
                         "speaker": "Neutral Analyst",
                         "content": neu,
@@ -246,7 +287,7 @@ def run_analysis(
                     update_agent("Conservative Analyst", "completed")
                     update_agent("Neutral Analyst", "completed")
                     update_agent("Risk Judge", "completed")
-                    _emit(queue, loop, "debate", {
+                    emit("debate", {
                         "phase": "risk",
                         "speaker": "Risk Judge",
                         "content": judge,
@@ -257,9 +298,7 @@ def run_analysis(
             # is mis-labeled (e.g. all as Market Analyst → wrong row in the UI).
             step_key = maybe_graph_step_keys(chunk)
             if step_key:
-                _emit(
-                    queue,
-                    loop,
+                emit(
                     "graph_step",
                     {"node_id": step_key, "time": _utc_iso()},
                 )
@@ -278,7 +317,7 @@ def run_analysis(
                     tool_emit_sigs,
                     ts,
                 ):
-                    _emit(queue, loop, "tool_call", tool_ev)
+                    emit("tool_call", tool_ev)
 
         # Final decision
         if trace:
@@ -290,15 +329,35 @@ def run_analysis(
             for agent in all_agents:
                 update_agent(agent, "completed")
 
-            _emit(queue, loop, "decision", {
+            emit("decision", {
                 "final": decision,
                 "full_text": final_decision_text,
                 "investment_plan": final_state.get("investment_plan", ""),
             })
 
-        _emit(queue, loop, "done", {"trace_id": trace_id or ""})
+        snapshot["status"] = "done"
+        upsert_terminal_run(
+            run_id=run_id,
+            trace_id=trace_id,
+            ticker=ticker,
+            trade_date=trade_date,
+            status="completed",
+            payload=snapshot,
+        )
+        emit("done", {"trace_id": trace_id or ""})
 
     except Exception as e:
         logger.exception("Analysis failed")
-        _emit(queue, loop, "error", {"message": str(e)})
-        _emit(queue, loop, "done", {"trace_id": trace_id or ""})
+        snapshot["status"] = "error"
+        snapshot["error"] = str(e)
+        upsert_terminal_run(
+            run_id=run_id,
+            trace_id=trace_id,
+            ticker=ticker,
+            trade_date=trade_date,
+            status="failed",
+            payload=snapshot,
+            error_message=str(e),
+        )
+        emit("error", {"message": str(e)})
+        emit("done", {"trace_id": trace_id or ""})
