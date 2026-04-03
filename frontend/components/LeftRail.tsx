@@ -1,24 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import DateDial from "./DateDial";
 import TickerInput from "./TickerInput";
 import type { StreamStatus } from "@/lib/types";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
-
-type AnalystKey = "market" | "fundamentals" | "news" | "social";
+import {
+  ANALYST_ORDER,
+  type PipelineAnalystKey,
+} from "@/lib/pipelineGraph";
 
 interface Props {
   status: StreamStatus;
-  onEngage: (ticker: string, date: string, analysts: AnalystKey[]) => void;
+  selectedAnalystKeys: PipelineAnalystKey[];
+  onSelectedAnalystKeysChange: (keys: PipelineAnalystKey[]) => void;
+  onEngage: (ticker: string, date: string, analysts: PipelineAnalystKey[]) => void;
   onCancel: () => void;
   onContextChange?: (ticker: string, date: string) => void;
 }
 
 const ANALYST_OPTIONS: Array<{
- key: AnalystKey;
- label: string;
- icon: string;
+  key: PipelineAnalystKey;
+  label: string;
+  icon: string;
 }> = [
   { key: "market", label: "Market Analyst", icon: "◉" },
   { key: "fundamentals", label: "Fundamental", icon: "◇" },
@@ -26,59 +30,58 @@ const ANALYST_OPTIONS: Array<{
   { key: "social", label: "Sentiment", icon: "○" },
 ];
 
-function LightningIcon() {
+function BarChartIcon() {
   return (
     <svg
       className="engage-button-icon-svg"
       width="18"
       height="18"
       viewBox="0 0 24 24"
-      fill="currentColor"
+      fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <path d="M11 21l1-8.5L7 10l10.5-9L17 9l5.5 4.5L11 21z" />
+      <path
+        d="M4 19V5M4 19H20M8 15V9M12 13V7M16 11V5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
 export default function LeftRail({
   status,
+  selectedAnalystKeys,
+  onSelectedAnalystKeysChange,
   onEngage,
   onCancel,
   onContextChange,
 }: Props) {
   const [date, setDate] = useState("");
   const [ticker, setTicker] = useState("");
-
-  const [selected, setSelected] = useState<Record<AnalystKey, boolean>>({
-    market: true,
-    fundamentals: true,
-    news: true,
-    social: true,
-  });
-
   const isRunning = status === "connecting" || status === "streaming";
-
-  const selectedAnalysts = useMemo(
-    () => ANALYST_OPTIONS.filter((o) => selected[o.key]).map((o) => o.key),
-    [selected]
-  );
-
   const health = useBackendHealth(15000);
   const healthy = health.status === "ok" && !health.error;
 
-  const toggle = (key: AnalystKey) => {
-    setSelected((s) => {
-      const next = { ...s, [key]: !s[key] };
-      const anySelected = Object.values(next).some(Boolean);
-      return anySelected ? next : s;
-    });
+  const toggle = (key: PipelineAnalystKey) => {
+    const next = new Set(selectedAnalystKeys);
+    if (next.has(key)) {
+      if (next.size <= 1) return;
+      next.delete(key);
+    } else {
+      next.add(key);
+    }
+    onSelectedAnalystKeysChange(
+      ANALYST_ORDER.filter((k) => next.has(k)) as PipelineAnalystKey[]
+    );
   };
 
   const handleEngage = () => {
     if (!ticker.trim() || !date) return;
-    onEngage(ticker.trim(), date, selectedAnalysts);
+    onEngage(ticker.trim(), date, selectedAnalystKeys);
   };
 
   const setDateAndNotify = (d: string) => {
@@ -90,6 +93,10 @@ export default function LeftRail({
     setTicker(t);
     onContextChange?.(t, date);
   };
+
+  const navItems = ANALYST_ORDER.map((key) =>
+    ANALYST_OPTIONS.find((o) => o.key === key)
+  ).filter(Boolean) as typeof ANALYST_OPTIONS;
 
   return (
     <aside className="rail rail--left">
@@ -116,7 +123,7 @@ export default function LeftRail({
                   onClick={handleEngage}
                 >
                   <span className="engage-glow" />
-                  <LightningIcon />
+                  <BarChartIcon />
                   <span className="engage-text">+ NEW ANALYSIS</span>
                 </button>
               )}
@@ -139,8 +146,8 @@ export default function LeftRail({
         <div className="left-section">
           <h3 className="section-title section-title--sm">Analysts</h3>
           <div className="analyst-nav-list" role="list">
-            {ANALYST_OPTIONS.map((o) => {
-              const active = selected[o.key];
+            {navItems.map((o) => {
+              const active = selectedAnalystKeys.includes(o.key);
               return (
                 <button
                   key={o.key}

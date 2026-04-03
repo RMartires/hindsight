@@ -6,6 +6,13 @@ import AppHeader from "@/components/AppHeader";
 import LeftRail from "@/components/LeftRail";
 import ActivePipeline from "@/components/ActivePipeline";
 import AgentDetailsPanel from "@/components/AgentDetailsPanel";
+import {
+  ANALYST_ORDER,
+  type PipelineAnalystKey,
+} from "@/lib/pipelineGraph";
+
+const DEFAULT_ANALYSTS = () =>
+  [...ANALYST_ORDER] as PipelineAnalystKey[];
 
 export default function Home() {
   const {
@@ -25,6 +32,8 @@ export default function Home() {
 
   const [draftTicker, setDraftTicker] = useState("");
   const [draftTradeDate, setDraftTradeDate] = useState("");
+  const [selectedAnalystKeys, setSelectedAnalystKeys] =
+    useState<PipelineAnalystKey[]>(DEFAULT_ANALYSTS);
 
   return (
     <>
@@ -38,6 +47,8 @@ export default function Home() {
         <div className="dashboard-grid">
           <LeftRail
             status={status}
+            selectedAnalystKeys={selectedAnalystKeys}
+            onSelectedAnalystKeysChange={setSelectedAnalystKeys}
             onCancel={cancel}
             onEngage={(ticker, date, analysts) =>
               startAnalysis(ticker, date, analysts)
@@ -48,7 +59,11 @@ export default function Home() {
             }}
           />
 
-          <ActivePipeline agents={agents} status={status} />
+          <ActivePipeline
+            agents={agents}
+            status={status}
+            selectedAnalystKeys={selectedAnalystKeys}
+          />
 
           <AgentDetailsPanel
             status={status}

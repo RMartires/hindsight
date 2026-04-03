@@ -2,34 +2,37 @@
 
 import type { AgentStatus } from "@/lib/types";
 import type { StreamStatus } from "@/lib/types";
+import type { PipelineAnalystKey } from "@/lib/pipelineGraph";
 import AgentFlowchart from "./AgentFlowchart";
 
 interface Props {
   agents: Record<string, AgentStatus>;
   status: StreamStatus;
+  selectedAnalystKeys: PipelineAnalystKey[];
 }
 
 const SUBTITLE = "Forensic Analysis of Liquidity Cascades";
 
-export default function ActivePipeline({ agents, status }: Props) {
-  const idleAgents: Record<string, AgentStatus> = {
-    "Market Analyst": "pending",
-    "Fundamentals Analyst": "pending",
-    "News Analyst": "pending",
-  };
-
-  const chartAgents = status === "idle" ? idleAgents : agents;
-
+export default function ActivePipeline({
+  agents,
+  status,
+  selectedAnalystKeys,
+}: Props) {
   return (
     <section className="panel panel--center pipeline-panel">
-      <AgentFlowchart agents={chartAgents} subtitle={SUBTITLE} />
+      <AgentFlowchart
+        agents={agents}
+        selectedAnalystKeys={selectedAnalystKeys}
+        subtitle={SUBTITLE}
+        streamStatus={status}
+      />
       <button
         type="button"
         className="pipeline-fab"
         aria-label="Quick action"
         title="Pipeline pulse"
       >
-        ⚡
+        <span className="pipeline-fab-bolt">⚡</span>
       </button>
     </section>
   );

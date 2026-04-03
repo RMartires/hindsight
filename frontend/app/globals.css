@@ -1,16 +1,16 @@
 :root {
-  --bg: #050505;
-  --surface: #0d0d0f;
-  --surface-hover: #141418;
+  --bg: #0a0a0a;
+  --surface: #111113;
+  --surface-hover: #18181c;
   --border: #1f1f24;
   --border-bright: #2e2e36;
   --text: #fafafa;
   --text-muted: #a1a1aa;
   --text-dim: #71717a;
-  --accent-green: #00e676;
-  --accent-green-neon: #00e676;
-  --accent-green-dim: #00c853;
-  --accent-green-glow: rgba(0, 230, 118, 0.35);
+  --accent-green: #5fffb0;
+  --accent-green-neon: #5fffb0;
+  --accent-green-dim: #3ed693;
+  --accent-green-glow: rgba(95, 255, 176, 0.38);
   --accent-red: #ef4444;
   --accent-blue: #3b82f6;
   --accent-amber: #f59e0b;
@@ -298,7 +298,11 @@ body {
 /* ---- Engage Button ---- */
 .engage-button {
   position: relative;
-  background: linear-gradient(180deg, #00e676 0%, #00c853 100%);
+  background: linear-gradient(
+    180deg,
+    var(--accent-green-neon) 0%,
+    var(--accent-green-dim) 100%
+  );
   border: none;
   border-radius: 8px;
   padding: 12px 28px;
@@ -306,7 +310,7 @@ body {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #050505;
+  color: #0a0a0a;
   cursor: pointer;
   overflow: hidden;
   transition: all 0.2s ease;
@@ -473,31 +477,78 @@ body {
 
 .flowchart-body {
   padding: 20px;
+  min-height: 200px;
+}
+
+.flowchart-empty {
+  padding: 32px 24px 48px;
+  text-align: center;
+}
+
+.flowchart-empty-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.flowchart-empty-hint {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-dim);
+  max-width: 40ch;
+  margin: 0 auto;
+}
+
+.flowchart-empty-hint code {
+  font-size: 12px;
+  color: var(--accent-green-neon);
+}
+
+.flowchart-svg-wrap {
+  overflow: auto;
+  max-width: 100%;
+}
+
+.flowchart-svg--dynamic {
+  min-width: 640px;
+  min-height: 280px;
 }
 
 .pipeline-fab {
   position: absolute;
   right: 20px;
   bottom: 20px;
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  border: 1px solid var(--accent-green-neon);
-  background: linear-gradient(145deg, rgba(0, 230, 118, 0.25), rgba(0, 200, 83, 0.15));
-  box-shadow: 0 0 24px var(--accent-green-glow);
-  color: #050505;
-  font-size: 22px;
-  line-height: 1;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-green-neon);
+  background: linear-gradient(
+    145deg,
+    rgba(95, 255, 176, 0.35),
+    rgba(95, 255, 176, 0.12)
+  );
+  box-shadow: 0 0 28px var(--accent-green-glow), 0 0 48px rgba(95, 255, 176, 0.15);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s, box-shadow 0.2s;
+  padding: 0;
+}
+
+.pipeline-fab-bolt {
+  font-size: 22px;
+  line-height: 1;
+  color: #0a0a0a;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.4));
 }
 
 .pipeline-fab:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 32px var(--accent-green-glow);
+  transform: scale(1.06);
+  box-shadow: 0 0 36px var(--accent-green-glow);
 }
 
 .flowchart-svg {
@@ -866,6 +917,7 @@ body {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 1px;
+  color: var(--accent-green-neon);
 }
 
 .left-title-sub {

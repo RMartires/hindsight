@@ -10,10 +10,11 @@ interface Props {
   status: AgentStatus;
   x: number;
   y: number;
+  accentColor?: string;
   onClick?: () => void;
 }
 
-const NEON = "#00e676";
+const DEFAULT_ACCENT = "#5fffb0";
 const MUTED_STROKE = "#3f3f46";
 const MUTED_TEXT = "#71717a";
 
@@ -36,6 +37,7 @@ export default function AgentNode({
   status,
   x,
   y,
+  accentColor = DEFAULT_ACCENT,
   onClick,
 }: Props) {
   const width = 208;
@@ -49,12 +51,20 @@ export default function AgentNode({
   );
 
   const strokeActive = status !== "pending";
-  const strokeColor = strokeActive ? NEON : MUTED_STROKE;
+  const strokeColor = strokeActive ? accentColor : MUTED_STROKE;
+  const fillRgba = (a: number) => {
+    const hex = accentColor.replace("#", "");
+    if (hex.length !== 6) return `rgba(95,255,176,${a})`;
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    return `rgba(${r},${g},${b},${a})`;
+  };
   const fillColor =
     status === "completed"
-      ? "rgba(0, 230, 118, 0.08)"
+      ? fillRgba(0.1)
       : status === "in_progress"
-        ? "rgba(0, 230, 118, 0.04)"
+        ? fillRgba(0.05)
         : "#0a0a0c";
   const dimmed = status === "pending";
   const groupOpacity = dimmed ? 0.55 : 1;
@@ -84,7 +94,7 @@ export default function AgentNode({
           height={height}
           rx={10}
           fill="none"
-          stroke={NEON}
+          stroke={accentColor}
           strokeWidth={2}
           className="node-pulse"
         />
@@ -93,7 +103,7 @@ export default function AgentNode({
         cx={rx + width - 14}
         cy={ry + 14}
         r={4}
-        fill={strokeActive ? NEON : MUTED_STROKE}
+        fill={strokeActive ? accentColor : MUTED_STROKE}
         opacity={strokeActive ? 1 : 0.5}
       >
         <title>{status}</title>
@@ -101,7 +111,7 @@ export default function AgentNode({
       <text
         x={x}
         y={y - 26}
-        fill={strokeActive ? "rgba(0,230,118,0.95)" : MUTED_TEXT}
+        fill={strokeActive ? accentColor : MUTED_TEXT}
         fontSize={9}
         fontWeight={700}
         textAnchor="middle"
@@ -133,7 +143,9 @@ export default function AgentNode({
         letterSpacing="0.5px"
         style={{ fontFamily: "ui-monospace, monospace" }}
       >
-        {`LATENCY: ${latency}`}
+        {status === "completed" || status === "in_progress"
+          ? `LATENCY: ${latency}`
+          : "LATENCY: —"}
       </text>
     </g>
   );

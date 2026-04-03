@@ -8,6 +8,7 @@ import type {
   DecisionEvent,
   StreamState,
 } from "@/lib/types";
+import { backendStreamUrl } from "@/lib/publicBackend";
 
 const INITIAL_STATE: StreamState = {
   status: "idle",
@@ -79,7 +80,7 @@ export function useAgentStream() {
 
         pushLog("Started analysis");
 
-        const source = new EventSource(`/api/stream/${data.run_id}`);
+        const source = new EventSource(backendStreamUrl(data.run_id));
         sourceRef.current = source;
 
         source.addEventListener("agent_status", (e) => {

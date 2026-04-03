@@ -137,6 +137,7 @@ def run_analysis(
                 if bull_hist or bear_hist:
                     update_agent("Bull Researcher", "in_progress")
                     update_agent("Bear Researcher", "in_progress")
+                    update_agent("Research Manager", "in_progress")
 
                 if bull_hist and "bull_debate" not in emitted_reports:
                     emitted_reports.add("bull_debate")
