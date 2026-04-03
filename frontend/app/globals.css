@@ -1462,7 +1462,53 @@ body {
   font-family: monospace;
 }
 
+.mobile-pipeline-back {
+  display: none;
+}
+
+.mobile-pipeline-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-green-neon);
+  background: rgba(0, 230, 118, 0.06);
+  border: 1px solid rgba(0, 230, 118, 0.35);
+  border-radius: var(--radius);
+  cursor: pointer;
+  width: 100%;
+  justify-content: flex-start;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mobile-pipeline-back-button:hover {
+  background: rgba(0, 230, 118, 0.1);
+  box-shadow: 0 0 16px rgba(0, 230, 118, 0.12);
+}
+
+.mobile-pipeline-back-button:focus-visible {
+  outline: 2px solid var(--accent-green-neon);
+  outline-offset: 2px;
+}
+
 @media (max-width: 1100px) {
+  .dashboard-grid--mobile-engine .dashboard-main-column {
+    display: none;
+  }
+
+  .dashboard-grid--mobile-pipeline .rail--left {
+    display: none;
+  }
+
+  .dashboard-grid--mobile-pipeline .mobile-pipeline-back {
+    display: block;
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr;
   }

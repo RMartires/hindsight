@@ -14,6 +14,14 @@ import {
 /** Full analyst set for every run (sidebar selector removed). */
 const ALL_ANALYSTS: PipelineAnalystKey[] = [...ANALYST_ORDER];
 
+function MobileBackChevron() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function HomeDashboard() {
   const {
     status,
@@ -38,13 +46,27 @@ function HomeDashboard() {
   const [draftTicker, setDraftTicker] = useState("");
   const [draftTradeDate, setDraftTradeDate] = useState("");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [mobileStep, setMobileStep] = useState<"engine" | "pipeline">("engine");
+  const [pipelineRefitSignal, setPipelineRefitSignal] = useState(0);
 
   useEffect(() => {
     if (restoredRunContext) {
       setDraftTicker(restoredRunContext.ticker);
       setDraftTradeDate(restoredRunContext.tradeDate);
+      setMobileStep("pipeline");
     }
   }, [restoredRunContext]);
+
+  useEffect(() => {
+    if (mobileStep === "pipeline") {
+      setPipelineRefitSignal((n) => n + 1);
+    }
+  }, [mobileStep]);
+
+  const dashboardGridClass =
+    mobileStep === "engine"
+      ? "dashboard-grid dashboard-grid--mobile-engine"
+      : "dashboard-grid dashboard-grid--mobile-pipeline";
 
   return (
     <>
@@ -55,7 +77,7 @@ function HomeDashboard() {
       />
 
       <main className="main">
-        <div className="dashboard-grid">
+        <div className={dashboardGridClass}>
           <LeftRail
             status={status}
             onCancel={() => {
@@ -64,6 +86,7 @@ function HomeDashboard() {
             }}
             onEngage={(ticker, date) => {
               setSelectedAgentId(null);
+              setMobileStep("pipeline");
               startAnalysis(ticker, date, ALL_ANALYSTS);
             }}
             onContextChange={(t, d) => {
@@ -73,6 +96,20 @@ function HomeDashboard() {
           />
 
           <div className="dashboard-main-column">
+            <div className="mobile-pipeline-back">
+              <button
+                type="button"
+                className="mobile-pipeline-back-button"
+                onClick={() => {
+                  setSelectedAgentId(null);
+                  setMobileStep("engine");
+                }}
+                aria-label="Back to Temporal Market Engine"
+              >
+                <MobileBackChevron />
+                <span>Temporal Engine</span>
+              </button>
+            </div>
             <ActivePipeline
               agents={agents}
               status={status}
@@ -81,6 +118,7 @@ function HomeDashboard() {
               selectedAgentId={selectedAgentId}
               onSelectAgent={setSelectedAgentId}
               toolCalls={toolCalls}
+              refitSignal={pipelineRefitSignal}
             />
 
             <AgentDetailsPanel

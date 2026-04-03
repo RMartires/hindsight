@@ -30,9 +30,11 @@ const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 1 } as const;
 function FitViewOnGraphChange({
   nodeCount,
   layoutKey,
+  refitSignal = 0,
 }: {
   nodeCount: number;
   layoutKey: string;
+  refitSignal?: number;
 }) {
   const { fitView } = useReactFlow();
   const fitViewRef = useRef(fitView);
@@ -44,7 +46,7 @@ function FitViewOnGraphChange({
       fitViewRef.current({ padding: 0.2, duration: 180, maxZoom: 1.2 });
     });
     return () => cancelAnimationFrame(id);
-  }, [nodeCount, layoutKey]);
+  }, [nodeCount, layoutKey, refitSignal]);
   return null;
 }
 
@@ -57,6 +59,8 @@ interface Props {
   selectedAgentId: string | null;
   onSelectAgent: (agentId: string | null) => void;
   toolCalls: ToolCallRecord[];
+  /** Bumped when the flow container becomes visible (e.g. mobile step) so fitView re-runs. */
+  refitSignal?: number;
 }
 
 function SearchIcon() {
@@ -85,6 +89,7 @@ export default function AgentReactFlow({
   selectedAgentId,
   onSelectAgent,
   toolCalls,
+  refitSignal = 0,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const nodeTypes = useMemo(
@@ -214,7 +219,11 @@ export default function AgentReactFlow({
               maxZoom={1.5}
               defaultViewport={DEFAULT_VIEWPORT}
             >
-              <FitViewOnGraphChange nodeCount={nodeCount} layoutKey={layoutKey} />
+              <FitViewOnGraphChange
+                nodeCount={nodeCount}
+                layoutKey={layoutKey}
+                refitSignal={refitSignal}
+              />
               <Background
                 id="pipeline-bg"
                 variant={BackgroundVariant.Dots}

@@ -17,6 +17,7 @@ interface Props {
   selectedAgentId: string | null;
   onSelectAgent: (agentId: string | null) => void;
   toolCalls: ToolCallRecord[];
+  refitSignal?: number;
 }
 
 const SUBTITLE = "Forensic Analysis of Liquidity Cascades";
@@ -29,6 +30,7 @@ export default function ActivePipeline({
   selectedAgentId,
   onSelectAgent,
   toolCalls,
+  refitSignal = 0,
 }: Props) {
   return (
     <section className="panel panel--center pipeline-panel">
@@ -41,6 +43,7 @@ export default function ActivePipeline({
         selectedAgentId={selectedAgentId}
         onSelectAgent={onSelectAgent}
         toolCalls={toolCalls}
+        refitSignal={refitSignal}
       />
     </section>
   );
