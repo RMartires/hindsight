@@ -8,9 +8,9 @@ import type {
 import type { PipelineAnalystKey } from "@/lib/pipelineGraph";
 import {
   getDisplayName,
+  groupContiguousToolCalls,
   isVisibleOnCanvas,
   sortVisibleByPipeline,
-  toolFlowNodeId,
 } from "@/lib/pipelineGraph";
 
 export type LiveTileKind = "agent" | "tool";
@@ -44,6 +44,17 @@ function formatToolCall(t: ToolCallRecord): string {
     t.output ?? "—",
   ].filter(Boolean);
   return lines.join("\n");
+}
+
+function formatToolCallGroup(calls: ToolCallRecord[]): string {
+  if (calls.length === 0) return "";
+  if (calls.length === 1) return formatToolCall(calls[0]!);
+  return calls
+    .map(
+      (t, i) =>
+        `### ${t.tool_name} (${i + 1}/${calls.length})\n\n${formatToolCall(t)}`
+    )
+    .join("\n\n---\n\n");
 }
 
 function formatDebatesForSpeaker(
@@ -115,9 +126,10 @@ function agentSubtitle(status: AgentStatus): string {
   return "Pending";
 }
 
-function toolSubtitle(t: ToolCallRecord): string {
-  const time = t.time ? t.time : "";
-  return [t.agent, time].filter(Boolean).join(" · ");
+function toolSubtitle(first: ToolCallRecord, count: number): string {
+  const time = first.time ? first.time : "";
+  const suffix = count > 1 ? `${count} invocations` : "";
+  return [first.agent, suffix, time].filter(Boolean).join(" · ");
 }
 
 /**
@@ -157,13 +169,18 @@ export function buildLiveTiles(
       ),
     });
 
-    for (const t of toolCalls.filter((c) => c.agent === agentId)) {
+    const agentTools = toolCalls.filter((c) => c.agent === agentId);
+    const groups = groupContiguousToolCalls(agentId, agentTools);
+    for (const g of groups) {
       tiles.push({
-        id: toolFlowNodeId(t.id),
+        id: g.flowNodeId,
         kind: "tool",
-        title: t.tool_name,
-        subtitle: toolSubtitle(t),
-        body: formatToolCall(t),
+        title:
+          g.calls.length > 1
+            ? `${g.tool_name} (×${g.calls.length})`
+            : g.tool_name,
+        subtitle: toolSubtitle(g.calls[0]!, g.calls.length),
+        body: formatToolCallGroup(g.calls),
       });
     }
   }

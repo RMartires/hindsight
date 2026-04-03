@@ -7,9 +7,9 @@ import {
   getDisplayName,
   getHubAndBranches,
   getRoleLabel,
+  groupContiguousToolCalls,
   isVisibleOnCanvas,
   sortVisibleByPipeline,
-  toolFlowNodeId,
 } from "@/lib/pipelineGraph";
 
 export const AGENT_NODE_WIDTH = 208;
@@ -28,10 +28,8 @@ export type AgentPipelineNodeData = {
 export type AgentPipelineRfNode = Node<AgentPipelineNodeData, "agentPipeline">;
 
 export type ToolPipelineNodeData = {
-  toolId: string;
   toolName: string;
-  inputPreview: string;
-  outputPreview: string;
+  calls: ToolCallRecord[];
   focused: boolean;
 };
 
@@ -106,8 +104,9 @@ export function buildPipelineReactFlowElements(
     });
 
     const tools = toolCalls.filter((t) => t.agent === agentId);
-    for (const t of tools) {
-      const nid = toolFlowNodeId(t.id);
+    const toolGroups = groupContiguousToolCalls(agentId, tools);
+    for (const g of toolGroups) {
+      const nid = g.flowNodeId;
       const tp = positions.get(nid);
       if (!tp) continue;
       nodes.push({
@@ -122,10 +121,8 @@ export function buildPipelineReactFlowElements(
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top,
         data: {
-          toolId: t.id,
-          toolName: t.tool_name,
-          inputPreview: t.input ?? "",
-          outputPreview: t.output ?? "",
+          toolName: g.tool_name,
+          calls: g.calls,
           focused: focusedAgentId === nid,
         },
         zIndex: focusedAgentId === nid ? 2 : 0,
@@ -137,12 +134,13 @@ export function buildPipelineReactFlowElements(
 
   for (const agentId of orderedVisibleIds) {
     const tools = toolCalls.filter((t) => t.agent === agentId);
-    for (const t of tools) {
-      const nid = toolFlowNodeId(t.id);
+    const toolGroups = groupContiguousToolCalls(agentId, tools);
+    for (const g of toolGroups) {
+      const nid = g.flowNodeId;
       if (!positions.has(nid)) continue;
       const es = edgeStyle(agents, "", agentId);
       edges.push({
-        id: `at-${agentId}-${t.id}`,
+        id: `at-${agentId}-${g.calls[0]!.id}`,
         source: agentId,
         target: nid,
         sourceHandle: "tools-out",

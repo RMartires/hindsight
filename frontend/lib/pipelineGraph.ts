@@ -145,9 +145,46 @@ export function computeLayout(orderedVisibleIds: string[]): Map<string, LayoutPo
   return pos;
 }
 
-/** React Flow node id for a tool row from SSE `tool_call.id`. */
+/** React Flow node id for a single tool row (legacy / non-grouped references). */
 export function toolFlowNodeId(toolCallId: string): string {
   return `tool:${toolCallId}`;
+}
+
+/** One or more contiguous SSE tool calls with the same `tool_name` for one agent row. */
+export interface ToolCallGroup {
+  flowNodeId: string;
+  agent: string;
+  tool_name: string;
+  calls: ToolCallRecord[];
+}
+
+export function toolGroupFlowNodeId(agentId: string, firstCallId: string): string {
+  return `tool-group:${agentId}:${firstCallId}`;
+}
+
+/**
+ * Merge consecutive tool calls that share the same `tool_name` (same agent row).
+ * Order matches `toolCalls` stream order.
+ */
+export function groupContiguousToolCalls(
+  agentId: string,
+  calls: ToolCallRecord[]
+): ToolCallGroup[] {
+  const groups: ToolCallGroup[] = [];
+  for (const t of calls) {
+    const prev = groups[groups.length - 1];
+    if (prev && prev.tool_name === t.tool_name) {
+      prev.calls.push(t);
+    } else {
+      groups.push({
+        flowNodeId: toolGroupFlowNodeId(agentId, t.id),
+        agent: agentId,
+        tool_name: t.tool_name,
+        calls: [t],
+      });
+    }
+  }
+  return groups;
 }
 
 /** Match `pipelineToReactFlow` node widths (centers used in layout). */
@@ -177,6 +214,7 @@ export function computePipelineBlockLayout(
     const tools = toolCalls.filter(
       (t) => t.agent === agentId && visible.has(agentId)
     );
+    const toolGroups = groupContiguousToolCalls(agentId, tools);
 
     const agentCx = ROW_MARGIN_LEFT + LAYOUT_AGENT_W / 2;
     positions.set(agentId, { x: agentCx, y: rowY });
@@ -184,12 +222,11 @@ export function computePipelineBlockLayout(
     let cursorLeft = ROW_MARGIN_LEFT + LAYOUT_AGENT_W + ROW_TOOL_GAP;
     let exitId = agentId;
 
-    for (const t of tools) {
-      const nid = toolFlowNodeId(t.id);
+    for (const g of toolGroups) {
       const tcx = cursorLeft + LAYOUT_TOOL_W / 2;
-      positions.set(nid, { x: tcx, y: rowY });
+      positions.set(g.flowNodeId, { x: tcx, y: rowY });
       cursorLeft += LAYOUT_TOOL_W + ROW_TOOL_GAP;
-      exitId = nid;
+      exitId = g.flowNodeId;
     }
 
     spineExitByAgent.set(agentId, exitId);
