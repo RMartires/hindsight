@@ -70,11 +70,7 @@ function HomeDashboard() {
 
   return (
     <>
-      <AppHeader
-        status={status}
-        tradeDate={draftTradeDate}
-        ticker={draftTicker}
-      />
+      <AppHeader tradeDate={draftTradeDate} ticker={draftTicker} />
 
       <main className="main">
         <div className={dashboardGridClass}>

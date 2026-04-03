@@ -1,8 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import type { AgentStatus } from "@/lib/types";
 import type { AgentPipelineRfNode } from "@/lib/pipelineToReactFlow";
 
 const DEFAULT_ACCENT = "#5fffb0";
@@ -11,29 +9,12 @@ const MUTED_TEXT = "#71717a";
 const COMPLETE_STROKE = "#64748b";
 const COMPLETE_FILL = "rgba(30, 41, 59, 0.65)";
 
-function pseudoLatency(agentId: string, status: AgentStatus): string {
-  if (status === "pending") return "—";
-  let h = 0;
-  for (let i = 0; i < agentId.length; i++) {
-    h = (h << 5) - h + agentId.charCodeAt(i);
-    h |= 0;
-  }
-  const base = 8 + Math.abs(h % 190);
-  if (status === "in_progress") return `${base}ms`;
-  return `${base + 20}ms`;
-}
-
 export default function AgentPipelineNode({
   data,
   selected,
 }: NodeProps<AgentPipelineRfNode>) {
-  const { agentId, displayName, roleLabel, status, focused } = data;
+  const { displayName, roleLabel, status, focused } = data;
   const accentColor = DEFAULT_ACCENT;
-
-  const latency = useMemo(
-    () => pseudoLatency(agentId, status),
-    [agentId, status]
-  );
 
   const fillRgba = (a: number) => {
     const hex = accentColor.replace("#", "");
@@ -179,20 +160,6 @@ export default function AgentPipelineNode({
           }}
         >
           {displayName}
-        </span>
-        <span
-          style={{
-            position: "relative",
-            zIndex: 1,
-            fontFamily: "ui-monospace, monospace",
-            fontSize: 10,
-            letterSpacing: "0.5px",
-            color: MUTED_TEXT,
-          }}
-        >
-          {status === "completed" || status === "in_progress"
-            ? `LATENCY: ${latency}`
-            : "LATENCY: —"}
         </span>
       </div>
       <Handle

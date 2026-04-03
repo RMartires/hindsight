@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type {
   ActivityLogEntry,
   AgentStatus,
@@ -72,11 +72,6 @@ export default function AgentDetailsPanel({
   onClearFocus,
   onFocusTile,
 }: Props) {
-  const [traceLinkUrl, setTraceLinkUrl] = useState<string | null>(null);
-  const [traceLinkLoading, setTraceLinkLoading] = useState(false);
-
-  const hasTrace = Boolean(traceId);
-
   const liveTiles = useMemo(
     () =>
       buildLiveTiles(
@@ -160,25 +155,6 @@ export default function AgentDetailsPanel({
       status === "connecting" ||
       status === "done" ||
       status === "idle");
-
-  useEffect(() => {
-    setTraceLinkUrl(null);
-  }, [traceId]);
-
-  const handleViewExternalTrace = async () => {
-    if (!traceId) return;
-    setTraceLinkLoading(true);
-    try {
-      const res = await fetch(`/api/trace/${traceId}/link`);
-      const data = await res.json();
-      if (data?.url) setTraceLinkUrl(data.url);
-      if (data?.url) window.open(data.url, "_blank", "noopener,noreferrer");
-    } catch {
-      // ignore
-    } finally {
-      setTraceLinkLoading(false);
-    }
-  };
 
   return (
     <section className="panel panel--details-below" aria-label="Agent details">
@@ -354,26 +330,6 @@ export default function AgentDetailsPanel({
             <DecisionDisplay decision={decision} traceId={traceId} />
           </div>
         )}
-
-        <div className="agent-section">
-          <h3 className="section-title section-title--sm">EXTERNAL TRACE</h3>
-          <div className="external-trace-actions">
-            <button
-              type="button"
-              className={`external-trace-button ${hasTrace ? "" : "external-trace-button--disabled"}`}
-              onClick={handleViewExternalTrace}
-              disabled={!hasTrace || traceLinkLoading || status === "connecting"}
-            >
-              <span className="external-trace-icon" aria-hidden>
-                ↗
-              </span>
-              {traceLinkLoading ? "LOADING…" : "VIEW EXTERNAL TRACE"}
-            </button>
-            {traceLinkUrl && (
-              <div className="external-trace-hint">Opened in a new tab.</div>
-            )}
-          </div>
-        </div>
       </div>
     </section>
   );
