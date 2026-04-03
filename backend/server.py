@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 import logging
 import threading
 import time
@@ -37,6 +38,8 @@ runs: Dict[str, asyncio.Queue] = {}
 run_timestamps: Dict[str, float] = {}
 # Max run age in seconds (1 hour)
 MAX_RUN_AGE = 3600
+# Max seconds between streamed events before treating the run as stalled (default 30 min)
+STREAM_IDLE_TIMEOUT_SEC = float(os.getenv("STREAM_IDLE_TIMEOUT_SEC", "1800"))
 
 
 class AnalyzeRequest(BaseModel):
@@ -106,7 +109,9 @@ async def stream(run_id: str):
     async def event_generator():
         try:
             while True:
-                event = await asyncio.wait_for(queue.get(), timeout=600)
+                event = await asyncio.wait_for(
+                    queue.get(), timeout=STREAM_IDLE_TIMEOUT_SEC
+                )
                 event_type = event["type"]
                 data = json.dumps(event["data"])
                 yield {"event": event_type, "data": data}
