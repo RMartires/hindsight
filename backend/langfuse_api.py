@@ -12,10 +12,11 @@ def get_langfuse_rest_client():
     try:
         from langfuse import Langfuse
 
+        base_url = os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com")
         return Langfuse(
             public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
             secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
-            host=os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com"),
+            base_url=base_url,
         )
     except Exception:
         logger.exception("Failed to create Langfuse REST client")
@@ -29,11 +30,10 @@ def fetch_trace(trace_id: str) -> Optional[Dict[str, Any]]:
         return None
 
     try:
-        trace = client.fetch_trace(trace_id)
-        if not trace or not trace.data:
+        # Langfuse Python SDK v3+ exposes reads via the generated API client (not fetch_trace).
+        trace_data = client.api.trace.get(trace_id)
+        if not trace_data:
             return None
-
-        trace_data = trace.data
 
         # Build simplified node list from observations
         nodes = []

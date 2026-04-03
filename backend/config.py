@@ -1,9 +1,13 @@
 """Build a TradingAgents-compatible config dict from environment variables."""
 
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 
-load_dotenv()
+# Always load backend/.env regardless of process cwd (uvicorn, IDE, repo root).
+_backend_dir = Path(__file__).resolve().parent
+load_dotenv(_backend_dir / ".env")
 
 
 def build_config() -> dict:
@@ -12,9 +16,15 @@ def build_config() -> dict:
 
     config = dict(DEFAULT_CONFIG)
 
-    # LLM provider
-    if os.getenv("LLM_PROVIDER"):
-        config["llm_provider"] = os.getenv("LLM_PROVIDER")
+    # LLM provider — TradingAgents defaults to "openai" (needs OPENAI_API_KEY).
+    # If only OpenRouter is configured, use OPENROUTER_API_KEY + provider "openrouter".
+    explicit_provider = os.getenv("LLM_PROVIDER")
+    if explicit_provider:
+        config["llm_provider"] = explicit_provider
+    elif os.getenv("OPENROUTER_API_KEY") and not (
+        os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_KEY")
+    ):
+        config["llm_provider"] = "openrouter"
     if os.getenv("DEEP_THINK_LLM"):
         config["deep_think_llm"] = os.getenv("DEEP_THINK_LLM")
     if os.getenv("QUICK_THINK_LLM"):

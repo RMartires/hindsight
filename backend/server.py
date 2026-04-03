@@ -3,7 +3,6 @@
 import asyncio
 import json
 import logging
-import sys
 import threading
 import time
 import uuid
@@ -13,9 +12,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
-
-# Ensure TradingAgents is importable
-sys.path.insert(0, "../../TradingAgents")
 
 from stream_handler import run_analysis
 from langfuse_api import fetch_trace, get_public_link
