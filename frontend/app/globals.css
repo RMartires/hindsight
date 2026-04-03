@@ -772,6 +772,34 @@ body {
   border-left-color: var(--accent-green-neon);
 }
 
+.debate-collapsible__body .debate-bubble {
+  margin-top: 0;
+  border-radius: 0 8px 8px 8px;
+}
+
+.debate-collapsible__meta {
+  text-transform: none;
+}
+
+.decision-display__verdict-pill {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.decision-display__body {
+  padding-top: 8px;
+}
+
+.decision-display__body .decision-reasoning {
+  max-height: 320px;
+}
+
+.decision-verdict--in-panel {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
 .debate-speaker {
   font-size: 11px;
   font-weight: 600;

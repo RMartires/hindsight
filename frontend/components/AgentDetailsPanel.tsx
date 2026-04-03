@@ -13,6 +13,7 @@ import type { PipelineAnalystKey } from "@/lib/pipelineGraph";
 import { buildLiveTiles } from "@/lib/liveTiles";
 import ReportCard from "./ReportCard";
 import DecisionDisplay from "./DecisionDisplay";
+import DebateCollapsibleEntry from "./DebateCollapsibleEntry";
 
 function truncateId(id: string): string {
   if (id.length <= 12) return id;
@@ -269,27 +270,22 @@ export default function AgentDetailsPanel({
             </h3>
             <div className="debates-section agent-debates">
               {(focusedAgentId ? filteredDebates : debates).map((debate, i) => {
-                const ts = (focusedAgentId ? debateTimestampsFiltered : debateTimestamps)[i] ?? "—";
+                const ts =
+                  (focusedAgentId ? debateTimestampsFiltered : debateTimestamps)[i] ??
+                  "—";
                 const handle = speakerHandle(debate.speaker);
                 const isFundamental =
                   /fundamental/i.test(debate.speaker) ||
                   /fundamental/i.test(debate.content);
                 return (
-                  <div key={`${debate.speaker}-${i}`} className="debate-entry">
-                    <div className="debate-entry-header">
-                      <span
-                        className={`debate-handle ${isFundamental ? "debate-handle--fundamental" : ""}`}
-                      >
-                        {handle}
-                      </span>
-                      <span className="debate-timestamp">[{ts}]</span>
-                    </div>
-                    <div
-                      className={`debate-bubble ${debate.phase === "investment" ? "debate-bubble--investment" : ""}`}
-                    >
-                      {debate.content}
-                    </div>
-                  </div>
+                  <DebateCollapsibleEntry
+                    key={`${debate.speaker}-${debate.phase}-${i}`}
+                    speakerHandle={handle}
+                    timestamp={ts}
+                    phase={debate.phase}
+                    content={debate.content}
+                    isFundamental={isFundamental}
+                  />
                 );
               })}
             </div>
