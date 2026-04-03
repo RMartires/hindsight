@@ -26,6 +26,7 @@ export default function Home() {
     sessionId,
     activityLog,
     error,
+    pipelineTopology,
     startAnalysis,
     cancel,
   } = useAgentStream();
@@ -34,6 +35,7 @@ export default function Home() {
   const [draftTradeDate, setDraftTradeDate] = useState("");
   const [selectedAnalystKeys, setSelectedAnalystKeys] =
     useState<PipelineAnalystKey[]>(DEFAULT_ANALYSTS);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
 
   return (
     <>
@@ -49,10 +51,14 @@ export default function Home() {
             status={status}
             selectedAnalystKeys={selectedAnalystKeys}
             onSelectedAnalystKeysChange={setSelectedAnalystKeys}
-            onCancel={cancel}
-            onEngage={(ticker, date, analysts) =>
-              startAnalysis(ticker, date, analysts)
-            }
+            onCancel={() => {
+              setSelectedAgentId(null);
+              cancel();
+            }}
+            onEngage={(ticker, date, analysts) => {
+              setSelectedAgentId(null);
+              startAnalysis(ticker, date, analysts);
+            }}
             onContextChange={(t, d) => {
               setDraftTicker(t);
               setDraftTradeDate(d);
@@ -63,6 +69,9 @@ export default function Home() {
             agents={agents}
             status={status}
             selectedAnalystKeys={selectedAnalystKeys}
+            pipelineTopology={pipelineTopology}
+            selectedAgentId={selectedAgentId}
+            onSelectAgent={setSelectedAgentId}
           />
 
           <AgentDetailsPanel
@@ -75,6 +84,8 @@ export default function Home() {
             debates={debates}
             decision={decision}
             error={error}
+            focusedAgentId={selectedAgentId}
+            onClearFocus={() => setSelectedAgentId(null)}
           />
         </div>
       </main>

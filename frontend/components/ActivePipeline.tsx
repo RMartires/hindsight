@@ -1,14 +1,16 @@
 "use client";
 
-import type { AgentStatus } from "@/lib/types";
-import type { StreamStatus } from "@/lib/types";
+import type { AgentStatus, PipelineTopologyEvent, StreamStatus } from "@/lib/types";
 import type { PipelineAnalystKey } from "@/lib/pipelineGraph";
-import AgentFlowchart from "./AgentFlowchart";
+import AgentReactFlow from "./AgentReactFlow";
 
 interface Props {
   agents: Record<string, AgentStatus>;
   status: StreamStatus;
   selectedAnalystKeys: PipelineAnalystKey[];
+  pipelineTopology: PipelineTopologyEvent | null;
+  selectedAgentId: string | null;
+  onSelectAgent: (agentId: string | null) => void;
 }
 
 const SUBTITLE = "Forensic Analysis of Liquidity Cascades";
@@ -17,14 +19,20 @@ export default function ActivePipeline({
   agents,
   status,
   selectedAnalystKeys,
+  pipelineTopology,
+  selectedAgentId,
+  onSelectAgent,
 }: Props) {
   return (
     <section className="panel panel--center pipeline-panel">
-      <AgentFlowchart
+      <AgentReactFlow
         agents={agents}
         selectedAnalystKeys={selectedAnalystKeys}
         subtitle={SUBTITLE}
         streamStatus={status}
+        pipelineTopology={pipelineTopology}
+        selectedAgentId={selectedAgentId}
+        onSelectAgent={onSelectAgent}
       />
       <button
         type="button"

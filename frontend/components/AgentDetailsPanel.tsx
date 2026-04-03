@@ -18,6 +18,14 @@ const REPORT_LABELS: Record<string, string> = {
   trader_investment_plan: "Trader Plan",
 };
 
+/** Map agent display name (API id) → report section key from stream */
+const AGENT_TO_REPORT: Record<string, string> = {
+  "Market Analyst": "market_report",
+  "Social Analyst": "sentiment_report",
+  "News Analyst": "news_report",
+  "Fundamentals Analyst": "fundamentals_report",
+};
+
 
 function truncateId(id: string): string {
   if (id.length <= 12) return id;
@@ -44,6 +52,8 @@ interface Props {
   debates: DebateEvent[];
   decision: DecisionEvent | null;
   error: string | null;
+  focusedAgentId?: string | null;
+  onClearFocus?: () => void;
 }
 
 export default function AgentDetailsPanel({
@@ -56,16 +66,35 @@ export default function AgentDetailsPanel({
   debates,
   decision,
   error,
+  focusedAgentId = null,
+  onClearFocus,
 }: Props) {
   const [traceLinkUrl, setTraceLinkUrl] = useState<string | null>(null);
   const [traceLinkLoading, setTraceLinkLoading] = useState(false);
 
   const hasTrace = Boolean(traceId);
 
-  const reportEntries = useMemo(
-    () => Object.entries(reports),
-    [reports]
-  );
+  const reportEntries = useMemo(() => {
+    const entries = Object.entries(reports);
+    if (!focusedAgentId) return entries;
+    const key = AGENT_TO_REPORT[focusedAgentId];
+    if (!key) return entries;
+    return [[key, reports[key] ?? ""]] as [string, string][];
+  }, [reports, focusedAgentId]);
+
+  const filteredActivityLog = useMemo(() => {
+    if (!focusedAgentId) return activityLog;
+    return activityLog.filter(
+      (e) =>
+        e.message.includes(focusedAgentId) ||
+        e.message.startsWith(`${focusedAgentId}:`)
+    );
+  }, [activityLog, focusedAgentId]);
+
+  const filteredDebates = useMemo(() => {
+    if (!focusedAgentId) return debates;
+    return debates.filter((d) => d.speaker === focusedAgentId);
+  }, [debates, focusedAgentId]);
 
   const debateTimestamps = useMemo(
     () =>
@@ -73,6 +102,15 @@ export default function AgentDetailsPanel({
         .filter((e) => e.message.startsWith("Debate:"))
         .map((e) => formatLogTime(e.at)),
     [activityLog]
+  );
+
+  const debateTimestampsFiltered = useMemo(
+    () =>
+      filteredDebates.map((d) => {
+        const idx = debates.indexOf(d);
+        return idx >= 0 ? debateTimestamps[idx] ?? "—" : "—";
+      }),
+    [filteredDebates, debates, debateTimestamps]
   );
 
   const online =
@@ -140,13 +178,29 @@ export default function AgentDetailsPanel({
 
         {error && <div className="agent-error">Error: {error}</div>}
 
+        {focusedAgentId && onClearFocus && (
+          <div className="agent-focus-banner">
+            <span className="agent-focus-label">Focused</span>
+            <span className="agent-focus-name">{focusedAgentId}</span>
+            <button
+              type="button"
+              className="agent-focus-clear"
+              onClick={onClearFocus}
+            >
+              Clear
+            </button>
+          </div>
+        )}
+
         <div className="agent-section">
           <h3 className="section-title section-title--sm">AGENT STATUS FEED</h3>
           <div className="activity-log">
-            {activityLog.length === 0 ? (
-              <div className="activity-log-empty">Waiting for events…</div>
+            {(focusedAgentId ? filteredActivityLog : activityLog).length === 0 ? (
+              <div className="activity-log-empty">
+                {focusedAgentId ? "No feed lines for this agent yet." : "Waiting for events…"}
+              </div>
             ) : (
-              activityLog
+              (focusedAgentId ? filteredActivityLog : activityLog)
                 .slice()
                 .reverse()
                 .slice(0, 12)
@@ -182,14 +236,14 @@ export default function AgentDetailsPanel({
           </div>
         </div>
 
-        {debates.length > 0 && (
+        {(focusedAgentId ? filteredDebates : debates).length > 0 && (
           <div className="agent-section">
             <h3 className="section-title section-title--sm">
               SYNTHESIS PHASE (DEBATE)
             </h3>
             <div className="debates-section agent-debates">
-              {debates.map((debate, i) => {
-                const ts = debateTimestamps[i] ?? "—";
+              {(focusedAgentId ? filteredDebates : debates).map((debate, i) => {
+                const ts = (focusedAgentId ? debateTimestampsFiltered : debateTimestamps)[i] ?? "—";
                 const handle = speakerHandle(debate.speaker);
                 const isFundamental =
                   /fundamental/i.test(debate.speaker) ||
@@ -216,7 +270,8 @@ export default function AgentDetailsPanel({
           </div>
         )}
 
-        {decision && (
+        {decision &&
+          (!focusedAgentId || focusedAgentId === "Risk Judge") && (
           <div className="agent-section">
             <h3 className="section-title section-title--sm">FINAL DECISION</h3>
             <DecisionDisplay decision={decision} traceId={traceId} />

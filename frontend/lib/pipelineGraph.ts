@@ -73,34 +73,39 @@ export function getDisplayName(agentId: string): string {
   return PIPELINE_DISPLAY_NAMES[agentId] ?? agentId;
 }
 
-/** Full edge list; filter with filterEdges + visible nodes */
-export function buildAllEdges(selectedKeys: PipelineAnalystKey[]): EdgeDef[] {
+/**
+ * Full ordered list of agents for this run (analysts in UI order, then fixed tail).
+ * Used for sequential edges and vertical tree layout.
+ */
+export function getPipelineOrder(selectedKeys: PipelineAnalystKey[]): string[] {
+  const analysts = selectedToOrderedAnalysts(selectedKeys).map(
+    (k) => ANALYST_AGENT_NAMES[k]
+  );
+  return [...analysts, ...DOWNSTREAM_AGENT_IDS];
+}
+
+/** One edge per consecutive pair: 1→2→3→… (no hub/fan, no LangGraph crossings). */
+export function buildSequentialEdges(selectedKeys: PipelineAnalystKey[]): EdgeDef[] {
+  const order = getPipelineOrder(selectedKeys);
   const edges: EdgeDef[] = [];
-  const { hub, branches } = getHubAndBranches(selectedKeys);
-  const lastA = getLastSelectedAnalystName(selectedKeys);
-
-  if (hub && branches.length > 0) {
-    for (const b of branches) {
-      edges.push({ from: hub, to: b });
-    }
+  for (let i = 0; i < order.length - 1; i++) {
+    edges.push({ from: order[i], to: order[i + 1] });
   }
-
-  if (lastA) {
-    edges.push({ from: lastA, to: "Bull Researcher" });
-    edges.push({ from: lastA, to: "Bear Researcher" });
-  }
-
-  edges.push({ from: "Bull Researcher", to: "Research Manager" });
-  edges.push({ from: "Bear Researcher", to: "Research Manager" });
-  edges.push({ from: "Research Manager", to: "Trader" });
-  edges.push({ from: "Trader", to: "Aggressive Analyst" });
-  edges.push({ from: "Trader", to: "Conservative Analyst" });
-  edges.push({ from: "Trader", to: "Neutral Analyst" });
-  edges.push({ from: "Aggressive Analyst", to: "Risk Judge" });
-  edges.push({ from: "Conservative Analyst", to: "Risk Judge" });
-  edges.push({ from: "Neutral Analyst", to: "Risk Judge" });
-
   return edges;
+}
+
+/** @deprecated Prefer buildSequentialEdges; kept for any legacy imports */
+export function buildAllEdges(selectedKeys: PipelineAnalystKey[]): EdgeDef[] {
+  return buildSequentialEdges(selectedKeys);
+}
+
+/** Visible nodes ordered along the pipeline (stable top-to-bottom). */
+export function sortVisibleByPipeline(
+  visibleIds: string[],
+  selectedKeys: PipelineAnalystKey[]
+): string[] {
+  const want = new Set(visibleIds);
+  return getPipelineOrder(selectedKeys).filter((id) => want.has(id));
 }
 
 export function filterEdges(
@@ -118,63 +123,30 @@ export interface LayoutPos {
   y: number;
 }
 
-const COL_X = [140, 380, 600, 820, 1040, 1260, 1480];
+/** Horizontal center of the vertical spine */
+const TREE_CENTER_X = 320;
+/** Y of the first (root) node */
+const TREE_START_Y = 90;
+/** Vertical gap between node centers (node card ~92px tall) */
+const TREE_STEP_Y = 128;
 
-/** Visible agent ids must include only in_progress | completed */
-export function computeLayout(
-  visibleIds: string[],
-  hub: string | null,
-  branches: string[]
-): Map<string, LayoutPos> {
+/**
+ * Vertical tree spine: step 0 at the top, last step at the bottom.
+ * `orderedVisibleIds` must already be sorted via sortVisibleByPipeline.
+ */
+export function computeLayout(orderedVisibleIds: string[]): Map<string, LayoutPos> {
   const pos = new Map<string, LayoutPos>();
-  const centerY = 200;
-
-  if (hub && visibleIds.includes(hub)) {
-    pos.set(hub, { x: COL_X[0], y: centerY });
-  }
-
-  const visBranches = branches.filter((id) => visibleIds.includes(id));
-  const nB = visBranches.length;
-  if (nB > 0) {
-    const spacing = nB <= 1 ? 0 : 130;
-    const startY = centerY - ((nB - 1) * spacing) / 2;
-    visBranches.forEach((id, i) => {
-      pos.set(id, { x: COL_X[1], y: nB === 1 ? centerY : startY + i * spacing });
+  orderedVisibleIds.forEach((id, i) => {
+    pos.set(id, {
+      x: TREE_CENTER_X,
+      y: TREE_START_Y + i * TREE_STEP_Y,
     });
-  }
-
-  if (visibleIds.includes("Bull Researcher")) {
-    pos.set("Bull Researcher", { x: COL_X[2], y: 110 });
-  }
-  if (visibleIds.includes("Bear Researcher")) {
-    pos.set("Bear Researcher", { x: COL_X[2], y: 290 });
-  }
-  if (visibleIds.includes("Research Manager")) {
-    pos.set("Research Manager", { x: COL_X[3], y: centerY });
-  }
-  if (visibleIds.includes("Trader")) {
-    pos.set("Trader", { x: COL_X[4], y: centerY });
-  }
-
-  const riskIds = [
-    "Aggressive Analyst",
-    "Conservative Analyst",
-    "Neutral Analyst",
-  ];
-  const visRisk = riskIds.filter((id) => visibleIds.includes(id));
-  visRisk.forEach((id, i) => {
-    pos.set(id, { x: COL_X[5], y: centerY - 90 + i * 90 });
   });
-
-  if (visibleIds.includes("Risk Judge")) {
-    pos.set("Risk Judge", { x: COL_X[6], y: centerY });
-  }
-
   return pos;
 }
 
 export function computeViewBox(positions: Map<string, LayoutPos>): string {
-  if (positions.size === 0) return "0 0 760 320";
+  if (positions.size === 0) return "0 0 640 720";
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
@@ -192,8 +164,8 @@ export function computeViewBox(positions: Map<string, LayoutPos>): string {
   maxX += pad;
   minY -= pad;
   maxY += pad;
-  const w = Math.max(760, maxX - minX);
-  const h = Math.max(320, maxY - minY);
+  const w = Math.max(480, maxX - minX);
+  const h = Math.max(400, maxY - minY);
   return `${minX} ${minY} ${w} ${h}`;
 }
 

@@ -6,6 +6,8 @@ import type {
   AnalyzeResponse,
   DebateEvent,
   DecisionEvent,
+  GraphStepEvent,
+  PipelineTopologyEvent,
   StreamState,
 } from "@/lib/types";
 import { backendStreamUrl } from "@/lib/publicBackend";
@@ -21,6 +23,8 @@ const INITIAL_STATE: StreamState = {
   sessionId: null,
   activityLog: [],
   error: null,
+  pipelineTopology: null,
+  lastGraphStep: null,
 };
 
 export function useAgentStream() {
@@ -89,7 +93,23 @@ export function useAgentStream() {
             ...s,
             agents: { ...s.agents, [event.agent]: event.status },
           }));
-          pushLog(`${event.agent}: ${event.status}`);
+          const ts = event.time ? ` @ ${event.time}` : "";
+          pushLog(`${event.agent}: ${event.status}${ts}`);
+        });
+
+        source.addEventListener("pipeline_topology", (e) => {
+          const event: PipelineTopologyEvent = JSON.parse((e as MessageEvent).data);
+          setState((s) => ({
+            ...s,
+            pipelineTopology: event,
+          }));
+          const ec = event.edges?.length ?? 0;
+          pushLog(`Pipeline topology (${event.source}, ${ec} edges)`);
+        });
+
+        source.addEventListener("graph_step", (e) => {
+          const event: GraphStepEvent = JSON.parse((e as MessageEvent).data);
+          setState((s) => ({ ...s, lastGraphStep: event }));
         });
 
         source.addEventListener("report", (e) => {

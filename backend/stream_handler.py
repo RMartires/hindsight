@@ -1,12 +1,13 @@
 """Bridge between TradingAgentsGraph.graph.stream() and SSE events."""
 
 import asyncio
-import json
 import logging
 import threading
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Dict, List, Optional
 
 from config import build_config
+from pipeline_topology import build_topology_payload, maybe_graph_step_keys
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,10 @@ ANALYST_REPORT_MAP = {
 def _emit(queue: asyncio.Queue, loop: asyncio.AbstractEventLoop, event_type: str, data: dict):
     """Thread-safe push of an SSE event onto the async queue."""
     loop.call_soon_threadsafe(queue.put_nowait, {"type": event_type, "data": data})
+
+
+def _utc_iso() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def run_analysis(
@@ -69,6 +74,12 @@ def run_analysis(
             callbacks=callbacks,
         )
 
+        try:
+            topo = build_topology_payload(graph.graph, selected)
+            _emit(queue, loop, "pipeline_topology", topo)
+        except Exception:
+            logger.warning("Failed to emit pipeline_topology", exc_info=True)
+
         # Initialize state
         init_state = graph.propagator.create_initial_state(ticker, trade_date)
         args = graph.propagator.get_graph_args(callbacks=callbacks or None)
@@ -80,9 +91,16 @@ def run_analysis(
         def update_agent(name: str, status: str):
             if agent_statuses.get(name) != status:
                 agent_statuses[name] = status
-                _emit(queue, loop, "agent_status", {"agent": name, "status": status})
+                if status == "pending":
+                    return
+                _emit(
+                    queue,
+                    loop,
+                    "agent_status",
+                    {"agent": name, "status": status, "time": _utc_iso()},
+                )
 
-        # Set all agents to pending initially
+        # Pending locally (no SSE) so the UI only shows in_progress / completed nodes.
         all_agents = []
         for key in selected:
             all_agents.append(ANALYST_AGENT_NAMES[key])
@@ -93,7 +111,7 @@ def run_analysis(
             "Risk Judge",
         ])
         for agent in all_agents:
-            update_agent(agent, "pending")
+            agent_statuses[agent] = "pending"
 
         # Mark first analyst as in_progress
         first_agent = ANALYST_AGENT_NAMES[selected[0]]
@@ -102,6 +120,15 @@ def run_analysis(
         trace = []
         for chunk in graph.graph.stream(init_state, **args):
             trace.append(chunk)
+
+            step_key = maybe_graph_step_keys(chunk)
+            if step_key:
+                _emit(
+                    queue,
+                    loop,
+                    "graph_step",
+                    {"node_id": step_key, "time": _utc_iso()},
+                )
 
             # --- Analyst reports ---
             found_active = False

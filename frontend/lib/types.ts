@@ -3,6 +3,31 @@ export type AgentStatus = "pending" | "in_progress" | "completed";
 export interface AgentStatusEvent {
   agent: string;
   status: AgentStatus;
+  /** ISO-8601 timestamp from the server when status changed */
+  time?: string;
+}
+
+export interface PipelineTopologyNode {
+  id: string;
+  label: string;
+}
+
+export interface PipelineTopologyEdge {
+  from: string;
+  to: string;
+}
+
+export interface PipelineTopologyEvent {
+  nodes: PipelineTopologyNode[];
+  edges: PipelineTopologyEdge[];
+  source: string;
+  raw_node_count?: number;
+  raw_edge_count?: number;
+}
+
+export interface GraphStepEvent {
+  node_id: string;
+  time?: string;
 }
 
 export interface ReportEvent {
@@ -54,4 +79,8 @@ export interface StreamState {
   sessionId: string | null;
   activityLog: ActivityLogEntry[];
   error: string | null;
+  /** LangGraph-derived edges for this run (normalized on the server). */
+  pipelineTopology: PipelineTopologyEvent | null;
+  /** Last single-node stream hint when the backend detects an isolated chunk key. */
+  lastGraphStep: GraphStepEvent | null;
 }

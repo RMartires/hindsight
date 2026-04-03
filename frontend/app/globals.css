@@ -1,3 +1,5 @@
+@import "@xyflow/react/dist/style.css";
+
 :root {
   --bg: #0a0a0a;
   --surface: #111113;
@@ -394,7 +396,7 @@ body {
 /* ---- Flowchart ---- */
 .pipeline-panel {
   position: relative;
-  min-height: 280px;
+  min-height: 320px;
 }
 
 .flowchart-container {
@@ -480,6 +482,96 @@ body {
   min-height: 200px;
 }
 
+.flowchart-body--reactflow {
+  padding: 0;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Explicit px height: percentage heights on RF parent collapse when ancestors only use min-height (RF error #004). */
+.flowchart-react-flow-wrap {
+  width: 100%;
+  flex: 0 0 auto;
+  height: min(52vh, 560px);
+  min-height: 420px;
+}
+
+.react-flow-pipeline .react-flow {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  background: var(--surface);
+}
+
+.react-flow-pipeline .react-flow__controls {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.react-flow-pipeline .react-flow__controls-button {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  fill: var(--text-dim);
+}
+
+.react-flow-pipeline .react-flow__controls-button:hover {
+  background: var(--surface-hover);
+  fill: var(--accent-green-neon);
+}
+
+.react-flow-pipeline .react-flow__attribution {
+  display: none;
+}
+
+.agent-focus-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  background: rgba(95, 255, 176, 0.08);
+  border: 1px solid rgba(95, 255, 176, 0.28);
+  border-radius: var(--radius);
+}
+
+.agent-focus-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.agent-focus-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-green-neon);
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-focus-clear {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-bright);
+  background: var(--bg);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.agent-focus-clear:hover {
+  border-color: var(--accent-green-neon);
+  color: var(--accent-green-neon);
+}
+
 .flowchart-empty {
   padding: 32px 24px 48px;
   text-align: center;
@@ -505,16 +597,6 @@ body {
 .flowchart-empty-hint code {
   font-size: 12px;
   color: var(--accent-green-neon);
-}
-
-.flowchart-svg-wrap {
-  overflow: auto;
-  max-width: 100%;
-}
-
-.flowchart-svg--dynamic {
-  min-width: 640px;
-  min-height: 280px;
 }
 
 .pipeline-fab {
@@ -551,11 +633,6 @@ body {
   box-shadow: 0 0 36px var(--accent-green-glow);
 }
 
-.flowchart-svg {
-  width: 100%;
-  height: auto;
-}
-
 .section-title {
   font-size: 11px;
   font-weight: 600;
@@ -565,14 +642,35 @@ body {
   margin-bottom: 16px;
 }
 
-/* Node pulse animation */
+/* Node pulse animation — active / in_progress */
 .node-pulse {
-  animation: node-glow 1.5s ease-in-out infinite;
+  animation: node-glow 1.4s ease-in-out infinite;
 }
 
 @keyframes node-glow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%, 100% {
+    opacity: 1;
+    stroke-width: 3px;
+  }
+  50% {
+    opacity: 0.35;
+    stroke-width: 2px;
+  }
+}
+
+.agent-node--in_progress .node-status-dot--live {
+  animation: node-dot-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes node-dot-pulse {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(95, 255, 176, 0.85));
+  }
+  50% {
+    opacity: 0.65;
+    filter: drop-shadow(0 0 2px rgba(95, 255, 176, 0.35));
+  }
 }
 
 /* ---- Report Cards ---- */
