@@ -11,8 +11,8 @@ import {
   type PipelineAnalystKey,
 } from "@/lib/pipelineGraph";
 
-const DEFAULT_ANALYSTS = () =>
-  [...ANALYST_ORDER] as PipelineAnalystKey[];
+/** Full analyst set for every run (sidebar selector removed). */
+const ALL_ANALYSTS: PipelineAnalystKey[] = [...ANALYST_ORDER];
 
 export default function Home() {
   const {
@@ -27,16 +27,14 @@ export default function Home() {
     activityLog,
     error,
     pipelineTopology,
+    toolCalls,
     startAnalysis,
     cancel,
   } = useAgentStream();
 
   const [draftTicker, setDraftTicker] = useState("");
   const [draftTradeDate, setDraftTradeDate] = useState("");
-  const [selectedAnalystKeys, setSelectedAnalystKeys] =
-    useState<PipelineAnalystKey[]>(DEFAULT_ANALYSTS);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
-
   return (
     <>
       <AppHeader
@@ -49,15 +47,13 @@ export default function Home() {
         <div className="dashboard-grid">
           <LeftRail
             status={status}
-            selectedAnalystKeys={selectedAnalystKeys}
-            onSelectedAnalystKeysChange={setSelectedAnalystKeys}
             onCancel={() => {
               setSelectedAgentId(null);
               cancel();
             }}
-            onEngage={(ticker, date, analysts) => {
+            onEngage={(ticker, date) => {
               setSelectedAgentId(null);
-              startAnalysis(ticker, date, analysts);
+              startAnalysis(ticker, date, ALL_ANALYSTS);
             }}
             onContextChange={(t, d) => {
               setDraftTicker(t);
@@ -65,28 +61,31 @@ export default function Home() {
             }}
           />
 
-          <ActivePipeline
-            agents={agents}
-            status={status}
-            selectedAnalystKeys={selectedAnalystKeys}
-            pipelineTopology={pipelineTopology}
-            selectedAgentId={selectedAgentId}
-            onSelectAgent={setSelectedAgentId}
-          />
+          <div className="dashboard-main-column">
+            <ActivePipeline
+              agents={agents}
+              status={status}
+              selectedAnalystKeys={ALL_ANALYSTS}
+              pipelineTopology={pipelineTopology}
+              selectedAgentId={selectedAgentId}
+              onSelectAgent={setSelectedAgentId}
+              toolCalls={toolCalls}
+            />
 
-          <AgentDetailsPanel
-            status={status}
-            runId={runId}
-            traceId={traceId}
-            sessionId={sessionId}
-            activityLog={activityLog}
-            reports={reports}
-            debates={debates}
-            decision={decision}
-            error={error}
-            focusedAgentId={selectedAgentId}
-            onClearFocus={() => setSelectedAgentId(null)}
-          />
+            <AgentDetailsPanel
+              status={status}
+              runId={runId}
+              traceId={traceId}
+              sessionId={sessionId}
+              activityLog={activityLog}
+              reports={reports}
+              debates={debates}
+              decision={decision}
+              error={error}
+              focusedAgentId={selectedAgentId}
+              onClearFocus={() => setSelectedAgentId(null)}
+            />
+          </div>
         </div>
       </main>
     </>

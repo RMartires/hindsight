@@ -38,6 +38,26 @@ def canonicalize_graph_node_id(raw_id: str) -> Optional[str]:
     s = _strip_progress_suffix(raw_id.strip())
     low = s.lower().replace("_", " ").replace("-", " ")
 
+    # LangGraph tool sub-nodes (e.g. tools_social → "tools social") → owning analyst
+    if low.startswith("tools"):
+        if "social" in low:
+            return "Social Analyst"
+        if "news" in low:
+            return "News Analyst"
+        if "fundamental" in low:
+            return "Fundamentals Analyst"
+        if "market" in low:
+            return "Market Analyst"
+    if "clear" in low:
+        if "social" in low:
+            return "Social Analyst"
+        if "news" in low:
+            return "News Analyst"
+        if "fundamental" in low:
+            return "Fundamentals Analyst"
+        if "market" in low:
+            return "Market Analyst"
+
     if low in ("market analyst",) or ("market" in low and "analyst" in low and "fundamental" not in low):
         return "Market Analyst"
     if ("social" in low and "analyst" in low) or low == "social analyst":

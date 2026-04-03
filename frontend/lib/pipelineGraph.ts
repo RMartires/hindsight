@@ -1,4 +1,4 @@
-import type { AgentStatus } from "@/lib/types";
+import type { AgentStatus, ToolCallRecord } from "@/lib/types";
 
 /** Mirrors backend/stream_handler.py ANALYST_ORDER */
 export type PipelineAnalystKey = "market" | "fundamentals" | "news" | "social";
@@ -143,6 +143,60 @@ export function computeLayout(orderedVisibleIds: string[]): Map<string, LayoutPo
     });
   });
   return pos;
+}
+
+/** React Flow node id for a tool row from SSE `tool_call.id`. */
+export function toolFlowNodeId(toolCallId: string): string {
+  return `tool:${toolCallId}`;
+}
+
+/** Match `pipelineToReactFlow` node widths (centers used in layout). */
+const LAYOUT_AGENT_W = 208;
+const LAYOUT_TOOL_W = 210;
+const ROW_MARGIN_LEFT = 48;
+const ROW_TOOL_GAP = 18;
+/** Vertical distance between row centerlines (agent + tools share one rowY). */
+const ROW_STEP_Y = 132;
+
+/**
+ * One row per agent: agent on the left, all its tool nodes to the right on the same Y.
+ * Next agent (and its tools) starts on the row below.
+ */
+export function computePipelineBlockLayout(
+  orderedVisibleAgentIds: string[],
+  toolCalls: ToolCallRecord[]
+): { positions: Map<string, LayoutPos>; spineExitByAgent: Map<string, string> } {
+  const positions = new Map<string, LayoutPos>();
+  const spineExitByAgent = new Map<string, string>();
+  const visible = new Set(orderedVisibleAgentIds);
+
+  let rowIndex = 0;
+  for (const agentId of orderedVisibleAgentIds) {
+    const rowY = TREE_START_Y + rowIndex * ROW_STEP_Y;
+
+    const tools = toolCalls.filter(
+      (t) => t.agent === agentId && visible.has(agentId)
+    );
+
+    const agentCx = ROW_MARGIN_LEFT + LAYOUT_AGENT_W / 2;
+    positions.set(agentId, { x: agentCx, y: rowY });
+
+    let cursorLeft = ROW_MARGIN_LEFT + LAYOUT_AGENT_W + ROW_TOOL_GAP;
+    let exitId = agentId;
+
+    for (const t of tools) {
+      const nid = toolFlowNodeId(t.id);
+      const tcx = cursorLeft + LAYOUT_TOOL_W / 2;
+      positions.set(nid, { x: tcx, y: rowY });
+      cursorLeft += LAYOUT_TOOL_W + ROW_TOOL_GAP;
+      exitId = nid;
+    }
+
+    spineExitByAgent.set(agentId, exitId);
+    rowIndex += 1;
+  }
+
+  return { positions, spineExitByAgent };
 }
 
 export function computeViewBox(positions: Map<string, LayoutPos>): string {

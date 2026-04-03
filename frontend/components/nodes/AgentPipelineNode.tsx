@@ -82,6 +82,7 @@ export default function AgentPipelineNode({
   return (
     <>
       <Handle
+        id="spine-in"
         type="target"
         position={Position.Top}
         style={{
@@ -195,6 +196,21 @@ export default function AgentPipelineNode({
         </span>
       </div>
       <Handle
+        id="tools-out"
+        type="source"
+        position={Position.Right}
+        style={{
+          right: 0,
+          top: "50%",
+          transform: "translate(30%, -50%)",
+          background: "#52525b",
+          border: "1px solid var(--border)",
+          width: 8,
+          height: 8,
+        }}
+      />
+      <Handle
+        id="spine-out"
         type="source"
         position={Position.Bottom}
         style={{

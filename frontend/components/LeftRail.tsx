@@ -5,30 +5,12 @@ import DateDial from "./DateDial";
 import TickerInput from "./TickerInput";
 import type { StreamStatus } from "@/lib/types";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
-import {
-  ANALYST_ORDER,
-  type PipelineAnalystKey,
-} from "@/lib/pipelineGraph";
-
 interface Props {
   status: StreamStatus;
-  selectedAnalystKeys: PipelineAnalystKey[];
-  onSelectedAnalystKeysChange: (keys: PipelineAnalystKey[]) => void;
-  onEngage: (ticker: string, date: string, analysts: PipelineAnalystKey[]) => void;
+  onEngage: (ticker: string, date: string) => void;
   onCancel: () => void;
   onContextChange?: (ticker: string, date: string) => void;
 }
-
-const ANALYST_OPTIONS: Array<{
-  key: PipelineAnalystKey;
-  label: string;
-  icon: string;
-}> = [
-  { key: "market", label: "Market Analyst", icon: "◉" },
-  { key: "fundamentals", label: "Fundamental", icon: "◇" },
-  { key: "news", label: "Technical", icon: "◎" },
-  { key: "social", label: "Sentiment", icon: "○" },
-];
 
 function BarChartIcon() {
   return (
@@ -54,8 +36,6 @@ function BarChartIcon() {
 
 export default function LeftRail({
   status,
-  selectedAnalystKeys,
-  onSelectedAnalystKeysChange,
   onEngage,
   onCancel,
   onContextChange,
@@ -66,22 +46,9 @@ export default function LeftRail({
   const health = useBackendHealth(15000);
   const healthy = health.status === "ok" && !health.error;
 
-  const toggle = (key: PipelineAnalystKey) => {
-    const next = new Set(selectedAnalystKeys);
-    if (next.has(key)) {
-      if (next.size <= 1) return;
-      next.delete(key);
-    } else {
-      next.add(key);
-    }
-    onSelectedAnalystKeysChange(
-      ANALYST_ORDER.filter((k) => next.has(k)) as PipelineAnalystKey[]
-    );
-  };
-
   const handleEngage = () => {
     if (!ticker.trim() || !date) return;
-    onEngage(ticker.trim(), date, selectedAnalystKeys);
+    onEngage(ticker.trim(), date);
   };
 
   const setDateAndNotify = (d: string) => {
@@ -93,10 +60,6 @@ export default function LeftRail({
     setTicker(t);
     onContextChange?.(t, date);
   };
-
-  const navItems = ANALYST_ORDER.map((key) =>
-    ANALYST_OPTIONS.find((o) => o.key === key)
-  ).filter(Boolean) as typeof ANALYST_OPTIONS;
 
   return (
     <aside className="rail rail--left">
@@ -141,29 +104,6 @@ export default function LeftRail({
             }}
           />
           <TickerInput value={ticker} onChange={setTickerAndNotify} />
-        </div>
-
-        <div className="left-section">
-          <h3 className="section-title section-title--sm">Analysts</h3>
-          <div className="analyst-nav-list" role="list">
-            {navItems.map((o) => {
-              const active = selectedAnalystKeys.includes(o.key);
-              return (
-                <button
-                  key={o.key}
-                  type="button"
-                  role="listitem"
-                  className={`analyst-nav-item ${active ? "analyst-nav-item--active" : ""}`}
-                  onClick={() => toggle(o.key)}
-                >
-                  <span className="analyst-nav-icon" aria-hidden>
-                    {o.icon}
-                  </span>
-                  {o.label}
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         <div className="left-section">

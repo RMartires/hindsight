@@ -30,6 +30,16 @@ export interface GraphStepEvent {
   time?: string;
 }
 
+/** One completed tool invocation (from SSE `tool_call`). */
+export interface ToolCallRecord {
+  id: string;
+  agent: string;
+  tool_name: string;
+  input: string | null;
+  output: string | null;
+  time?: string;
+}
+
 export interface ReportEvent {
   section: string;
   content: string;
@@ -83,4 +93,6 @@ export interface StreamState {
   pipelineTopology: PipelineTopologyEvent | null;
   /** Last single-node stream hint when the backend detects an isolated chunk key. */
   lastGraphStep: GraphStepEvent | null;
+  /** Tool invocations attributed to an agent (for graph + drill-down). */
+  toolCalls: ToolCallRecord[];
 }

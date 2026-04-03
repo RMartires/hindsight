@@ -140,7 +140,7 @@ export default function AgentDetailsPanel({
   };
 
   return (
-    <aside className="panel panel--right">
+    <section className="panel panel--details-below" aria-label="Agent details">
       <div className="agent-details-inner">
         <div className="agent-title-row">
           <div className="agent-title">Agent Details</div>
@@ -298,6 +298,6 @@ export default function AgentDetailsPanel({
           </div>
         </div>
       </div>
-    </aside>
+    </section>
   );
 }

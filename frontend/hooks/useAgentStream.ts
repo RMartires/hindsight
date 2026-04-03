@@ -9,6 +9,7 @@ import type {
   GraphStepEvent,
   PipelineTopologyEvent,
   StreamState,
+  ToolCallRecord,
 } from "@/lib/types";
 import { backendStreamUrl } from "@/lib/publicBackend";
 
@@ -25,6 +26,7 @@ const INITIAL_STATE: StreamState = {
   error: null,
   pipelineTopology: null,
   lastGraphStep: null,
+  toolCalls: [],
 };
 
 export function useAgentStream() {
@@ -110,6 +112,15 @@ export function useAgentStream() {
         source.addEventListener("graph_step", (e) => {
           const event: GraphStepEvent = JSON.parse((e as MessageEvent).data);
           setState((s) => ({ ...s, lastGraphStep: event }));
+        });
+
+        source.addEventListener("tool_call", (e) => {
+          const ev: ToolCallRecord = JSON.parse((e as MessageEvent).data);
+          setState((s) => ({
+            ...s,
+            toolCalls: [...s.toolCalls, ev],
+          }));
+          pushLog(`Tool ${ev.tool_name} (${ev.agent})`);
         });
 
         source.addEventListener("report", (e) => {

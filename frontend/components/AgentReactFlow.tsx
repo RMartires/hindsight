@@ -11,27 +11,40 @@ import {
   useNodesState,
   useReactFlow,
 } from "@xyflow/react";
-import type { AgentStatus, PipelineTopologyEvent, StreamStatus } from "@/lib/types";
+import type {
+  AgentStatus,
+  PipelineTopologyEvent,
+  StreamStatus,
+  ToolCallRecord,
+} from "@/lib/types";
 import type { PipelineAnalystKey } from "@/lib/pipelineGraph";
 import { buildPipelineReactFlowElements } from "@/lib/pipelineToReactFlow";
-import type { AgentPipelineRfNode } from "@/lib/pipelineToReactFlow";
+import type { PipelineFlowNode } from "@/lib/pipelineToReactFlow";
 import AgentPipelineNode from "@/components/nodes/AgentPipelineNode";
+import ToolPipelineNode from "@/components/nodes/ToolPipelineNode";
 
 const DEFAULT_SUBTITLE = "Forensic Analysis of Liquidity Cascades";
 
-const nodeTypes = {
-  agentPipeline: AgentPipelineNode,
-};
+const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 1 } as const;
 
-function FitViewOnGraphChange({ nodeCount }: { nodeCount: number }) {
+function FitViewOnGraphChange({
+  nodeCount,
+  layoutKey,
+}: {
+  nodeCount: number;
+  layoutKey: string;
+}) {
   const { fitView } = useReactFlow();
+  const fitViewRef = useRef(fitView);
+  fitViewRef.current = fitView;
+
   useLayoutEffect(() => {
     if (nodeCount === 0) return;
     const id = requestAnimationFrame(() => {
-      fitView({ padding: 0.25, duration: 180, maxZoom: 1.25 });
+      fitViewRef.current({ padding: 0.2, duration: 180, maxZoom: 1.2 });
     });
     return () => cancelAnimationFrame(id);
-  }, [nodeCount, fitView]);
+  }, [nodeCount, layoutKey]);
   return null;
 }
 
@@ -43,6 +56,7 @@ interface Props {
   pipelineTopology?: PipelineTopologyEvent | null;
   selectedAgentId: string | null;
   onSelectAgent: (agentId: string | null) => void;
+  toolCalls: ToolCallRecord[];
 }
 
 function SearchIcon() {
@@ -70,9 +84,17 @@ export default function AgentReactFlow({
   pipelineTopology = null,
   selectedAgentId,
   onSelectAgent,
+  toolCalls,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState<AgentPipelineRfNode>([]);
+  const nodeTypes = useMemo(
+    () => ({
+      agentPipeline: AgentPipelineNode,
+      toolPipeline: ToolPipelineNode,
+    }),
+    []
+  );
+  const [nodes, setNodes, onNodesChange] = useNodesState<PipelineFlowNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   const { nodes: nextNodes, edges: nextEdges } = useMemo(
@@ -80,9 +102,10 @@ export default function AgentReactFlow({
       buildPipelineReactFlowElements(
         agents,
         selectedAnalystKeys,
-        selectedAgentId
+        selectedAgentId,
+        toolCalls
       ),
-    [agents, selectedAnalystKeys, selectedAgentId]
+    [agents, selectedAnalystKeys, selectedAgentId, toolCalls]
   );
 
   useEffect(() => {
@@ -91,6 +114,13 @@ export default function AgentReactFlow({
   }, [nextNodes, nextEdges, setNodes, setEdges]);
 
   const nodeCount = nodes.length;
+  const layoutKey = useMemo(
+    () =>
+      nodes
+        .map((n) => `${n.id}:${Math.round(n.position.x)}:${Math.round(n.position.y)}`)
+        .join("|"),
+    [nodes]
+  );
 
   const toggleFullscreen = useCallback(() => {
     const el = wrapRef.current;
@@ -182,9 +212,9 @@ export default function AgentReactFlow({
               fitView
               minZoom={0.35}
               maxZoom={1.5}
-              defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+              defaultViewport={DEFAULT_VIEWPORT}
             >
-              <FitViewOnGraphChange nodeCount={nodeCount} />
+              <FitViewOnGraphChange nodeCount={nodeCount} layoutKey={layoutKey} />
               <Background
                 id="pipeline-bg"
                 variant={BackgroundVariant.Dots}

@@ -4,10 +4,15 @@ import asyncio
 import logging
 import threading
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from config import build_config
-from pipeline_topology import build_topology_payload, maybe_graph_step_keys
+from pipeline_topology import (
+    build_topology_payload,
+    canonicalize_graph_node_id,
+    maybe_graph_step_keys,
+)
+from tool_stream import extract_tool_events_from_chunk
 
 logger = logging.getLogger(__name__)
 
@@ -117,18 +122,18 @@ def run_analysis(
         first_agent = ANALYST_AGENT_NAMES[selected[0]]
         update_agent(first_agent, "in_progress")
 
+        tool_emit_sigs: Set[str] = set()
+
+        def active_caller_agent() -> Optional[str]:
+            """First agent in pipeline order that is currently in_progress."""
+            for aid in all_agents:
+                if agent_statuses.get(aid) == "in_progress":
+                    return aid
+            return None
+
         trace = []
         for chunk in graph.graph.stream(init_state, **args):
             trace.append(chunk)
-
-            step_key = maybe_graph_step_keys(chunk)
-            if step_key:
-                _emit(
-                    queue,
-                    loop,
-                    "graph_step",
-                    {"node_id": step_key, "time": _utc_iso()},
-                )
 
             # --- Analyst reports ---
             found_active = False
@@ -246,6 +251,34 @@ def run_analysis(
                         "speaker": "Risk Judge",
                         "content": judge,
                     })
+
+            # Tool calls must run *after* status updates for this chunk, otherwise
+            # active_caller_agent() still reflects the previous analyst and every tool
+            # is mis-labeled (e.g. all as Market Analyst → wrong row in the UI).
+            step_key = maybe_graph_step_keys(chunk)
+            if step_key:
+                _emit(
+                    queue,
+                    loop,
+                    "graph_step",
+                    {"node_id": step_key, "time": _utc_iso()},
+                )
+
+            tool_caller: Optional[str] = None
+            if step_key:
+                tool_caller = canonicalize_graph_node_id(step_key)
+            if not tool_caller:
+                tool_caller = active_caller_agent()
+
+            if isinstance(chunk, dict):
+                ts = _utc_iso()
+                for tool_ev in extract_tool_events_from_chunk(
+                    chunk,
+                    tool_caller,
+                    tool_emit_sigs,
+                    ts,
+                ):
+                    _emit(queue, loop, "tool_call", tool_ev)
 
         # Final decision
         if trace:

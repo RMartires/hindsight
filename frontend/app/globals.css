@@ -495,6 +495,7 @@ body {
   flex: 0 0 auto;
   height: min(52vh, 560px);
   min-height: 420px;
+  overflow: auto;
 }
 
 .react-flow-pipeline .react-flow {
@@ -597,40 +598,6 @@ body {
 .flowchart-empty-hint code {
   font-size: 12px;
   color: var(--accent-green-neon);
-}
-
-.pipeline-fab {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 2px solid var(--accent-green-neon);
-  background: linear-gradient(
-    145deg,
-    rgba(95, 255, 176, 0.35),
-    rgba(95, 255, 176, 0.12)
-  );
-  box-shadow: 0 0 28px var(--accent-green-glow), 0 0 48px rgba(95, 255, 176, 0.15);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s, box-shadow 0.2s;
-  padding: 0;
-}
-
-.pipeline-fab-bolt {
-  font-size: 22px;
-  line-height: 1;
-  color: #0a0a0a;
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.4));
-}
-
-.pipeline-fab:hover {
-  transform: scale(1.06);
-  box-shadow: 0 0 36px var(--accent-green-glow);
 }
 
 .section-title {
@@ -982,9 +949,16 @@ body {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(272px, 300px) minmax(0, 1fr) minmax(320px, 380px);
+  grid-template-columns: minmax(272px, 300px) minmax(0, 1fr);
   gap: 16px;
   align-items: start;
+}
+
+.dashboard-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
 }
 
 .rail {
@@ -1106,51 +1080,6 @@ body {
   box-shadow: 0 0 8px currentColor;
 }
 
-.analyst-nav-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.analyst-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  text-align: left;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-left: 3px solid transparent;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
-}
-
-.analyst-nav-item:hover {
-  border-color: var(--border-bright);
-  color: var(--text);
-}
-
-.analyst-nav-item--active {
-  border-color: var(--border);
-  border-left-color: var(--accent-green-neon);
-  color: var(--accent-green-neon);
-  background: rgba(0, 230, 118, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(0, 230, 118, 0.12);
-}
-
-.analyst-nav-icon {
-  font-size: 14px;
-  line-height: 1;
-  opacity: 0.75;
-  flex-shrink: 0;
-}
-
 .analyst-toggle-list {
   display: flex;
   flex-wrap: wrap;
@@ -1236,6 +1165,10 @@ body {
 }
 
 .panel--right {
+  padding: 0;
+}
+
+.panel--details-below {
   padding: 0;
 }
 
@@ -1449,10 +1382,7 @@ body {
 
 @media (max-width: 1100px) {
   .dashboard-grid {
-    grid-template-columns: minmax(240px, 1fr) minmax(0, 1fr);
-  }
-  .panel--right {
-    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
   }
 
   .header {

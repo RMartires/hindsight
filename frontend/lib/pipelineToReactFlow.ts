@@ -1,20 +1,21 @@
 import type { Edge, Node } from "@xyflow/react";
 import { MarkerType, Position } from "@xyflow/react";
-import type { AgentStatus } from "@/lib/types";
+import type { AgentStatus, ToolCallRecord } from "@/lib/types";
 import type { PipelineAnalystKey } from "@/lib/pipelineGraph";
 import {
-  buildSequentialEdges,
-  computeLayout,
-  filterEdges,
+  computePipelineBlockLayout,
   getDisplayName,
   getHubAndBranches,
   getRoleLabel,
   isVisibleOnCanvas,
   sortVisibleByPipeline,
+  toolFlowNodeId,
 } from "@/lib/pipelineGraph";
 
 export const AGENT_NODE_WIDTH = 208;
 export const AGENT_NODE_HEIGHT = 92;
+export const TOOL_NODE_WIDTH = 210;
+export const TOOL_NODE_HEIGHT = 74;
 
 export type AgentPipelineNodeData = {
   agentId: string;
@@ -26,14 +27,41 @@ export type AgentPipelineNodeData = {
 
 export type AgentPipelineRfNode = Node<AgentPipelineNodeData, "agentPipeline">;
 
+export type ToolPipelineNodeData = {
+  toolId: string;
+  toolName: string;
+  inputPreview: string;
+  outputPreview: string;
+  focused: boolean;
+};
+
+export type ToolPipelineRfNode = Node<ToolPipelineNodeData, "toolPipeline">;
+
+export type PipelineFlowNode = AgentPipelineRfNode | ToolPipelineRfNode;
+
 const NEON = "#5fffb0";
 const EDGE_DIM = "#52525e";
+
+function edgeStyle(
+  agents: Record<string, AgentStatus>,
+  _sourceId: string,
+  targetId: string
+): { stroke: string; markerColor: string } {
+  const st = agents[targetId];
+  const glow =
+    st === "in_progress" || st === "completed";
+  return {
+    stroke: glow ? "rgba(95, 255, 176, 0.45)" : EDGE_DIM,
+    markerColor: glow ? NEON : EDGE_DIM,
+  };
+}
 
 export function buildPipelineReactFlowElements(
   agents: Record<string, AgentStatus>,
   selectedAnalystKeys: PipelineAnalystKey[],
-  focusedAgentId: string | null
-): { nodes: AgentPipelineRfNode[]; edges: Edge[] } {
+  focusedAgentId: string | null,
+  toolCalls: ToolCallRecord[]
+): { nodes: PipelineFlowNode[]; edges: Edge[] } {
   const { hub, branches } = getHubAndBranches(selectedAnalystKeys);
 
   const visibleIds = Object.entries(agents)
@@ -41,61 +69,125 @@ export function buildPipelineReactFlowElements(
     .map(([id]) => id);
 
   const orderedVisibleIds = sortVisibleByPipeline(visibleIds, selectedAnalystKeys);
-  const positions = computeLayout(orderedVisibleIds);
+  const { positions, spineExitByAgent } = computePipelineBlockLayout(
+    orderedVisibleIds,
+    toolCalls
+  );
 
-  const halfW = AGENT_NODE_WIDTH / 2;
-  const halfH = AGENT_NODE_HEIGHT / 2;
+  const agentHalfW = AGENT_NODE_WIDTH / 2;
+  const agentHalfH = AGENT_NODE_HEIGHT / 2;
+  const toolHalfW = TOOL_NODE_WIDTH / 2;
+  const toolHalfH = TOOL_NODE_HEIGHT / 2;
 
-  const nodes: AgentPipelineRfNode[] = orderedVisibleIds.map((id) => {
-    const p = positions.get(id)!;
-    const status = agents[id] ?? "pending";
-    return {
-      id,
+  const nodes: PipelineFlowNode[] = [];
+
+  for (const agentId of orderedVisibleIds) {
+    const p = positions.get(agentId)!;
+    const status = agents[agentId] ?? "pending";
+    nodes.push({
+      id: agentId,
       type: "agentPipeline" as const,
       position: {
-        x: p.x - halfW,
-        y: p.y - halfH,
+        x: p.x - agentHalfW,
+        y: p.y - agentHalfH,
       },
       width: AGENT_NODE_WIDTH,
       height: AGENT_NODE_HEIGHT,
       sourcePosition: Position.Bottom,
       targetPosition: Position.Top,
       data: {
-        agentId: id,
-        displayName: getDisplayName(id),
-        roleLabel: getRoleLabel(id, status, hub, branches),
+        agentId,
+        displayName: getDisplayName(agentId),
+        roleLabel: getRoleLabel(agentId, status, hub, branches),
         status,
-        focused: focusedAgentId === id,
+        focused: focusedAgentId === agentId,
       },
-      zIndex: focusedAgentId === id ? 2 : 0,
-    };
-  });
+      zIndex: focusedAgentId === agentId ? 2 : 0,
+    });
 
-  const seqEdges = buildSequentialEdges(selectedAnalystKeys);
-  const activeEdgeDefs = filterEdges(seqEdges, agents);
+    const tools = toolCalls.filter((t) => t.agent === agentId);
+    for (const t of tools) {
+      const nid = toolFlowNodeId(t.id);
+      const tp = positions.get(nid);
+      if (!tp) continue;
+      nodes.push({
+        id: nid,
+        type: "toolPipeline" as const,
+        position: {
+          x: tp.x - toolHalfW,
+          y: tp.y - toolHalfH,
+        },
+        width: TOOL_NODE_WIDTH,
+        height: TOOL_NODE_HEIGHT,
+        sourcePosition: Position.Bottom,
+        targetPosition: Position.Top,
+        data: {
+          toolId: t.id,
+          toolName: t.tool_name,
+          inputPreview: t.input ?? "",
+          outputPreview: t.output ?? "",
+          focused: focusedAgentId === nid,
+        },
+        zIndex: focusedAgentId === nid ? 2 : 0,
+      });
+    }
+  }
 
-  const edges: Edge[] = activeEdgeDefs.map((e) => {
-    const srcSt = agents[e.from] ?? "pending";
-    const active =
-      srcSt === "completed" || srcSt === "in_progress";
-    return {
-      id: `${e.from}-${e.to}`,
-      source: e.from,
-      target: e.to,
+  const edges: Edge[] = [];
+
+  for (const agentId of orderedVisibleIds) {
+    const tools = toolCalls.filter((t) => t.agent === agentId);
+    for (const t of tools) {
+      const nid = toolFlowNodeId(t.id);
+      if (!positions.has(nid)) continue;
+      const es = edgeStyle(agents, "", agentId);
+      edges.push({
+        id: `at-${agentId}-${t.id}`,
+        source: agentId,
+        target: nid,
+        sourceHandle: "tools-out",
+        targetHandle: "from-agent",
+        type: "smoothstep",
+        animated: false,
+        style: { stroke: es.stroke, strokeWidth: 1.5 },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: es.markerColor,
+          width: 16,
+          height: 16,
+        },
+      });
+    }
+  }
+
+  for (let i = 0; i < orderedVisibleIds.length - 1; i++) {
+    const fromAgent = orderedVisibleIds[i];
+    const toAgent = orderedVisibleIds[i + 1];
+    if (
+      !isVisibleOnCanvas(agents[fromAgent]) ||
+      !isVisibleOnCanvas(agents[toAgent])
+    ) {
+      continue;
+    }
+    const exitId = spineExitByAgent.get(fromAgent) ?? fromAgent;
+    const es = edgeStyle(agents, exitId, toAgent);
+    edges.push({
+      id: `spine-${fromAgent}-${toAgent}`,
+      source: exitId,
+      target: toAgent,
+      sourceHandle: "spine-out",
+      targetHandle: "spine-in",
       type: "smoothstep",
-      animated: agents[e.to] === "in_progress",
-      style: {
-        stroke: active ? "rgba(95, 255, 176, 0.45)" : EDGE_DIM,
-        strokeWidth: 1.5,
-      },
+      animated: agents[toAgent] === "in_progress",
+      style: { stroke: es.stroke, strokeWidth: 1.5 },
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        color: active ? NEON : EDGE_DIM,
+        color: es.markerColor,
         width: 18,
         height: 18,
       },
-    };
-  });
+    });
+  }
 
   return { nodes, edges };
 }
