@@ -87,12 +87,16 @@ function HomeDashboard() {
               traceId={traceId}
               sessionId={sessionId}
               activityLog={activityLog}
+              agents={agents}
+              toolCalls={toolCalls}
+              selectedAnalystKeys={ALL_ANALYSTS}
               reports={reports}
               debates={debates}
               decision={decision}
               error={error}
               focusedAgentId={selectedAgentId}
               onClearFocus={() => setSelectedAgentId(null)}
+              onFocusTile={setSelectedAgentId}
             />
           </div>
         </div>

@@ -3,29 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import type {
   ActivityLogEntry,
+  AgentStatus,
   DebateEvent,
   DecisionEvent,
+  ToolCallRecord,
 } from "@/lib/types";
 import type { StreamStatus } from "@/lib/types";
+import type { PipelineAnalystKey } from "@/lib/pipelineGraph";
+import { buildLiveTiles } from "@/lib/liveTiles";
 import ReportCard from "./ReportCard";
 import DecisionDisplay from "./DecisionDisplay";
-
-const REPORT_LABELS: Record<string, string> = {
-  market_report: "Market Analysis",
-  fundamentals_report: "Fundamentals Analysis",
-  news_report: "News Analysis",
-  sentiment_report: "Social Sentiment",
-  trader_investment_plan: "Trader Plan",
-};
-
-/** Map agent display name (API id) → report section key from stream */
-const AGENT_TO_REPORT: Record<string, string> = {
-  "Market Analyst": "market_report",
-  "Social Analyst": "sentiment_report",
-  "News Analyst": "news_report",
-  "Fundamentals Analyst": "fundamentals_report",
-};
-
 
 function truncateId(id: string): string {
   if (id.length <= 12) return id;
@@ -48,12 +35,17 @@ interface Props {
   traceId: string | null;
   sessionId: string | null;
   activityLog: ActivityLogEntry[];
+  agents: Record<string, AgentStatus>;
+  toolCalls: ToolCallRecord[];
+  selectedAnalystKeys: PipelineAnalystKey[];
   reports: Record<string, string>;
   debates: DebateEvent[];
   decision: DecisionEvent | null;
   error: string | null;
   focusedAgentId?: string | null;
   onClearFocus?: () => void;
+  /** Sync tile header clicks with graph selection */
+  onFocusTile?: (nodeId: string | null) => void;
 }
 
 export default function AgentDetailsPanel({
@@ -62,25 +54,52 @@ export default function AgentDetailsPanel({
   traceId,
   sessionId,
   activityLog,
+  agents,
+  toolCalls,
+  selectedAnalystKeys,
   reports,
   debates,
   decision,
   error,
   focusedAgentId = null,
   onClearFocus,
+  onFocusTile,
 }: Props) {
   const [traceLinkUrl, setTraceLinkUrl] = useState<string | null>(null);
   const [traceLinkLoading, setTraceLinkLoading] = useState(false);
 
   const hasTrace = Boolean(traceId);
 
-  const reportEntries = useMemo(() => {
-    const entries = Object.entries(reports);
-    if (!focusedAgentId) return entries;
-    const key = AGENT_TO_REPORT[focusedAgentId];
-    if (!key) return entries;
-    return [[key, reports[key] ?? ""]] as [string, string][];
-  }, [reports, focusedAgentId]);
+  const liveTiles = useMemo(
+    () =>
+      buildLiveTiles(
+        agents,
+        selectedAnalystKeys,
+        toolCalls,
+        reports,
+        debates,
+        decision,
+        activityLog
+      ),
+    [
+      agents,
+      selectedAnalystKeys,
+      toolCalls,
+      reports,
+      debates,
+      decision,
+      activityLog,
+    ]
+  );
+
+  const handleTileHeader = (tileId: string) => {
+    if (!onFocusTile) return;
+    if (focusedAgentId === tileId) {
+      onFocusTile(null);
+    } else {
+      onFocusTile(tileId);
+    }
+  };
 
   const filteredActivityLog = useMemo(() => {
     if (!focusedAgentId) return activityLog;
@@ -222,14 +241,21 @@ export default function AgentDetailsPanel({
         <div className="agent-section">
           <h3 className="section-title section-title--sm">LIVE REPORT</h3>
           <div className="reports-section">
-            {reportEntries.length === 0 ? (
-              <div className="activity-log-empty">No reports yet.</div>
+            {liveTiles.length === 0 ? (
+              <div className="activity-log-empty">
+                No pipeline activity yet. Run analysis to populate tiles.
+              </div>
             ) : (
-              reportEntries.map(([key, content]) => (
+              liveTiles.map((tile) => (
                 <ReportCard
-                  key={key}
-                  title={REPORT_LABELS[key] || key}
-                  content={content}
+                  key={tile.id}
+                  title={tile.title}
+                  subtitle={tile.subtitle}
+                  content={tile.body}
+                  expanded={focusedAgentId === tile.id}
+                  onHeaderClick={
+                    onFocusTile ? () => handleTileHeader(tile.id) : undefined
+                  }
                 />
               ))
             )}

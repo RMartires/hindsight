@@ -44,7 +44,7 @@ export default function ToolPipelineNode({ data }: NodeProps<ToolPipelineRfNode>
           display: "flex",
           flexDirection: "column",
           gap: 4,
-          cursor: "default",
+          cursor: "pointer",
           boxShadow: focused ? `0 0 0 1px ${ACCENT}, 0 0 16px rgba(95, 255, 176, 0.2)` : undefined,
         }}
       >
