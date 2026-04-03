@@ -38,6 +38,11 @@ export interface AnalyzeResponse {
 
 export type StreamStatus = "idle" | "connecting" | "streaming" | "done" | "error";
 
+export interface ActivityLogEntry {
+  at: string; // ISO timestamp (client-side)
+  message: string;
+}
+
 export interface StreamState {
   status: StreamStatus;
   agents: Record<string, AgentStatus>;
@@ -45,5 +50,8 @@ export interface StreamState {
   debates: DebateEvent[];
   decision: DecisionEvent | null;
   traceId: string | null;
+  runId: string | null;
+  sessionId: string | null;
+  activityLog: ActivityLogEntry[];
   error: string | null;
 }

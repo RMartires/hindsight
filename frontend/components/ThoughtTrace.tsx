@@ -34,21 +34,34 @@ export default function ThoughtTrace({ traceId }: Props) {
   useEffect(() => {
     if (!traceId) return;
 
-    setLoading(true);
-    fetch(`/api/trace/${traceId}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        setTrace(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    let cancelled = false;
 
-    fetch(`/api/trace/${traceId}/link`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.url) setLinkUrl(data.url);
-      })
-      .catch(() => {});
+    async function load() {
+      setLoading(true);
+      try {
+        const [traceRes, linkRes] = await Promise.all([
+          fetch(`/api/trace/${traceId}`),
+          fetch(`/api/trace/${traceId}/link`),
+        ]);
+
+        if (cancelled) return;
+
+        const traceData = traceRes.ok ? await traceRes.json() : null;
+        setTrace(traceData);
+
+        const linkData = linkRes.ok ? await linkRes.json() : null;
+        if (linkData?.url) setLinkUrl(linkData.url);
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
   }, [traceId]);
 
   if (!traceId) return null;

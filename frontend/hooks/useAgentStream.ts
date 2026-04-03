@@ -7,7 +7,6 @@ import type {
   DebateEvent,
   DecisionEvent,
   StreamState,
-  StreamStatus,
 } from "@/lib/types";
 
 const INITIAL_STATE: StreamState = {
@@ -17,6 +16,9 @@ const INITIAL_STATE: StreamState = {
   debates: [],
   decision: null,
   traceId: null,
+  runId: null,
+  sessionId: null,
+  activityLog: [],
   error: null,
 };
 
@@ -30,6 +32,14 @@ export function useAgentStream() {
       sourceRef.current = null;
     }
     setState(INITIAL_STATE);
+  }, []);
+
+  const pushLog = useCallback((message: string) => {
+    const entry = { at: new Date().toISOString(), message };
+    setState((s) => ({
+      ...s,
+      activityLog: [...s.activityLog.slice(-49), entry],
+    }));
   }, []);
 
   const startAnalysis = useCallback(
@@ -63,7 +73,11 @@ export function useAgentStream() {
           ...s,
           status: "streaming",
           traceId: data.trace_id,
+          runId: data.run_id,
+          sessionId: data.session_id,
         }));
+
+        pushLog("Started analysis");
 
         const source = new EventSource(`/api/stream/${data.run_id}`);
         sourceRef.current = source;
@@ -74,6 +88,7 @@ export function useAgentStream() {
             ...s,
             agents: { ...s.agents, [event.agent]: event.status },
           }));
+          pushLog(`${event.agent}: ${event.status}`);
         });
 
         source.addEventListener("report", (e) => {
@@ -82,6 +97,7 @@ export function useAgentStream() {
             ...s,
             reports: { ...s.reports, [event.section]: event.content },
           }));
+          pushLog(`Report: ${event.section}`);
         });
 
         source.addEventListener("debate", (e) => {
@@ -90,17 +106,20 @@ export function useAgentStream() {
             ...s,
             debates: [...s.debates, event],
           }));
+          pushLog(`Debate: ${event.speaker} (${event.phase})`);
         });
 
         source.addEventListener("decision", (e) => {
           const event: DecisionEvent = JSON.parse(e.data);
           setState((s) => ({ ...s, decision: event }));
+          pushLog("Decision received");
         });
 
         source.addEventListener("error", (e) => {
           if (e instanceof MessageEvent) {
             const event = JSON.parse(e.data);
             setState((s) => ({ ...s, error: event.message }));
+            pushLog(`Error: ${event.message}`);
           }
         });
 
@@ -111,6 +130,7 @@ export function useAgentStream() {
             status: "done",
             traceId: event.trace_id || s.traceId,
           }));
+          pushLog("Stream done");
           source.close();
           sourceRef.current = null;
         });
@@ -121,6 +141,7 @@ export function useAgentStream() {
             status: "error",
             error: s.error || "Connection lost",
           }));
+          pushLog("Connection lost");
           source.close();
           sourceRef.current = null;
         };
@@ -130,9 +151,10 @@ export function useAgentStream() {
           status: "error",
           error: err instanceof Error ? err.message : "Unknown error",
         }));
+        pushLog("Failed to start analysis");
       }
     },
-    [reset]
+    [reset, pushLog]
   );
 
   const cancel = useCallback(() => {

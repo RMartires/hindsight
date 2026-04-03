@@ -8,6 +8,14 @@ interface Props {
   onPresetSelect: (date: string, ticker: string) => void;
 }
 
+function isoToDisplay(iso: string): string {
+  if (!iso) return "";
+  const parts = iso.split("-");
+  if (parts.length !== 3) return iso;
+  const [yyyy, mm, dd] = parts;
+  return `${dd}/${mm}/${yyyy}`;
+}
+
 export default function DateDial({ value, onChange, onPresetSelect }: Props) {
   const today = new Date().toISOString().split("T")[0];
 
@@ -26,13 +34,18 @@ export default function DateDial({ value, onChange, onPresetSelect }: Props) {
           </button>
         ))}
       </div>
-      <input
-        type="date"
-        className="date-input"
-        value={value}
-        max={today}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      <div className="date-field-wrap">
+        <input
+          type="date"
+          className="date-input date-input--full"
+          value={value}
+          max={today}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <div className="date-format-hint" aria-live="polite">
+          {value ? isoToDisplay(value) : "dd/mm/yyyy"}
+        </div>
+      </div>
     </div>
   );
 }
