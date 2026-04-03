@@ -8,6 +8,7 @@ import type {
   DebateEvent,
   DecisionEvent,
   GraphStepEvent,
+  LlmUsageEvent,
   PipelineTopologyEvent,
   StreamState,
   ToolCallRecord,
@@ -28,6 +29,12 @@ const INITIAL_STATE: StreamState = {
   pipelineTopology: null,
   lastGraphStep: null,
   toolCalls: [],
+  llmUsages: [],
+  tokenUsageTotals: {
+    input_tokens: 0,
+    output_tokens: 0,
+    estimated_usd: null,
+  },
 };
 
 interface RunSnapshotApi {
@@ -55,6 +62,12 @@ function payloadToStreamState(payload: Record<string, unknown>): StreamState {
     lastGraphStep:
       (payload.lastGraphStep as StreamState["lastGraphStep"]) ?? null,
     toolCalls: (payload.toolCalls as StreamState["toolCalls"]) || [],
+    llmUsages: (payload.llmUsages as StreamState["llmUsages"]) || [],
+    tokenUsageTotals: (payload.tokenUsageTotals as StreamState["tokenUsageTotals"]) ?? {
+      input_tokens: 0,
+      output_tokens: 0,
+      estimated_usd: null,
+    },
   };
 }
 
@@ -213,6 +226,25 @@ export function useAgentStream() {
             toolCalls: [...s.toolCalls, ev],
           }));
           pushLog(`Tool ${ev.tool_name} (${ev.agent})`);
+        });
+
+        source.addEventListener("llm_usage", (e) => {
+          const ev: LlmUsageEvent = JSON.parse((e as MessageEvent).data);
+          setState((s) => ({
+            ...s,
+            llmUsages: [...s.llmUsages, ev],
+            tokenUsageTotals: {
+              input_tokens: ev.run_input_tokens,
+              output_tokens: ev.run_output_tokens,
+              estimated_usd:
+                ev.estimated_usd_run !== undefined && ev.estimated_usd_run !== null
+                  ? ev.estimated_usd_run
+                  : s.tokenUsageTotals.estimated_usd,
+            },
+          }));
+          pushLog(
+            `LLM +${ev.input_tokens} in / +${ev.output_tokens} out (${ev.agent})`
+          );
         });
 
         source.addEventListener("report", (e) => {

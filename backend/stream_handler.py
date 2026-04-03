@@ -12,6 +12,7 @@ from pipeline_topology import (
     maybe_graph_step_keys,
 )
 from tool_stream import extract_tool_events_from_chunk
+from llm_usage_stream import extract_llm_usage_events_from_chunk
 from supabase_runs import upsert_terminal_run
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,12 @@ def _new_snapshot(run_id: str, trace_id: Optional[str], session_id: Optional[str
         "pipelineTopology": None,
         "lastGraphStep": None,
         "toolCalls": [],
+        "llmUsages": [],
+        "tokenUsageTotals": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "estimated_usd": None,
+        },
     }
 
 
@@ -74,6 +81,13 @@ def _merge_snapshot(snap: dict, event_type: str, data: dict) -> None:
         snap["decision"] = data
     elif event_type == "tool_call":
         snap["toolCalls"].append(data)
+    elif event_type == "llm_usage":
+        snap.setdefault("llmUsages", []).append(data)
+        snap["tokenUsageTotals"] = {
+            "input_tokens": data.get("run_input_tokens", 0),
+            "output_tokens": data.get("run_output_tokens", 0),
+            "estimated_usd": data.get("estimated_usd_run"),
+        }
     elif event_type == "error":
         snap["error"] = data.get("message")
 
@@ -164,6 +178,10 @@ def run_analysis(
         update_agent(first_agent, "in_progress")
 
         tool_emit_sigs: Set[str] = set()
+        usage_msg_keys: Set[str] = set()
+        run_llm_in = 0
+        run_llm_out = 0
+        run_llm_usd = 0.0
 
         def active_caller_agent() -> Optional[str]:
             """First agent in pipeline order that is currently in_progress."""
@@ -318,6 +336,32 @@ def run_analysis(
                     ts,
                 ):
                     emit("tool_call", tool_ev)
+
+                usage_agent = tool_caller or "unknown"
+                usage_node = step_key or ""
+                for usage_ev in extract_llm_usage_events_from_chunk(
+                    chunk,
+                    agent=usage_agent,
+                    node_id=usage_node,
+                    time_iso=ts,
+                    seen_message_keys=usage_msg_keys,
+                ):
+                    run_llm_in += usage_ev["input_tokens"]
+                    run_llm_out += usage_ev["output_tokens"]
+                    du = usage_ev.get("estimated_usd_delta")
+                    if du is not None:
+                        run_llm_usd += float(du)
+                    emit(
+                        "llm_usage",
+                        {
+                            **usage_ev,
+                            "run_input_tokens": run_llm_in,
+                            "run_output_tokens": run_llm_out,
+                            "estimated_usd_run": (
+                                round(run_llm_usd, 6) if run_llm_usd > 0 else None
+                            ),
+                        },
+                    )
 
         # Final decision
         if trace:

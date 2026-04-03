@@ -28,6 +28,8 @@ function HomeDashboard() {
     error,
     pipelineTopology,
     toolCalls,
+    llmUsages,
+    tokenUsageTotals,
     startAnalysis,
     cancel,
     restoredRunContext,
@@ -89,6 +91,8 @@ function HomeDashboard() {
               activityLog={activityLog}
               agents={agents}
               toolCalls={toolCalls}
+              llmUsages={llmUsages}
+              tokenUsageTotals={tokenUsageTotals}
               selectedAnalystKeys={ALL_ANALYSTS}
               reports={reports}
               debates={debates}

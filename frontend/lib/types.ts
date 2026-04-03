@@ -40,6 +40,25 @@ export interface ToolCallRecord {
   time?: string;
 }
 
+/** One LLM completion with token counts (from SSE `llm_usage`). */
+export interface LlmUsageEvent {
+  agent: string;
+  node_id?: string;
+  input_tokens: number;
+  output_tokens: number;
+  time?: string;
+  run_input_tokens: number;
+  run_output_tokens: number;
+  estimated_usd_delta?: number | null;
+  estimated_usd_run?: number | null;
+}
+
+export interface TokenUsageTotals {
+  input_tokens: number;
+  output_tokens: number;
+  estimated_usd: number | null;
+}
+
 export interface ReportEvent {
   section: string;
   content: string;
@@ -95,4 +114,8 @@ export interface StreamState {
   lastGraphStep: GraphStepEvent | null;
   /** Tool invocations attributed to an agent (for graph + drill-down). */
   toolCalls: ToolCallRecord[];
+  /** Per-completion usage from the backend (deduped by message id when present). */
+  llmUsages: LlmUsageEvent[];
+  /** Running totals after the last `llm_usage` event (and restored from cache). */
+  tokenUsageTotals: TokenUsageTotals;
 }

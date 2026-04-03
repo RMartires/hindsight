@@ -1270,6 +1270,39 @@ body {
   margin-bottom: 8px;
 }
 
+.compute-cost-tokens {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+
+.compute-cost-muted {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.compute-cost-focus {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.compute-cost-focus-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
 .compute-cost-value {
   display: flex;
   align-items: baseline;
@@ -1280,6 +1313,12 @@ body {
   letter-spacing: -0.5px;
   color: var(--text);
   line-height: 1.2;
+}
+
+.compute-cost-value .compute-cost-muted {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .compute-cost-unit {

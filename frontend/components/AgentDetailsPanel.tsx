@@ -6,6 +6,8 @@ import type {
   AgentStatus,
   DebateEvent,
   DecisionEvent,
+  LlmUsageEvent,
+  TokenUsageTotals,
   ToolCallRecord,
 } from "@/lib/types";
 import type { StreamStatus } from "@/lib/types";
@@ -38,6 +40,8 @@ interface Props {
   activityLog: ActivityLogEntry[];
   agents: Record<string, AgentStatus>;
   toolCalls: ToolCallRecord[];
+  llmUsages: LlmUsageEvent[];
+  tokenUsageTotals: TokenUsageTotals;
   selectedAnalystKeys: PipelineAnalystKey[];
   reports: Record<string, string>;
   debates: DebateEvent[];
@@ -57,6 +61,8 @@ export default function AgentDetailsPanel({
   activityLog,
   agents,
   toolCalls,
+  llmUsages,
+  tokenUsageTotals,
   selectedAnalystKeys,
   reports,
   debates,
@@ -110,6 +116,21 @@ export default function AgentDetailsPanel({
         e.message.startsWith(`${focusedAgentId}:`)
     );
   }, [activityLog, focusedAgentId]);
+
+  const focusedTokenTotals = useMemo(() => {
+    if (!focusedAgentId) return null;
+    let input = 0;
+    let output = 0;
+    let usd = 0;
+    for (const u of llmUsages) {
+      if (u.agent === focusedAgentId) {
+        input += u.input_tokens;
+        output += u.output_tokens;
+        if (u.estimated_usd_delta != null) usd += u.estimated_usd_delta;
+      }
+    }
+    return { input, output, usd: usd > 0 ? usd : null };
+  }, [focusedAgentId, llmUsages]);
 
   const filteredDebates = useMemo(() => {
     if (!focusedAgentId) return debates;
@@ -189,11 +210,45 @@ export default function AgentDetailsPanel({
         </div>
 
         <div className="compute-cost-card">
-          <div className="compute-cost-label">Compute cost</div>
-          <div className="compute-cost-value">
-            $0.042
-            <span className="compute-cost-unit">/run</span>
+          <div className="compute-cost-label">LLM usage (this run)</div>
+          <div className="compute-cost-tokens">
+            {tokenUsageTotals.input_tokens > 0 ||
+            tokenUsageTotals.output_tokens > 0 ? (
+              <>
+                <span>{tokenUsageTotals.input_tokens.toLocaleString()} in</span>
+                <span aria-hidden> · </span>
+                <span>{tokenUsageTotals.output_tokens.toLocaleString()} out</span>
+              </>
+            ) : (
+              <span className="compute-cost-muted">Waiting for token metadata…</span>
+            )}
           </div>
+          <div className="compute-cost-value">
+            {tokenUsageTotals.estimated_usd != null ? (
+              <>
+                ~${tokenUsageTotals.estimated_usd.toFixed(4)}
+                <span className="compute-cost-unit"> est.</span>
+              </>
+            ) : tokenUsageTotals.input_tokens > 0 ||
+              tokenUsageTotals.output_tokens > 0 ? (
+              <span className="compute-cost-muted" title="Set LLM_PRICE_INPUT_PER_1M_TOKENS and LLM_PRICE_OUTPUT_PER_1M_TOKENS in backend .env">
+                Add LLM_PRICE_* for $ estimate
+              </span>
+            ) : null}
+          </div>
+          {focusedTokenTotals &&
+            (focusedTokenTotals.input > 0 || focusedTokenTotals.output > 0) && (
+              <div className="compute-cost-focus" title="Sum of LLM events attributed to the focused agent">
+                <span className="compute-cost-focus-label">Focused</span>
+                <span>
+                  {focusedTokenTotals.input.toLocaleString()} in ·{" "}
+                  {focusedTokenTotals.output.toLocaleString()} out
+                  {focusedTokenTotals.usd != null
+                    ? ` · ~$${focusedTokenTotals.usd.toFixed(4)}`
+                    : ""}
+                </span>
+              </div>
+            )}
         </div>
 
         {error && <div className="agent-error">Error: {error}</div>}
