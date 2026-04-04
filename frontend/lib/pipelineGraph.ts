@@ -33,6 +33,18 @@ export const DOWNSTREAM_AGENT_IDS = [
   "Risk Judge",
 ] as const;
 
+/** Shown under SYNTHESIS PHASE (debate); skip duplicate agent tiles in LIVE REPORT once debates stream in. */
+export const LIVE_REPORT_DEBATE_SYNTHESIS_AGENT_IDS: ReadonlySet<string> =
+  new Set([
+    "Bull Researcher",
+    "Bear Researcher",
+    "Research Manager",
+    "Aggressive Analyst",
+    "Conservative Analyst",
+    "Neutral Analyst",
+    "Risk Judge",
+  ]);
+
 export interface EdgeDef {
   from: string;
   to: string;

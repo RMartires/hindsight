@@ -6,6 +6,7 @@ import {
   BackgroundVariant,
   Controls,
   type Edge,
+  type NodeTypes,
   ReactFlow,
   useEdgesState,
   useNodesState,
@@ -22,6 +23,12 @@ import { buildPipelineReactFlowElements } from "@/lib/pipelineToReactFlow";
 import type { PipelineFlowNode } from "@/lib/pipelineToReactFlow";
 import AgentPipelineNode from "@/components/nodes/AgentPipelineNode";
 import ToolPipelineNode from "@/components/nodes/ToolPipelineNode";
+
+/** Module scope so React Flow never sees a new `nodeTypes` object (dev warning #002). */
+const PIPELINE_NODE_TYPES = {
+  agentPipeline: AgentPipelineNode,
+  toolPipeline: ToolPipelineNode,
+} satisfies NodeTypes;
 
 const DEFAULT_SUBTITLE = "Forensic Analysis of Liquidity Cascades";
 
@@ -92,13 +99,6 @@ export default function AgentReactFlow({
   refitSignal = 0,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const nodeTypes = useMemo(
-    () => ({
-      agentPipeline: AgentPipelineNode,
-      toolPipeline: ToolPipelineNode,
-    }),
-    []
-  );
   const [nodes, setNodes, onNodesChange] = useNodesState<PipelineFlowNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
@@ -203,7 +203,7 @@ export default function AgentReactFlow({
             <ReactFlow
               nodes={nodes}
               edges={edges}
-              nodeTypes={nodeTypes}
+              nodeTypes={PIPELINE_NODE_TYPES}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onNodeClick={(_, node) => onSelectAgent(node.id)}

@@ -10,6 +10,7 @@ import {
   getDisplayName,
   groupContiguousToolCalls,
   isVisibleOnCanvas,
+  LIVE_REPORT_DEBATE_SYNTHESIS_AGENT_IDS,
   sortVisibleByPipeline,
 } from "@/lib/pipelineGraph";
 
@@ -132,6 +133,18 @@ function toolSubtitle(first: ToolCallRecord, count: number): string {
   return [first.agent, suffix, time].filter(Boolean).join(" · ");
 }
 
+/** Drop LIVE REPORT agent rows that duplicate SYNTHESIS PHASE (debate). */
+function shouldOmitDebatedAgentTile(
+  agentId: string,
+  debates: DebateEvent[]
+): boolean {
+  if (!LIVE_REPORT_DEBATE_SYNTHESIS_AGENT_IDS.has(agentId)) return false;
+  if (agentId === "Risk Judge") {
+    return debates.some((d) => d.speaker === "Risk Judge");
+  }
+  return debates.length > 0;
+}
+
 /**
  * Tiles in the same order as the pipeline graph: each visible agent row,
  * then its tool calls left-to-right.
@@ -154,20 +167,24 @@ export function buildLiveTiles(
 
   for (const agentId of orderedAgents) {
     const status = agents[agentId] ?? "pending";
-    tiles.push({
-      id: agentId,
-      kind: "agent",
-      title: getDisplayName(agentId),
-      subtitle: agentSubtitle(status),
-      body: agentBody(
-        agentId,
-        status,
-        reports,
-        debates,
-        decision,
-        activityLog
-      ),
-    });
+    const omitAgentTile = shouldOmitDebatedAgentTile(agentId, debates);
+
+    if (!omitAgentTile) {
+      tiles.push({
+        id: agentId,
+        kind: "agent",
+        title: getDisplayName(agentId),
+        subtitle: agentSubtitle(status),
+        body: agentBody(
+          agentId,
+          status,
+          reports,
+          debates,
+          decision,
+          activityLog
+        ),
+      });
+    }
 
     const agentTools = toolCalls.filter((c) => c.agent === agentId);
     const groups = groupContiguousToolCalls(agentId, agentTools);
