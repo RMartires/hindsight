@@ -19,6 +19,11 @@ import type {
   ToolCallRecord,
 } from "@/lib/types";
 import type { PipelineAnalystKey } from "@/lib/pipelineGraph";
+import {
+  getAutoFitViewPipelineNodeIds,
+  isVisibleOnCanvas,
+  sortVisibleByPipeline,
+} from "@/lib/pipelineGraph";
 import { buildPipelineReactFlowElements } from "@/lib/pipelineToReactFlow";
 import type { PipelineFlowNode } from "@/lib/pipelineToReactFlow";
 import AgentPipelineNode from "@/components/nodes/AgentPipelineNode";
@@ -38,22 +43,44 @@ function FitViewOnGraphChange({
   nodeCount,
   layoutKey,
   refitSignal = 0,
+  denseRowNodeIds = null,
 }: {
   nodeCount: number;
   layoutKey: string;
   refitSignal?: number;
+  /** When set, `fitView` frames this row (agent + tools); otherwise full graph. */
+  denseRowNodeIds?: string[] | null;
 }) {
   const { fitView } = useReactFlow();
   const fitViewRef = useRef(fitView);
   fitViewRef.current = fitView;
 
+  const denseKey = denseRowNodeIds?.join("\0") ?? "";
+
   useLayoutEffect(() => {
     if (nodeCount === 0) return;
-    const id = requestAnimationFrame(() => {
-      fitViewRef.current({ padding: 0.2, duration: 180, maxZoom: 1.2 });
+    const ids = denseRowNodeIds;
+    const focusSubset = ids != null && ids.length > 0;
+
+    let cancelled = false;
+    const id1 = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        void fitViewRef.current({
+          padding: focusSubset ? 0.08 : 0.2,
+          duration: 200,
+          maxZoom: focusSubset ? 1.65 : 1.35,
+          ...(focusSubset && ids
+            ? { nodes: ids.map((nid) => ({ id: nid })) }
+            : {}),
+        });
+      });
     });
-    return () => cancelAnimationFrame(id);
-  }, [nodeCount, layoutKey, refitSignal]);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(id1);
+    };
+  }, [nodeCount, layoutKey, refitSignal, denseKey, denseRowNodeIds]);
   return null;
 }
 
@@ -126,6 +153,14 @@ export default function AgentReactFlow({
         .join("|"),
     [nodes]
   );
+
+  const denseRowFitNodeIds = useMemo(() => {
+    const visibleIds = Object.entries(agents)
+      .filter(([, st]) => isVisibleOnCanvas(st))
+      .map(([id]) => id);
+    const ordered = sortVisibleByPipeline(visibleIds, selectedAnalystKeys);
+    return getAutoFitViewPipelineNodeIds(ordered, toolCalls);
+  }, [agents, selectedAnalystKeys, toolCalls]);
 
   const toggleFullscreen = useCallback(() => {
     const el = wrapRef.current;
@@ -214,7 +249,7 @@ export default function AgentReactFlow({
               deleteKeyCode={null}
               multiSelectionKeyCode={null}
               proOptions={{ hideAttribution: true }}
-              fitView
+              fitView={false}
               minZoom={0.35}
               maxZoom={1.5}
               defaultViewport={DEFAULT_VIEWPORT}
@@ -223,6 +258,7 @@ export default function AgentReactFlow({
                 nodeCount={nodeCount}
                 layoutKey={layoutKey}
                 refitSignal={refitSignal}
+                denseRowNodeIds={denseRowFitNodeIds}
               />
               <Background
                 id="pipeline-bg"

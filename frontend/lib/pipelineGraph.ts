@@ -199,6 +199,71 @@ export function groupContiguousToolCalls(
   return groups;
 }
 
+/**
+ * One pipeline row = agent + tool nodes on the same horizontal line.
+ * Returns React Flow node ids for the densest row (most nodes), or `null` when
+ * every row is a single agent (use a full-graph fit).
+ */
+export function getDensestPipelineRowNodeIds(
+  orderedVisibleAgentIds: string[],
+  toolCalls: ToolCallRecord[]
+): string[] | null {
+  const visible = new Set(orderedVisibleAgentIds);
+  let bestCount = 0;
+  let bestToolGroups = -1;
+  let bestRow = -1;
+  let bestIds: string[] | null = null;
+
+  orderedVisibleAgentIds.forEach((agentId, rowIndex) => {
+    const tools = toolCalls.filter(
+      (t) => t.agent === agentId && visible.has(agentId)
+    );
+    const toolGroups = groupContiguousToolCalls(agentId, tools);
+    const rowIds = [agentId, ...toolGroups.map((g) => g.flowNodeId)];
+    const count = rowIds.length;
+    const tgLen = toolGroups.length;
+
+    const beats =
+      count > bestCount ||
+      (count === bestCount &&
+        count > 1 &&
+        (tgLen > bestToolGroups ||
+          (tgLen === bestToolGroups && rowIndex > bestRow)));
+
+    if (beats) {
+      bestCount = count;
+      bestToolGroups = tgLen;
+      bestRow = rowIndex;
+      bestIds = rowIds;
+    }
+  });
+
+  if (bestCount <= 1 || !bestIds) return null;
+  return bestIds;
+}
+
+/**
+ * Node ids to frame by default in React Flow: prefer the fundamentals analyst row
+ * (usually the widest tool strip) when that agent is visible; otherwise the densest row.
+ */
+export function getAutoFitViewPipelineNodeIds(
+  orderedVisibleAgentIds: string[],
+  toolCalls: ToolCallRecord[]
+): string[] | null {
+  const visible = new Set(orderedVisibleAgentIds);
+  const focusAgent = ANALYST_AGENT_NAMES.fundamentals;
+
+  if (visible.has(focusAgent)) {
+    const tools = toolCalls.filter(
+      (t) => t.agent === focusAgent && visible.has(focusAgent)
+    );
+    const toolGroups = groupContiguousToolCalls(focusAgent, tools);
+    return [focusAgent, ...toolGroups.map((g) => g.flowNodeId)];
+  }
+
+  return getDensestPipelineRowNodeIds(orderedVisibleAgentIds, toolCalls);
+}
+
 /** Match `pipelineToReactFlow` node widths (centers used in layout). */
 const LAYOUT_AGENT_W = 208;
 const LAYOUT_TOOL_W = 210;
