@@ -49,3 +49,6 @@ export const HISTORICAL_PRESETS: HistoricalPreset[] = [
     description: "Global selloff from Japan rate hike",
   },
 ];
+
+/** Pre-selected ticker/date on the home screen until the user picks another preset. */
+export const DEFAULT_HOME_PRESET: HistoricalPreset = HISTORICAL_PRESETS[0]!;

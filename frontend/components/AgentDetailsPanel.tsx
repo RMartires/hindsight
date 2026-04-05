@@ -32,6 +32,13 @@ function formatLogTime(iso: string): string {
   return t;
 }
 
+/** Rounded-up thousands for LLM token totals (e.g. 10_000 → 10k). */
+function formatTokensK(tokens: number): string {
+  if (tokens <= 0) return "0k";
+  const k = Math.ceil(tokens / 1000);
+  return `${k}k`;
+}
+
 interface Props {
   status: StreamStatus;
   runId: string | null;
@@ -191,9 +198,9 @@ export default function AgentDetailsPanel({
             {tokenUsageTotals.input_tokens > 0 ||
             tokenUsageTotals.output_tokens > 0 ? (
               <>
-                <span>{tokenUsageTotals.input_tokens.toLocaleString()} in</span>
+                <span>{formatTokensK(tokenUsageTotals.input_tokens)} in</span>
                 <span aria-hidden> · </span>
-                <span>{tokenUsageTotals.output_tokens.toLocaleString()} out</span>
+                <span>{formatTokensK(tokenUsageTotals.output_tokens)} out</span>
               </>
             ) : (
               <span className="compute-cost-muted">Waiting for token metadata…</span>
@@ -217,8 +224,8 @@ export default function AgentDetailsPanel({
               <div className="compute-cost-focus" title="Sum of LLM events attributed to the focused agent">
                 <span className="compute-cost-focus-label">Focused</span>
                 <span>
-                  {focusedTokenTotals.input.toLocaleString()} in ·{" "}
-                  {focusedTokenTotals.output.toLocaleString()} out
+                  {formatTokensK(focusedTokenTotals.input)} in ·{" "}
+                  {formatTokensK(focusedTokenTotals.output)} out
                   {focusedTokenTotals.usd != null
                     ? ` · ~$${focusedTokenTotals.usd.toFixed(4)}`
                     : ""}

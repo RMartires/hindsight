@@ -35,8 +35,6 @@ const PIPELINE_NODE_TYPES = {
   toolPipeline: ToolPipelineNode,
 } satisfies NodeTypes;
 
-const DEFAULT_SUBTITLE = "Forensic Analysis of Liquidity Cascades";
-
 const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 1 } as const;
 
 function FitViewOnGraphChange({
@@ -87,7 +85,6 @@ function FitViewOnGraphChange({
 interface Props {
   agents: Record<string, AgentStatus>;
   selectedAnalystKeys: PipelineAnalystKey[];
-  subtitle?: string;
   streamStatus: StreamStatus;
   pipelineTopology?: PipelineTopologyEvent | null;
   selectedAgentId: string | null;
@@ -117,7 +114,6 @@ function ExpandIcon() {
 export default function AgentReactFlow({
   agents,
   selectedAnalystKeys,
-  subtitle = DEFAULT_SUBTITLE,
   streamStatus,
   pipelineTopology = null,
   selectedAgentId,
@@ -189,7 +185,6 @@ export default function AgentReactFlow({
       <div className="flowchart-header">
         <div className="flowchart-header-titles">
           <h3 className="flowchart-title">Active Pipeline</h3>
-          <p className="flowchart-headline">{subtitle}</p>
         </div>
         <div className="pipeline-controls" role="toolbar" aria-label="Pipeline view">
           <button

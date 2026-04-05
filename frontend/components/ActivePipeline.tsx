@@ -20,8 +20,6 @@ interface Props {
   refitSignal?: number;
 }
 
-const SUBTITLE = "Forensic Analysis of Liquidity Cascades";
-
 export default function ActivePipeline({
   agents,
   status,
@@ -37,7 +35,6 @@ export default function ActivePipeline({
       <AgentReactFlow
         agents={agents}
         selectedAnalystKeys={selectedAnalystKeys}
-        subtitle={SUBTITLE}
         streamStatus={status}
         pipelineTopology={pipelineTopology}
         selectedAgentId={selectedAgentId}

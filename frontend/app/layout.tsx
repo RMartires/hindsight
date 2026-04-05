@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Hindsight 20/20",
+  title: "Hindsight Agent",
   description: "Retro-Temporal Market Analysis Engine",
 };
 

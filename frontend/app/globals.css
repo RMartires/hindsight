@@ -42,20 +42,39 @@ body {
 
 /* ---- Header ---- */
 .header {
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 14px 24px 18px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 16px 24px;
+  padding: 0;
 }
 
-.header-title {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--accent-green-neon);
-  text-shadow: 0 0 20px var(--accent-green-glow);
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 10px 24px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.header-logo-wrap {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  line-height: 0;
+}
+
+.header-logo {
+  display: block;
+  /* Square asset has padding around the eye; slightly taller helps legibility when scaled down */
+  height: clamp(34px, 6vw, 48px);
+  width: auto;
+  max-width: min(220px, 56vw);
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: left center;
+  filter: drop-shadow(0 0 10px rgba(95, 255, 176, 0.18));
 }
 
 .header-date-pill {
@@ -87,13 +106,6 @@ body {
   margin-left: 4px;
   font-size: 9px;
   color: var(--text-dim);
-}
-
-.header-subtitle {
-  font-size: 12px;
-  color: #e4e4e7;
-  letter-spacing: 0.06em;
-  font-weight: 500;
 }
 
 /* ---- Main Layout ---- */
@@ -1043,10 +1055,8 @@ body {
 /* ---- Obsidian-style Dashboard Layout ---- */
 .header-left {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
   min-width: 0;
-  justify-self: start;
 }
 
 .header-right {
@@ -1055,7 +1065,6 @@ body {
   justify-content: flex-end;
   gap: 14px;
   flex-shrink: 0;
-  justify-self: end;
 }
 
 .header-pill {
@@ -1556,10 +1565,14 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .header {
-    grid-template-columns: 1fr;
-    justify-items: stretch;
-    gap: 14px;
+  .header-inner {
+    padding: 10px 16px 12px;
+    gap: 10px 16px;
+  }
+
+  .header-logo {
+    height: clamp(30px, 9vw, 40px);
+    max-width: min(200px, 62vw);
   }
 
   .header-right {

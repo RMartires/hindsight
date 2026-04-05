@@ -10,6 +10,7 @@ import {
   ANALYST_ORDER,
   type PipelineAnalystKey,
 } from "@/lib/pipelineGraph";
+import { DEFAULT_HOME_PRESET } from "@/lib/presets";
 
 /** Full analyst set for every run (sidebar selector removed). */
 const ALL_ANALYSTS: PipelineAnalystKey[] = [...ANALYST_ORDER];
@@ -43,8 +44,10 @@ function HomeDashboard() {
     restoredRunContext,
   } = useAgentStream();
 
-  const [draftTicker, setDraftTicker] = useState("");
-  const [draftTradeDate, setDraftTradeDate] = useState("");
+  const [draftTicker, setDraftTicker] = useState(DEFAULT_HOME_PRESET.ticker);
+  const [draftTradeDate, setDraftTradeDate] = useState(
+    DEFAULT_HOME_PRESET.date
+  );
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [mobileStep, setMobileStep] = useState<"engine" | "pipeline">("engine");
   const [pipelineRefitSignal, setPipelineRefitSignal] = useState(0);

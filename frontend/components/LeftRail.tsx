@@ -5,6 +5,7 @@ import DateDial from "./DateDial";
 import TickerInput from "./TickerInput";
 import type { StreamStatus } from "@/lib/types";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
+import { DEFAULT_HOME_PRESET } from "@/lib/presets";
 interface Props {
   status: StreamStatus;
   onEngage: (ticker: string, date: string) => void;
@@ -40,8 +41,8 @@ export default function LeftRail({
   onCancel,
   onContextChange,
 }: Props) {
-  const [date, setDate] = useState("");
-  const [ticker, setTicker] = useState("");
+  const [date, setDate] = useState(DEFAULT_HOME_PRESET.date);
+  const [ticker, setTicker] = useState(DEFAULT_HOME_PRESET.ticker);
   const isRunning = status === "connecting" || status === "streaming";
   const health = useBackendHealth(15000);
   const healthy = health.status === "ok" && !health.error;

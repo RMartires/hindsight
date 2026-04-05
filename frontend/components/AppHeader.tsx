@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 interface Props {
   tradeDate: string;
   ticker: string;
@@ -36,26 +38,35 @@ export default function AppHeader({ tradeDate, ticker }: Props) {
 
   return (
     <header className="header">
-      <div className="header-left">
-        <span className="header-title">HINDSIGHT 20/20</span>
-        <span className="header-subtitle">
-          Retro-Temporal Market Analysis Engine
-        </span>
-      </div>
+      <div className="header-inner">
+        <div className="header-left">
+          <div className="header-logo-wrap">
+            <Image
+              src="/hindsightagent.png"
+              alt="Hindsight Agent"
+              width={1024}
+              height={1024}
+              className="header-logo"
+              priority
+              sizes="(max-width: 480px) 112px, (max-width: 768px) 144px, 176px"
+            />
+          </div>
+        </div>
 
-      <div className="header-right">
-        <div
-          className="header-date-pill"
-          title={ticker ? `${ticker} · ${tradeDate}` : undefined}
-        >
-          <span className="header-date-dot" aria-hidden />
-          <span>
-            {tradeDate ? dateLabel : "SELECT COORDINATES"}
-            {ticker ? ` · ${ticker.toUpperCase()}` : ""}
-          </span>
-          <span className="header-date-chevron" aria-hidden>
-            ▾
-          </span>
+        <div className="header-right">
+          <div
+            className="header-date-pill"
+            title={ticker ? `${ticker} · ${tradeDate}` : undefined}
+          >
+            <span className="header-date-dot" aria-hidden />
+            <span>
+              {tradeDate ? dateLabel : "SELECT COORDINATES"}
+              {ticker ? ` · ${ticker.toUpperCase()}` : ""}
+            </span>
+            <span className="header-date-chevron" aria-hidden>
+              ▾
+            </span>
+          </div>
         </div>
       </div>
     </header>
