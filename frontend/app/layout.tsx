@@ -10,6 +10,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Hindsight Agent",
   description: "Retro-Temporal Market Analysis Engine",
+  /* Primary tab icon: app/favicon.ico (generated from public/hindsightagent.png). */
+  icons: {
+    apple: [{ url: "/hindsightagent.png", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({
