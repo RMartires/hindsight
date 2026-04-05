@@ -21,14 +21,27 @@ from supabase_runs import fetch_run_row, supabase_enabled
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+def _cors_allow_origins() -> List[str]:
+    origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    extra = os.getenv("CORS_ALLOWED_ORIGINS", "").strip()
+    if not extra:
+        return origins
+    for part in extra.split(","):
+        o = part.strip()
+        if o and o not in origins:
+            origins.append(o)
+    return origins
+
+
 app = FastAPI(title="Hindsight 20/20", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=_cors_allow_origins(),
     allow_methods=["*"],
     allow_headers=["*"],
 )
