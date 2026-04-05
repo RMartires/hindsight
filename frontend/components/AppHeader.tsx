@@ -40,16 +40,22 @@ export default function AppHeader({ tradeDate, ticker }: Props) {
     <header className="header">
       <div className="header-inner">
         <div className="header-left">
-          <div className="header-logo-wrap">
-            <Image
-              src="/hindsightagent.png"
-              alt="Hindsight Agent"
-              width={1024}
-              height={1024}
-              className="header-logo"
-              priority
-              sizes="(max-width: 480px) 112px, (max-width: 768px) 144px, 176px"
-            />
+          <div
+            className="header-brand-lockup"
+            aria-label="Hindsight Agent"
+          >
+            <div className="header-logo-wrap">
+              <Image
+                src="/hindsightagent.png"
+                alt=""
+                width={1024}
+                height={1024}
+                className="header-logo"
+                priority
+                sizes="(max-width: 480px) 112px, (max-width: 768px) 144px, 176px"
+              />
+            </div>
+            <span className="header-wordmark">hindsight</span>
           </div>
         </div>
 
