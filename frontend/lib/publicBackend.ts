@@ -18,3 +18,16 @@ export function backendStreamUrl(runId: string): string {
   const path = `/api/stream/${runId}`;
   return origin ? `${origin}${path}` : path;
 }
+
+/**
+ * Vercel (and similar) rewrites buffer or drop long-lived SSE. In production the stream
+ * URL must be an absolute https origin (via NEXT_PUBLIC_BACKEND_URL at build time).
+ */
+export function assertAbsoluteBackendStreamUrl(streamUrl: string): void {
+  if (process.env.NODE_ENV !== "production") return;
+  if (/^https?:\/\//i.test(streamUrl)) return;
+  throw new Error(
+    "Set NEXT_PUBLIC_BACKEND_URL to your public API base (e.g. https://api.example.com) in Vercel Environment Variables, then redeploy so the client bundle includes it. " +
+      "SSE cannot use the /api rewrite. On the API, set CORS_ALLOWED_ORIGINS to include your Vercel site origin (e.g. https://your-app.vercel.app).",
+  );
+}

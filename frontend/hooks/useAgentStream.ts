@@ -13,7 +13,10 @@ import type {
   StreamState,
   ToolCallRecord,
 } from "@/lib/types";
-import { backendStreamUrl } from "@/lib/publicBackend";
+import {
+  assertAbsoluteBackendStreamUrl,
+  backendStreamUrl,
+} from "@/lib/publicBackend";
 
 const INITIAL_STATE: StreamState = {
   status: "idle",
@@ -191,7 +194,9 @@ export function useAgentStream() {
 
         pushLog("Started analysis");
 
-        const source = new EventSource(backendStreamUrl(data.run_id));
+        const streamUrl = backendStreamUrl(data.run_id);
+        assertAbsoluteBackendStreamUrl(streamUrl);
+        const source = new EventSource(streamUrl);
         sourceRef.current = source;
 
         source.addEventListener("agent_status", (e) => {
