@@ -284,6 +284,7 @@ export default function AgentDetailsPanel({
                   title={tile.title}
                   subtitle={tile.subtitle}
                   content={tile.body}
+                  markdown={tile.kind === "agent"}
                   expanded={focusedAgentId === tile.id}
                   onHeaderClick={
                     onFocusTile ? () => handleTileHeader(tile.id) : undefined

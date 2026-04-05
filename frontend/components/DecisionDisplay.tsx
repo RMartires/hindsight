@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { DecisionEvent } from "@/lib/types";
+import MarkdownContent from "./MarkdownContent";
 
 interface Props {
   decision: DecisionEvent | null;
@@ -60,7 +61,10 @@ export default function DecisionDisplay({ decision, traceId }: Props) {
             {label}
           </div>
           <div className="decision-reasoning">
-            <pre className="report-content">{decision.full_text}</pre>
+            <MarkdownContent
+              source={decision.full_text}
+              className="report-content-md"
+            />
           </div>
           {traceId && (
             <div className="decision-trace">

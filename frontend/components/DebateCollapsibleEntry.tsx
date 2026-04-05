@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import MarkdownContent from "./MarkdownContent";
 
 interface Props {
   speakerHandle: string;
@@ -46,7 +47,7 @@ export default function DebateCollapsibleEntry({
           <div
             className={`debate-bubble ${phase === "investment" ? "debate-bubble--investment" : ""}`}
           >
-            {content}
+            <MarkdownContent source={content} />
           </div>
         </div>
       )}

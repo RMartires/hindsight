@@ -1,9 +1,13 @@
 "use client";
 
+import MarkdownContent from "./MarkdownContent";
+
 interface Props {
   title: string;
   subtitle?: string;
   content: string;
+  /** Agent narratives use markdown; tool I/O stays plain preformatted text. */
+  markdown?: boolean;
   /** Controlled: matches focused graph node id */
   expanded: boolean;
   /** Header click: parent syncs selection with graph */
@@ -14,6 +18,7 @@ export default function ReportCard({
   title,
   subtitle,
   content,
+  markdown = false,
   expanded,
   onHeaderClick,
 }: Props) {
@@ -37,7 +42,11 @@ export default function ReportCard({
       </button>
       {expanded && (
         <div className="report-card-body">
-          <pre className="report-content">{content || "—"}</pre>
+          {markdown ? (
+            <MarkdownContent source={content} className="report-content-md" />
+          ) : (
+            <pre className="report-content">{content || "—"}</pre>
+          )}
         </div>
       )}
     </div>
