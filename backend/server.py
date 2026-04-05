@@ -7,14 +7,15 @@ import logging
 import threading
 import time
 import uuid
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
-from stream_handler import run_analysis
+from stream_handler import run_analysis, build_initial_snapshot
+from run_registry import complete_run, run_timestamps, runs
 from langfuse_api import fetch_trace, get_public_link
 from supabase_runs import fetch_run_row, supabase_enabled
 
@@ -46,10 +47,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory store for active runs
-runs: Dict[str, asyncio.Queue] = {}
-# Track run creation time for cleanup
-run_timestamps: Dict[str, float] = {}
 # Max run age in seconds (1 hour)
 MAX_RUN_AGE = 3600
 # Max seconds between streamed events before treating the run as stalled (default 30 min)
@@ -107,9 +104,6 @@ async def analyze(req: AnalyzeRequest):
     _cleanup_stale_runs()
 
     run_id = str(uuid.uuid4())
-    queue: asyncio.Queue = asyncio.Queue()
-    runs[run_id] = queue
-    run_timestamps[run_id] = time.time()
 
     # Generate Langfuse correlation IDs
     trace_id = None
@@ -128,12 +122,17 @@ async def analyze(req: AnalyzeRequest):
     except Exception:
         logger.warning("Langfuse correlation generation failed", exc_info=True)
 
+    queue: asyncio.Queue = asyncio.Queue()
+    snapshot = build_initial_snapshot(run_id, trace_id, session_id)
+    runs[run_id] = {"queue": queue, "snapshot": snapshot}
+    run_timestamps[run_id] = time.time()
+
     loop = asyncio.get_event_loop()
     analysts = req.analysts or ["market", "fundamentals", "news", "social"]
 
     thread = threading.Thread(
         target=run_analysis,
-        args=(run_id, req.ticker, req.trade_date, analysts, queue, loop, trace_id, session_id),
+        args=(run_id, req.ticker, req.trade_date, analysts, queue, loop, snapshot, trace_id, session_id),
         daemon=True,
     )
     thread.start()
@@ -142,14 +141,21 @@ async def analyze(req: AnalyzeRequest):
 
 
 @app.get("/api/stream/{run_id}")
-async def stream(run_id: str):
-    if run_id not in runs:
+async def stream(run_id: str, resume: bool = Query(False)):
+    state = runs.get(run_id)
+    if not state:
         raise HTTPException(status_code=404, detail="Run not found")
 
-    queue = runs[run_id]
+    queue = state["queue"]
+    snap = state["snapshot"]
 
     async def event_generator():
         try:
+            if resume:
+                yield {
+                    "event": "stream_bootstrap",
+                    "data": json.dumps(snap),
+                }
             while True:
                 event = await asyncio.wait_for(
                     queue.get(), timeout=STREAM_IDLE_TIMEOUT_SEC
@@ -162,10 +168,8 @@ async def stream(run_id: str):
         except asyncio.TimeoutError:
             yield {"event": "error", "data": json.dumps({"message": "Stream timeout"})}
             yield {"event": "done", "data": "{}"}
-        finally:
-            # Cleanup run after stream ends
-            runs.pop(run_id, None)
-            run_timestamps.pop(run_id, None)
+            # Worker may still be running; drop registry entry so we do not leak IDs.
+            complete_run(run_id)
 
     return EventSourceResponse(event_generator())
 

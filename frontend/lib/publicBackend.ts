@@ -13,10 +13,18 @@ export function getBackendPublicOrigin(): string {
   return "";
 }
 
-export function backendStreamUrl(runId: string): string {
+export function backendStreamUrl(
+  runId: string,
+  opts?: { resume?: boolean },
+): string {
   const origin = getBackendPublicOrigin();
   const path = `/api/stream/${runId}`;
-  return origin ? `${origin}${path}` : path;
+  let url = origin ? `${origin}${path}` : path;
+  if (opts?.resume) {
+    const sep = url.includes("?") ? "&" : "?";
+    url = `${url}${sep}resume=true`;
+  }
+  return url;
 }
 
 /**

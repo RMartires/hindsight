@@ -14,6 +14,7 @@ from pipeline_topology import (
 from tool_stream import extract_tool_events_from_chunk
 from llm_usage_stream import extract_llm_usage_events_from_chunk
 from supabase_runs import upsert_terminal_run
+from run_registry import complete_run
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ def _utc_iso() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
-def _new_snapshot(run_id: str, trace_id: Optional[str], session_id: Optional[str]) -> dict:
+def build_initial_snapshot(run_id: str, trace_id: Optional[str], session_id: Optional[str]) -> dict:
     return {
         "status": "streaming",
         "agents": {},
@@ -99,6 +100,7 @@ def run_analysis(
     analysts: List[str],
     queue: asyncio.Queue,
     loop: asyncio.AbstractEventLoop,
+    snapshot: dict,
     trace_id: Optional[str] = None,
     session_id: Optional[str] = None,
 ):
@@ -106,7 +108,6 @@ def run_analysis(
 
     This replicates the chunk-inspection logic from cli/main.py:1091-1192.
     """
-    snapshot = _new_snapshot(run_id, trace_id, session_id)
 
     def emit(event_type: str, data: dict):
         _emit(queue, loop, event_type, data)
@@ -405,3 +406,5 @@ def run_analysis(
         )
         emit("error", {"message": str(e)})
         emit("done", {"trace_id": trace_id or ""})
+    finally:
+        complete_run(run_id)
