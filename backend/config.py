@@ -5,9 +5,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Always load backend/.env regardless of process cwd (uvicorn, IDE, repo root).
-_backend_dir = Path(__file__).resolve().parent
-load_dotenv(_backend_dir / ".env")
+# Repo-root `.env` (single file for backend, scripts, and CLI).
+_repo_root = Path(__file__).resolve().parent.parent
+load_dotenv(_repo_root / ".env")
 
 
 def build_config() -> dict:

@@ -41,3 +41,6 @@ yarn-error.log*
 .env.*
 !.env.example
 !**/.env.example
+eval_*
+results
+*data_cache*

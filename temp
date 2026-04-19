@@ -1,3 +1,13 @@
 python server.py 
 
 npm run dev
+
+
+python main.py 2>&1 | tee "run-$(date +%Y%m%d-%H%M%S).log"
+
+python scripts/kite_token_server.py
+
+PYTHONUNBUFFERED=1 python3 -u scripts/backtest_mvp.py \
+  --ticker RELIANCE.NS \
+  --dates-csv eval_results/RELIANCE.NS/dates.csv \
+  --debug 2>&1 | tee eval_results/backtest_mvp_run.log

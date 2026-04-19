@@ -48,7 +48,7 @@ When Langfuse is configured, the backend generates **trace** and **session** IDs
 
 ### Configuration mirrors TradingAgents
 
-`backend/config.py` builds a config dict from **`backend/.env`**, using the same conventions as upstream (LLM provider, OpenRouter vs OpenAI, model names, rate limits, debate rounds, optional **data vendor** overrides). You can symlink or copy a TradingAgents `.env` into `backend/.env`.
+`backend/config.py` builds a config dict from environment variables loaded from **`.env` at the repository root** (LLM provider, OpenRouter vs OpenAI, model names, rate limits, debate rounds, optional **data vendor** overrides). Use `.env.example` in the repo root as a template.
 
 ### Frontend ↔ API ergonomics
 
@@ -90,6 +90,13 @@ flowchart LR
 
 | Path | Role |
 |------|------|
+| `pyproject.toml` | Single dependency list: engine (`tradingagents`, `cli`), FastAPI stack, and tooling |
+| `.env` / `.env.example` | Secrets and config at **repo root** (backend, scripts, and CLI) |
+| `tradingagents/` | LangGraph multi-agent pipeline, dataflows, backtest helpers, LLM clients |
+| `cli/` | Typer CLI (`tradingagents` console script) used by `main.py` and `scripts/backtest_mvp.py` |
+| `scripts/` | `backtest_mvp.py`, `kite_token_server.py` |
+| `main.py` | Standalone runner for the graph (loads `.env` from repo root) |
+| `ROADMAP.md` | Engine / product roadmap notes |
 | `backend/` | FastAPI app, SSE bridge, topology + tool extraction, Langfuse helpers |
 | `frontend/` | Next.js App Router UI — pipeline canvas, controls, reports, debates |
 | `frontend/lib/presets.ts` | Historical date / ticker presets |
@@ -101,26 +108,27 @@ flowchart LR
 
 - **Python 3.11+** (recommended) for the backend
 - **Node.js** for the frontend (see `frontend/package.json` engines implied by Next 16)
-- **`tradingagents`**: The backend imports `TradingAgentsGraph` and related modules from the **TradingAgents** ecosystem. Install that package in the same environment as this backend (editable install, submodule, or path), following that project’s setup — `backend/requirements.txt` only lists dependencies for this thin API layer.
-- **API keys**: At minimum, keys for your chosen **LLM** provider and **market data** sources (see `backend/.env.example`).
+- **API keys**: At minimum, keys for your chosen **LLM** provider and **market data** sources (see `.env.example` at the repo root).
 
 ---
 
 ## Quick start
 
-### 1. Backend
+### 1. Python (API + engine)
+
+From the **repository root** (same directory as `pyproject.toml`):
 
 ```bash
-cd backend
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-# Ensure `tradingagents` and its dependencies are importable in this environment.
+pip install -e .
 cp .env.example .env
 # Edit .env with your keys and provider settings.
-python server.py
+python backend/server.py
 # Serves on http://0.0.0.0:8000 — try GET /api/health
 ```
+
+Use the same venv for `python scripts/backtest_mvp.py ...` or `tradingagents` from the root.
 
 ### 2. Frontend
 
@@ -150,13 +158,13 @@ Open **http://localhost:3000**, pick a preset or date + ticker, and start **New 
 ## Tech stack
 
 - **Frontend:** Next.js 16, React 19, TypeScript, **@xyflow/react**
-- **Backend:** FastAPI, **sse-starlette**, **Langfuse** client (optional), **langgraph** (via TradingAgents)
-- **Core graph:** **TradingAgents** `TradingAgentsGraph` + LangGraph streaming
+- **Backend:** FastAPI, **sse-starlette**, **Langfuse** client (optional), **langgraph** (bundled with this repo)
+- **Core graph:** `TradingAgentsGraph` + LangGraph streaming (`tradingagents/` package)
 
 ---
 
 ## License / attribution
 
-This UI and API wrapper are distinct from upstream **TradingAgents**; respect the license and terms of any data and model providers you configure.
+The **TradingAgents**-style engine lives in this repository under `tradingagents/`; respect the license and terms of any data and model providers you configure.
 
-If you extend the project, keep `backend/.env` out of version control (only `*.example` files are tracked).
+If you extend the project, keep the repo-root `.env` out of version control (only `*.example` files are tracked).
