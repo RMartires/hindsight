@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 import yfinance as yf
 import os
 from .stockstats_utils import StockstatsUtils, _clean_dataframe
+from .simulation_context import effective_data_end_date
 
 def get_YFin_data_online(
     symbol: Annotated[str, "ticker symbol of the company"],
@@ -215,12 +216,9 @@ def _get_stock_stats_bulk(
         except FileNotFoundError:
             raise Exception("Stockstats fail: Yahoo Finance data not fetched yet!")
     else:
-        # Online data fetching with caching
-        today_date = pd.Timestamp.today()
-        curr_date_dt = pd.to_datetime(curr_date)
-
-        end_date = today_date
-        start_date = today_date - pd.DateOffset(years=15)
+        # Online data fetching with caching (end date respects simulation cap when set)
+        end_date = pd.Timestamp(effective_data_end_date())
+        start_date = end_date - pd.DateOffset(years=15)
         start_date_str = start_date.strftime("%Y-%m-%d")
         end_date_str = end_date.strftime("%Y-%m-%d")
 

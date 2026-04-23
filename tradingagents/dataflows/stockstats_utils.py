@@ -4,6 +4,7 @@ from stockstats import wrap
 from typing import Annotated
 import os
 from .config import get_config
+from .simulation_context import effective_data_end_date
 
 
 def _clean_dataframe(data: pd.DataFrame) -> pd.DataFrame:
@@ -32,10 +33,10 @@ class StockstatsUtils:
     ):
         config = get_config()
 
-        today_date = pd.Timestamp.today()
+        end_cap = pd.Timestamp(effective_data_end_date())
         curr_date_dt = pd.to_datetime(curr_date)
 
-        end_date = today_date
+        end_date = end_cap
         start_date = today_date - pd.DateOffset(years=15)
         start_date_str = start_date.strftime("%Y-%m-%d")
         end_date_str = end_date.strftime("%Y-%m-%d")

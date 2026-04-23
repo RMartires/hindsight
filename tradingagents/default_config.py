@@ -46,4 +46,14 @@ DEFAULT_CONFIG = {
     },
     # Paper backtest: transaction cost as basis points of traded notional per BUY/SELL (0 = off).
     "backtest_cost_bps": float(os.getenv("BACKTEST_COST_BPS", "0") or 0),
+    # ``flat_bps`` | ``zerodha_delivery`` | ``zerodha_intraday`` (see tradingagents.backtest.zerodha_fees).
+    "backtest_cost_model": os.getenv("BACKTEST_COST_MODEL", "flat_bps").strip() or "flat_bps",
+    # Extra execution haircut on traded notional (bps), applied in addition to cost model fees.
+    "backtest_slippage_bps": float(os.getenv("BACKTEST_SLIPPAGE_BPS", "0") or 0),
+    # When unset, optional default for backtest_cost_bps (India): see env KITE_BROKERAGE_BPS in scripts.
+    # Simulation: max calendar date for OHLCV/news downloads (set per run in propagate).
+    "simulation_data_end": None,
+    # ``prior_calendar_day`` (default) or ``trade_date`` — upper bound for data relative to trade_date.
+    "simulation_data_end_policy": os.getenv("SIMULATION_DATA_END_POLICY", "prior_calendar_day").strip()
+    or "prior_calendar_day",
 }

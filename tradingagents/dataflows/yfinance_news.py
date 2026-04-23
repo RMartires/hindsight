@@ -79,11 +79,12 @@ def get_news_yfinance(
         for article in news:
             data = _extract_article_data(article)
 
-            # Filter by date if publish time is available
-            if data["pub_date"]:
-                pub_date_naive = data["pub_date"].replace(tzinfo=None)
-                if not (start_dt <= pub_date_naive <= end_dt + relativedelta(days=1)):
-                    continue
+            # Exclude undated items so they cannot bypass the simulation window.
+            if not data["pub_date"]:
+                continue
+            pub_date_naive = data["pub_date"].replace(tzinfo=None)
+            if not (start_dt <= pub_date_naive <= end_dt + relativedelta(days=1)):
+                continue
 
             news_str += f"### {data['title']} (source: {data['publisher']})\n"
             if data["summary"]:
@@ -177,10 +178,11 @@ def get_global_news_yfinance(
                     "link": article.get("link", ""),
                     "pub_date": None,
                 }
-            if data["pub_date"]:
-                pub_naive = data["pub_date"].replace(tzinfo=None)
-                if not (start_dt <= pub_naive <= end_dt + relativedelta(days=1)):
-                    continue
+            if not data["pub_date"]:
+                continue
+            pub_naive = data["pub_date"].replace(tzinfo=None)
+            if not (start_dt <= pub_naive <= end_dt + relativedelta(days=1)):
+                continue
             filtered.append((article, data))
 
         if not filtered:

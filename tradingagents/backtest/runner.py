@@ -4,10 +4,8 @@ import csv
 import json
 import logging
 import os
-import statistics
 import sys
 import uuid
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
@@ -31,6 +29,7 @@ from tradingagents.backtest.dates_schedule import (
 )
 from tradingagents.backtest.structured_literals import extract_structured_schedule_literals
 from tradingagents.backtest.ledger import PaperLedger
+from tradingagents.backtest.metrics import compute_performance_stats
 from tradingagents.backtest.prices import fetch_close_for_trade_date
 from tradingagents.backtest.signals import resolve_signal
 from tradingagents.observability.langfuse_config import (
@@ -51,114 +50,8 @@ def _ledger_fees_for_row(ledger: PaperLedger, traded_today: bool) -> tuple[float
     return float(ledger.trades[-1].fees_paid), cumulative
 
 
-def max_drawdown(equities: List[float]) -> float:
-    if not equities:
-        return 0.0
-    peak = equities[0]
-    max_dd = 0.0
-    for x in equities:
-        if x > peak:
-            peak = x
-        if peak > 0:
-            dd = (peak - x) / peak
-            if dd > max_dd:
-                max_dd = dd
-    return max_dd
-
-
-def annualized_return(
-    total_return: float,
-    equity_rows: List[Dict[str, Any]],
-) -> Optional[float]:
-    """CAGR-style return over the calendar span covered by ``equity_rows`` (first to last date)."""
-    if not equity_rows:
-        return None
-    d0 = equity_rows[0].get("date")
-    d1 = equity_rows[-1].get("date")
-    if not d0 or not d1:
-        return None
-    try:
-        t0 = datetime.strptime(str(d0).strip(), "%Y-%m-%d")
-        t1 = datetime.strptime(str(d1).strip(), "%Y-%m-%d")
-    except ValueError:
-        return None
-    days = (t1 - t0).days
-    if days <= 0:
-        return None
-    years = days / 365.25
-    return (1.0 + total_return) ** (1.0 / years) - 1.0
-
-
-def sharpe_ratio(
-    equity_rows: List[Dict[str, Any]],
-    *,
-    trading_days_per_year: float = 252.0,
-) -> Optional[float]:
-    """Daily Sharpe from the equity curve (simple returns, sample stdev)."""
-    series: List[float] = []
-    for r in equity_rows:
-        v = r.get("equity")
-        if v is None:
-            continue
-        try:
-            series.append(float(v))
-        except (TypeError, ValueError):
-            continue
-    if len(series) < 3:
-        return None
-    returns: List[float] = []
-    for i in range(1, len(series)):
-        prev, cur = series[i - 1], series[i]
-        if prev <= 0:
-            continue
-        returns.append((cur / prev) - 1.0)
-    if len(returns) < 2:
-        return None
-    mean_r = statistics.mean(returns)
-    try:
-        std_r = statistics.stdev(returns)
-    except statistics.StatisticsError:
-        return None
-    if std_r <= 1e-12:
-        return None
-    return (mean_r / std_r) * (trading_days_per_year**0.5)
-
-
-def _equity_series_for_drawdown(equity_rows: List[Dict[str, Any]]) -> List[float]:
-    equities = [float(r["equity"]) for r in equity_rows if r.get("close") is not None]
-    if not equities and equity_rows:
-        equities = [float(r["equity"]) for r in equity_rows]
-    return equities
-
-
-def compute_running_perf_numbers(
-    initial_cash: float,
-    equity_rows: List[Dict[str, Any]],
-    ledger: PaperLedger,
-) -> Dict[str, Any]:
-    """Performance stats over ``equity_rows`` so far (same math as ``summary.json``)."""
-    if not equity_rows:
-        return {
-            "total_return": 0.0,
-            "annualized_return": None,
-            "sharpe_ratio": None,
-            "max_drawdown": 0.0,
-            "total_transaction_costs": float(sum(t.fees_paid for t in ledger.trades)),
-            "cost_bps": float(ledger.cost_bps),
-        }
-    equities = _equity_series_for_drawdown(equity_rows)
-    initial_eq = float(initial_cash)
-    final_eq = float(equity_rows[-1]["equity"])
-    total_return = (final_eq - initial_eq) / initial_eq if initial_eq else 0.0
-    total_fees = float(sum(t.fees_paid for t in ledger.trades))
-    return {
-        "total_return": total_return,
-        "annualized_return": annualized_return(total_return, equity_rows),
-        "sharpe_ratio": sharpe_ratio(equity_rows),
-        "max_drawdown": float(max_drawdown(equities)) if equities else 0.0,
-        "total_transaction_costs": total_fees,
-        "cost_bps": float(ledger.cost_bps),
-    }
+# Backwards-compatible name used by callers and tests.
+compute_running_perf_numbers = compute_performance_stats
 
 
 def _fmt_schedule_float(x: Optional[float], nd: int = 6) -> str:
@@ -196,15 +89,28 @@ def build_schedule_analysis_row(
                 float(cum_fees) if cum_fees is not None else perf["total_transaction_costs"]
             ),
             "total_return": _fmt_schedule_float(float(perf["total_return"])),
+            "gross_total_return": _fmt_schedule_float(
+                float(perf["gross_total_return"]) if perf.get("gross_total_return") is not None else None
+            ),
             "annualized_return": _fmt_schedule_float(
                 float(perf["annualized_return"]) if perf["annualized_return"] is not None else None
             ),
             "sharpe_ratio": _fmt_schedule_float(
                 float(perf["sharpe_ratio"]) if perf["sharpe_ratio"] is not None else None
             ),
+            "sortino_ratio": _fmt_schedule_float(
+                float(perf["sortino_ratio"]) if perf.get("sortino_ratio") is not None else None
+            ),
+            "calmar_ratio": _fmt_schedule_float(
+                float(perf["calmar_ratio"]) if perf.get("calmar_ratio") is not None else None
+            ),
             "max_drawdown": _fmt_schedule_float(float(perf["max_drawdown"])),
             "total_transaction_costs": _fmt_schedule_float(float(perf["total_transaction_costs"])),
             "cost_bps": _fmt_schedule_float(float(perf["cost_bps"])),
+            "cost_model": str(perf.get("cost_model", "") or "")[:64],
+            "slippage_bps": _fmt_schedule_float(
+                float(perf["slippage_bps"]) if perf.get("slippage_bps") is not None else None
+            ),
             "processed_signal": ps,
         }
     )
@@ -254,10 +160,15 @@ def write_backtest_mvp_artifacts(
         "initial_cash": initial_cash,
         "final_equity": final_eq,
         "total_return": perf["total_return"],
+        "gross_total_return": perf.get("gross_total_return"),
         "annualized_return": perf["annualized_return"],
         "sharpe_ratio": perf["sharpe_ratio"],
+        "sortino_ratio": perf.get("sortino_ratio"),
+        "calmar_ratio": perf.get("calmar_ratio"),
         "max_drawdown": perf["max_drawdown"],
         "cost_bps": perf["cost_bps"],
+        "cost_model": perf.get("cost_model"),
+        "slippage_bps": perf.get("slippage_bps"),
         "total_transaction_costs": perf["total_transaction_costs"],
         "execution_events": executions,
         "output_dir": str(base.resolve()),
@@ -339,6 +250,8 @@ def run_backtest_mvp(
     initial_cash: float = 100_000.0,
     buy_fraction: float = 1.0,
     cost_bps: float = 0.0,
+    cost_model: str = "flat_bps",
+    slippage_bps: float = 0.0,
     use_llm_signal: bool = False,
     results_dir: Optional[Path] = None,
     portfolio_context: Optional[str] = None,
@@ -358,8 +271,9 @@ def run_backtest_mvp(
         dates: Decision dates ``YYYY-MM-DD`` in run order.
         initial_cash: Starting cash.
         buy_fraction: Fraction of cash to deploy on each BUY.
-        cost_bps: Basis points charged on each BUY/SELL notional (0 disables). Ignored if
-            ``initial_ledger`` is provided (resume uses the seeded ledger's ``cost_bps``).
+        cost_bps: Basis points (``flat_bps`` model only). Ignored if ``initial_ledger`` is set.
+        cost_model: ``flat_bps``, ``zerodha_delivery``, or ``zerodha_intraday`` (see ``zerodha_fees``).
+        slippage_bps: Extra bps on traded notional, added to any cost model.
         use_llm_signal: If True, use ``SignalProcessor`` when heuristic is ambiguous.
         results_dir: Output folder; default ``eval_results/<ticker>/backtest_mvp_<id>``.
         portfolio_context: Optional markdown injected into agents; skips Kite when set.
@@ -387,7 +301,12 @@ def run_backtest_mvp(
     ledger = (
         initial_ledger
         if initial_ledger is not None
-        else PaperLedger(cash=float(initial_cash), cost_bps=float(cost_bps))
+        else PaperLedger(
+            cash=float(initial_cash),
+            cost_bps=float(cost_bps),
+            cost_model=str(cost_model or "flat_bps"),
+            slippage_bps=float(slippage_bps),
+        )
     )
     equity_rows: List[Dict[str, Any]] = []
     last_close: Optional[float] = (

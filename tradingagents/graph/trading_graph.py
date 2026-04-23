@@ -23,6 +23,7 @@ from tradingagents.agents.utils.agent_states import (
     RiskDebateState,
 )
 from tradingagents.dataflows.config import set_config
+from tradingagents.dataflows.simulation_context import effective_simulation_end_date_str
 
 # Import the new abstract tool methods from agent_utils
 from tradingagents.agents.utils.agent_utils import (
@@ -221,6 +222,14 @@ class TradingAgentsGraph:
         """
 
         self.ticker = company_name
+
+        # Historical backtest: cap OHLCV/news downloads to as-of date (no lookahead).
+        set_config(
+            {
+                **self.config,
+                "simulation_data_end": effective_simulation_end_date_str(str(trade_date)),
+            }
+        )
 
         if portfolio_context is not None:
             pc = portfolio_context

@@ -103,6 +103,21 @@ def _build_config() -> dict:
             cfg["backtest_cost_bps"] = float(_bc)
         except ValueError:
             pass
+    elif os.getenv("KITE_BROKERAGE_BPS", "").strip():
+        try:
+            cfg["backtest_cost_bps"] = float(os.getenv("KITE_BROKERAGE_BPS", "0") or 0)
+        except ValueError:
+            pass
+
+    _cm = os.getenv("BACKTEST_COST_MODEL", "").strip()
+    if _cm:
+        cfg["backtest_cost_model"] = _cm
+    _sl = os.getenv("BACKTEST_SLIPPAGE_BPS", "").strip()
+    if _sl != "":
+        try:
+            cfg["backtest_slippage_bps"] = float(_sl)
+        except ValueError:
+            pass
 
     # Configure data vendors (default uses yfinance, no extra API keys needed)
     cfg["data_vendors"] = {
@@ -277,12 +292,16 @@ def main() -> int:
     cost_bps = float(config.get("backtest_cost_bps", 0) or 0)
     if args.cost_bps is not None:
         cost_bps = float(args.cost_bps)
+    cost_model = str(config.get("backtest_cost_model", "flat_bps") or "flat_bps")
+    slippage_bps = float(config.get("backtest_slippage_bps", 0) or 0)
 
     if schedule_rows is not None and schedule_path is not None:
         seed_ledger, seed_last_close = last_successful_ledger_state(
             schedule_rows,
             initial_cash=args.initial_cash,
             cost_bps=cost_bps,
+            cost_model=cost_model,
+            slippage_bps=slippage_bps,
         )
         effective_initial_cash = float(seed_ledger.cash)
 
@@ -351,6 +370,8 @@ def main() -> int:
         initial_cash=effective_initial_cash,
         buy_fraction=args.buy_fraction,
         cost_bps=cost_bps,
+        cost_model=cost_model,
+        slippage_bps=slippage_bps,
         use_llm_signal=args.use_llm_signal,
         results_dir=Path(args.results_dir) if args.results_dir else None,
         use_live_portfolio=False,

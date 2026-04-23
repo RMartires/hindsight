@@ -218,46 +218,36 @@
 
 ---
 
-### 4.2 Temporal Partitioning Controller ❌
-**What it is:** A strict knowledge cutoff that ensures no agent ever sees data beyond `t−1` (yesterday) relative to the simulation trade date.
+### 4.2 Temporal Partitioning Controller 🔶
+**What it is:** A strict knowledge cutoff that ensures no agent ever sees data beyond the simulation as-of date relative to `trade_date`.
 
-**Current state:** `trade_date` is passed in prompts as "current date" but tools don't clamp data to `≤ trade_date`. `stockstats_utils.py` downloads data up to the **real system clock today** — not the simulation date. LLM-supplied tool call date ranges are not validated.
+**Current state (partial):** `TradingAgentsGraph.propagate` sets `simulation_data_end` from `trade_date` via `simulation_context.effective_simulation_end_date_str` (default policy: **prior calendar day**). `route_to_vendor` clamps `get_stock_data`, `get_news`, `get_indicators`, and `get_global_news` date args. `stockstats_utils` / `y_finance` bulk downloads use `effective_data_end_date()` instead of wall-clock `today`. yfinance ticker news **excludes articles without a publish date** so undated items cannot bypass the window.
 
 **What to build:**
-- [ ] Add a `simulation_date` parameter to all data tool functions (`get_stock_data`, `get_indicators`, `get_news`, etc.)
-- [ ] In every vendor implementation, clamp `end_date = min(requested_end, simulation_date - 1 day)`
-- [ ] Fix `stockstats_utils.py` to use `simulation_date` as `end_date` instead of `pd.Timestamp.today()`
-- [ ] Add a validation wrapper in `interface.py`'s `route_to_vendor` that enforces the cutoff before any vendor call
-- [ ] Add tests that assert no returned data row has a date ≥ `trade_date`
+- [ ] Extend clamping / `simulation_data_end` to any remaining tool paths that accept dates (e.g. fundamentals if applicable)
+- [ ] Add integration tests with mocked vendor responses asserting row dates ≤ cap
 
 ---
 
-### 4.3 Transaction Cost Model ❌
-**What it is:** A cost calculator that subtracts a configurable number of basis points per trade to ensure all reported returns are net-of-cost.
+### 4.3 Transaction Cost Model 🔶
+**What it is:** Realistic per-trade costs and net vs gross reporting.
 
-**Current state:** `PaperLedger` executes at raw close price with zero commissions, spread, or slippage. All reported returns are gross.
+**Current state:** `PaperLedger` supports **`cost_model`**: `flat_bps` (legacy), **`zerodha_delivery`**, **`zerodha_intraday`** via `tradingagents/backtest/zerodha_fees.py` (rates cited from Zerodha charge list). **`slippage_bps`** adds an extra haircut on notional. `summary.json` includes **`gross_total_return`** vs **`total_return`** (net). Env: `BACKTEST_COST_MODEL`, `BACKTEST_SLIPPAGE_BPS`, `KITE_BROKERAGE_BPS` (default bps when `BACKTEST_COST_BPS` unset in `scripts/backtest_mvp.py`).
 
 **What to build:**
-- [ ] Add `cost_bps: float = 10` parameter to `PaperLedger` (and `DEFAULT_CONFIG`)
-- [ ] Deduct `cost_bps / 10_000 * trade_value` from cash on every BUY and SELL execution
-- [ ] Add a `slippage_model` (e.g. linear: `slippage_bps * sqrt(order_size / avg_volume)`) as an optional second layer
-- [ ] Report gross vs. net return separately in `summary.json`
-- [ ] Add `KITE_BROKERAGE_BPS` env var for Indian market defaults (STT + brokerage + exchange charges ≈ 10–20 bps)
+- [ ] Optional advanced slippage (e.g. size/volume-based) beyond flat `slippage_bps`
 
 ---
 
 ## Module 5 · Evaluation & Analytics Suite
 
 ### 5.1 Financial Performance Engine 🔶
-**What it is:** Standard ROI, Annualized Return, Sharpe Ratio, and Maximum Drawdown calculators.
+**What it is:** Standard ROI, Annualized Return, Sharpe/Sortino/Calmar, and Maximum Drawdown calculators.
 
-**Current state:** `runner.py` computes `total_return` and `max_drawdown`. Annualized return and Sharpe Ratio are **not implemented**.
+**Current state:** Implemented in **`tradingagents/backtest/metrics.py`** (`annualized_return`, `sharpe_ratio`, `sortino_ratio`, `calmar_ratio`, `compute_performance_stats`, `gross_total_return`, `buy_and_hold_total_return`). `runner.py` wires metrics into `summary.json` and `dates.csv` analysis columns.
 
 **What to build:**
-- [ ] Add `annualized_return(equity_series, start_date, end_date)` to `backtest/runner.py`
-- [ ] Add `sharpe_ratio(daily_returns, risk_free_rate=0.0)` (annualized, using daily returns series)
-- [ ] Add `sortino_ratio(daily_returns)` and `calmar_ratio(annualized_return, max_drawdown)` as bonus metrics
-- [ ] Include all metrics in `summary.json` and the printed backtest report
+- [ ] Optional: wire `buy_and_hold_total_return` into `summary.json` when a benchmark series is available
 
 ---
 

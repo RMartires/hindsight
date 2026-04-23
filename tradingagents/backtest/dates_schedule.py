@@ -39,11 +39,16 @@ SCHEDULE_ANALYSIS_FIELDNAMES = (
     "fees_day",
     "cumulative_fees",
     "total_return",
+    "gross_total_return",
     "annualized_return",
     "sharpe_ratio",
+    "sortino_ratio",
+    "calmar_ratio",
     "max_drawdown",
     "total_transaction_costs",
     "cost_bps",
+    "cost_model",
+    "slippage_bps",
     "processed_signal",
 ) + SCHEDULE_STRUCTURED_LITERAL_FIELDNAMES
 
@@ -88,6 +93,8 @@ def last_successful_ledger_state(
     *,
     initial_cash: float,
     cost_bps: float = 0.0,
+    cost_model: str = "flat_bps",
+    slippage_bps: float = 0.0,
 ) -> tuple["PaperLedger", float | None]:
     """
     Seed resume state from the last successful row in a state CSV.
@@ -121,6 +128,8 @@ def last_successful_ledger_state(
             cash=float(initial_cash) if cash is None else float(cash),
             shares=0.0 if shares is None else float(shares),
             cost_bps=float(cost_bps),
+            cost_model=str(cost_model or "flat_bps"),
+            slippage_bps=float(slippage_bps),
         ),
         last_close,
     )

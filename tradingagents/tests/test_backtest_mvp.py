@@ -13,13 +13,8 @@ from tradingagents.backtest.dates_schedule import (
 )
 from tradingagents.backtest.ledger import PaperLedger
 from tradingagents.backtest.prices import parse_close_from_vendor_block
-from tradingagents.backtest.runner import (
-    annualized_return,
-    build_schedule_analysis_row,
-    max_drawdown,
-    sharpe_ratio,
-    write_backtest_mvp_artifacts,
-)
+from tradingagents.backtest.metrics import annualized_return, max_drawdown, sharpe_ratio
+from tradingagents.backtest.runner import build_schedule_analysis_row, write_backtest_mvp_artifacts
 from tradingagents.backtest.signals import normalize_signal_heuristic, resolve_signal
 
 

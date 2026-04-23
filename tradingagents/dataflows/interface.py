@@ -37,6 +37,32 @@ from .config import get_config
 
 _log = logging.getLogger(__name__)
 
+
+def _clamp_vendor_args(method: str, args: tuple, kwargs: dict) -> tuple[tuple, dict]:
+    """Clamp date strings so tools cannot request data past ``simulation_data_end`` when set."""
+    from tradingagents.dataflows.simulation_context import clamp_date_str, clamp_date_range
+
+    a = list(args)
+    kw = dict(kwargs)
+
+    if method == "get_stock_data" and len(a) >= 3:
+        s, e = clamp_date_range(str(a[1]), str(a[2]))
+        a[1], a[2] = s, e
+    elif method == "get_news" and len(a) >= 3:
+        s, e = clamp_date_range(str(a[1]), str(a[2]))
+        a[1], a[2] = s, e
+    elif method == "get_indicators":
+        if len(a) >= 3:
+            a[2] = clamp_date_str(str(a[2]))
+        if "curr_date" in kw:
+            kw["curr_date"] = clamp_date_str(str(kw["curr_date"]))
+    elif method == "get_global_news" and len(a) >= 1:
+        a[0] = clamp_date_str(str(a[0]))
+        if "curr_date" in kw:
+            kw["curr_date"] = clamp_date_str(str(kw["curr_date"]))
+
+    return tuple(a), kw
+
 # Tools organized by category
 TOOLS_CATEGORIES = {
     "core_stock_apis": {
@@ -146,6 +172,7 @@ def get_vendor(category: str, method: str = None) -> str:
 
 def route_to_vendor(method: str, *args, **kwargs):
     """Route method calls to appropriate vendor implementation with fallback support."""
+    args, kwargs = _clamp_vendor_args(method, args, kwargs)
     category = get_category_for_method(method)
     vendor_config = get_vendor(category, method)
     primary_vendors = [v.strip() for v in vendor_config.split(',')]

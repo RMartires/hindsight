@@ -23,18 +23,34 @@ class TradeRecord:
 class PaperLedger:
     """Single-asset long-only paper book: BUY uses a fraction of cash; SELL flattens.
 
-    ``cost_bps`` charges that many basis points on traded notional per BUY/SELL
-    (HOLDS are free): fee = notional * (cost_bps / 10_000), paid in addition
-    to the cash deployed on buys and deducted from proceeds on sells.
+    **flat_bps:** ``fee = notional * (cost_bps + slippage_bps) / 10_000`` per BUY/SELL.
+
+    **zerodha_delivery / zerodha_intraday:** statutory fee stack from
+    ``tradingagents.backtest.zerodha_fees`` (see Zerodha charge list), plus slippage bps on notional.
     """
 
     cash: float
     shares: float = 0.0
     trades: List[TradeRecord] = field(default_factory=list)
     cost_bps: float = 0.0
+    cost_model: str = "flat_bps"
+    slippage_bps: float = 0.0
 
     def equity(self, close_price: float) -> float:
         return self.cash + self.shares * close_price
+
+    def _transaction_costs_inr(self, signal: str, notional: float) -> float:
+        """Total INR fees + slippage for one BUY or SELL leg."""
+        from tradingagents.backtest.zerodha_fees import fees_for_leg_inr, slippage_cost_inr
+
+        n = max(0.0, float(notional))
+        slip = slippage_cost_inr(n, float(self.slippage_bps))
+        cm = (self.cost_model or "flat_bps").strip().lower()
+        if cm == "flat_bps":
+            statutory = n * max(0.0, float(self.cost_bps)) / 10_000.0
+            return statutory + slip
+        side = "BUY" if signal == "BUY" else "SELL"
+        return fees_for_leg_inr(cost_model=cm, side=side, notional_inr=n) + slip
 
     def apply_signal(
         self,
@@ -53,20 +69,19 @@ class PaperLedger:
         cash_before = self.cash
         shares_before = self.shares
         fees_paid = 0.0
-        rate = max(0.0, float(self.cost_bps)) / 10_000.0
 
         if s == "HOLD":
             pass
         elif s == "SELL" and self.shares > 0:
             proceeds = self.shares * close_price
-            fees_paid = proceeds * rate
+            fees_paid = self._transaction_costs_inr("SELL", proceeds)
             self.cash += proceeds - fees_paid
             self.shares = 0.0
         elif s == "BUY":
             frac = max(0.0, min(1.0, float(buy_fraction)))
             spend = self.cash * frac
             if spend > 0:
-                fees_paid = spend * rate
+                fees_paid = self._transaction_costs_inr("BUY", spend)
                 new_shares = spend / close_price
                 self.cash -= spend + fees_paid
                 self.shares += new_shares
