@@ -17,47 +17,20 @@
 
 ## Module 1 · Infrastructure & Orchestration
 
-### 1.1 Asynchronous Message Broker ❌
-**What it is:** Replace the current synchronous LangGraph `invoke`/`stream` with an external event bus (e.g. RabbitMQ, Redis Streams) so agents can process tasks in parallel without blocking the main execution loop.
-
-**Current state:** All agents run in-process via LangGraph `StateGraph`. Edges are sequential; one agent finishes before the next starts. No broker, no queue.
-
-**What to build:**
-- [ ] Introduce a message broker (RabbitMQ or Redis Streams)
-- [ ] Wrap each agent as an async worker that consumes from a topic/queue
-- [ ] Allow the four analyst agents to run in **parallel** (they are currently chained sequentially)
-- [ ] Implement a barrier/aggregation step before the researchers consume all four reports
-
----
-
-### 1.2 LiteLLM Router 🔶
-**What it is:** A runtime multi-provider router that selects the cheapest/fastest available provider, retries across providers on failure, and shields agent code from per-SDK differences.
-
-**Current state:** `llm_clients/factory.py` selects **one provider at config time**. `openai_client.py` has a custom retry loop (429/5xx/JSON errors). `invoke_fallback.py` provides a deep→quick model fallback for research/risk nodes only.
-
-**What to build:**
-- [ ] Integrate [LiteLLM](https://github.com/BerriAI/litellm) as the unified call layer
-- [ ] Configure a priority list of providers (e.g. `gpt-o3 → claude-3.7 → gemini-2.5`)
-- [ ] Delegate all retry, backoff, and provider-error handling to LiteLLM
-- [ ] Remove the hand-rolled retry loops in `UnifiedChatOpenAI` once LiteLLM covers them
-- [ ] Preserve the existing `deep_think_llm` / `quick_think_llm` distinction
-
----
-
-### 1.3 JSON Schema Enforcer ❌
+### 1.1 JSON Schema Enforcer 🔶
 **What it is:** Force all LLM outputs that feed downstream code to conform to a strict JSON schema, preventing parsing failures during automated signal extraction and feature engineering.
 
-**Current state:** `validators.py` only validates model *names*. All agent outputs are free-form text. The trader enforces `FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL**` by prompt convention only — a regex, not a schema.
+**Current state (partial):** `tradingagents/schemas/outputs.py` defines Pydantic models used in the pipeline: `AnalystReport`, `BullBearArgument`, `RiskAnalystArgument`, `InvestmentPlanJudgment`, `TradeProposal`, `RiskAssessment`. `llm_clients/invoke_fallback.py` binds LangChain `.with_structured_output(...)` (`json_schema` / `json_mode`) with deep→quick model fallback, parse-failure logging, and (for several nodes) fallback to plain text if structured invoke fails. The four analysts, bull/bear researchers, research manager, trader, three risk debators, and risk manager write structured JSON into `AgentState` via `*_structured` keys (values are **JSON strings** for serialization). Prose drafts still precede structured extraction on many paths. `validators.py` still only validates LLM **model names** in config — unrelated to output schemas.
 
-**What to build:**
-- [ ] Define Pydantic models for each structured output: `TradeProposal`, `AnalystReport`, `RiskAssessment`, `DebateRound`
-- [ ] Use LangChain `.with_structured_output(schema)` on every node that feeds downstream code
-- [ ] Add a validation wrapper that catches schema violations and re-prompts (up to N retries)
-- [ ] Store validated outputs as typed objects in `AgentState` instead of raw strings
+**What to build (remaining):**
+- [ ] Add a structured **debate transcript** model (e.g. per-round `DebateRound` or equivalent) if multi-round debate is expanded (see §2.5)
+- [ ] Optional: persist validated outputs as **typed** objects in `AgentState` instead of only JSON strings (trade-offs with LangGraph checkpointing)
+- [ ] Optional: explicit **re-prompt on schema violation** up to N attempts (today: structured invoke + deep LLM fallback + plain-text fallback)
+- [ ] Audit for any node that still feeds downstream logic with prose-only output
 
 ---
 
-### 1.4 Rolling Context Window Manager 🔶
+### 1.2 Rolling Context Window Manager 🔶
 **What it is:** A module that maintains a fixed-length sequence of the last 7–10 days of prices and agent decisions in the prompt, giving the LLM temporal context without ballooning token usage.
 
 **Current state:** `llm_max_input_tokens` trims analyst **message lists** (newest-first, ~4 chars/token heuristic). Researchers, trader, and risk debators build giant f-string prompts with no trimming. `FinancialSituationMemory` is BM25 retrieval of past text situations — not a structured rolling buffer of numeric observations.
@@ -309,11 +282,10 @@ If `expected_signal_alpha < CBS` → single-agent mode is preferred.
 |-------|-------|-----------|
 | **Phase 1 — Foundation** | 4.2 Temporal Cutoff, 4.3 Cost Model, 5.1 Performance Metrics | Fix backtest integrity first — all analytics are invalid without correct simulation |
 | **Phase 2 — Data** | 3.3 60-Indicator Library, 2.1 Technical Analyst (KDJ + norm), 2.4 Macro Analyst | Richer, cleaner data for agents before expanding agent count |
-| **Phase 3 — Agent Quality** | 1.3 JSON Schema, 1.4 Context Window (all nodes), 2.2 Quant Analyst, 2.6 CRO Veto Gate | Structured outputs and proper token management before adding more agents |
+| **Phase 3 — Agent Quality** | 1.1 JSON Schema (finish gaps), 1.2 Context Window (all nodes), 2.2 Quant Analyst, 2.6 CRO Veto Gate | Finish structured outputs and token management before adding more agents |
 | **Phase 4 — Anonymization** | 3.1 Ticker Map, 3.2 Noun Scrubber | Apply to all prompts once agent/data layer is stable |
 | **Phase 5 — Simulation** | 4.1 LOB Simulator | High-fidelity execution layer; depends on cost model and temporal cutoff |
 | **Phase 6 — Analytics** | 5.2 Rationale Tracker, 5.3 CBS Calculator, 5.4 Dashboard | Evaluation suite; depends on all upstream modules being stable |
-| **Phase 7 — Infra** | 1.1 Async Broker, 1.2 LiteLLM Router | Optimization pass — current synchronous LangGraph works, just slower |
 
 ---
 
@@ -353,4 +325,4 @@ dashboard/
 
 ---
 
-*Last updated: April 10, 2026*
+*Last updated: April 23, 2026*

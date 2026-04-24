@@ -5,6 +5,7 @@ import unittest
 from tradingagents.dataflows.config import set_config
 from tradingagents.dataflows.simulation_context import (
     clamp_date_range,
+    clamp_date_range_eod,
     clamp_date_str,
     effective_data_end_date,
     effective_simulation_end_date_str,
@@ -31,6 +32,16 @@ class TestSimulationTemporal(unittest.TestCase):
         s, e = clamp_date_range("2019-01-01", "2020-06-01")
         self.assertEqual(e, "2020-01-10")
         self.assertLessEqual(s, e)
+
+    def test_eod_clamp_preserves_trade_day_window(self) -> None:
+        # When the simulation cap is the prior calendar day (e.g. Sunday),
+        # an EOD close fetch for Monday must still request Monday's daily bar.
+        set_config({"simulation_data_end": "2024-07-21"})
+        s0, e0 = clamp_date_range("2024-07-22", "2024-07-23")
+        self.assertEqual((s0, e0), ("2024-07-21", "2024-07-21"))
+
+        s1, e1 = clamp_date_range_eod("2024-07-22", "2024-07-23", "2024-07-22")
+        self.assertEqual((s1, e1), ("2024-07-22", "2024-07-23"))
 
 
 if __name__ == "__main__":

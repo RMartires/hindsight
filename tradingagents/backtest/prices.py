@@ -87,7 +87,13 @@ def fetch_close_for_trade_date(symbol: str, trade_date: str) -> Optional[float]:
 
     end_exc = (d + timedelta(days=1)).strftime("%Y-%m-%d")
     try:
-        block = route_to_vendor("get_stock_data", symbol, trade_date, end_exc)
+        block = route_to_vendor(
+            "get_stock_data",
+            symbol,
+            trade_date,
+            end_exc,
+            eod_for_trade_date=trade_date,
+        )
     except Exception as e:
         _log.warning("get_stock_data failed for %s %s: %s", symbol, trade_date, e)
         return None

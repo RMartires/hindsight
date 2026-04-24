@@ -52,7 +52,11 @@ def get_stock_data(
                 raise converted from e
             transient = isinstance(
                 e,
-                (requests.exceptions.ConnectionError, requests.exceptions.Timeout),
+                (
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
+                    ConnectionResetError,
+                ),
             )
             if transient and attempt + 1 < _HISTORICAL_MAX_ATTEMPTS:
                 delay = _HISTORICAL_RETRY_BASE_DELAY_SEC * (attempt + 1)

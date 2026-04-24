@@ -40,13 +40,21 @@ _log = logging.getLogger(__name__)
 
 def _clamp_vendor_args(method: str, args: tuple, kwargs: dict) -> tuple[tuple, dict]:
     """Clamp date strings so tools cannot request data past ``simulation_data_end`` when set."""
-    from tradingagents.dataflows.simulation_context import clamp_date_str, clamp_date_range
+    from tradingagents.dataflows.simulation_context import (
+        clamp_date_str,
+        clamp_date_range,
+        clamp_date_range_eod,
+    )
 
     a = list(args)
     kw = dict(kwargs)
 
     if method == "get_stock_data" and len(a) >= 3:
-        s, e = clamp_date_range(str(a[1]), str(a[2]))
+        eod_for_trade_date = kw.pop("eod_for_trade_date", None)
+        if eod_for_trade_date:
+            s, e = clamp_date_range_eod(str(a[1]), str(a[2]), str(eod_for_trade_date))
+        else:
+            s, e = clamp_date_range(str(a[1]), str(a[2]))
         a[1], a[2] = s, e
     elif method == "get_news" and len(a) >= 3:
         s, e = clamp_date_range(str(a[1]), str(a[2]))

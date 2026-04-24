@@ -43,7 +43,14 @@ def annualized_return(
     if days <= 0:
         return None
     years = days / 365.25
-    return (1.0 + total_return) ** (1.0 / years) - 1.0
+    # (1 + r)^(1/years) is not a real number when 1+r < 0 and the exponent is fractional.
+    base = 1.0 + float(total_return)
+    if base < 0:
+        return None
+    out = base ** (1.0 / years) - 1.0
+    if isinstance(out, complex):
+        return None
+    return float(out)
 
 
 def _daily_simple_returns(equity_rows: List[Dict[str, Any]]) -> List[float]:

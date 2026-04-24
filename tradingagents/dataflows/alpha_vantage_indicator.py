@@ -1,4 +1,5 @@
 from .alpha_vantage_common import _make_api_request
+from .indicator_library import tier1_indicator_descriptions, tier1_indicator_ids
 
 def get_indicator(
     symbol: str,
@@ -27,6 +28,8 @@ def get_indicator(
     from datetime import datetime
     from dateutil.relativedelta import relativedelta
 
+    # Alpha Vantage coverage is intentionally smaller than stockstats-backed vendors.
+    # Keep this list explicit: AV endpoints do not exist for every Tier-1 indicator id.
     supported_indicators = {
         "close_50_sma": ("50 SMA", "close"),
         "close_200_sma": ("200 SMA", "close"),
@@ -41,25 +44,15 @@ def get_indicator(
         "atr": ("ATR", None),
         "vwma": ("VWMA", "close")
     }
-
-    indicator_descriptions = {
-        "close_50_sma": "50 SMA: A medium-term trend indicator. Usage: Identify trend direction and serve as dynamic support/resistance. Tips: It lags price; combine with faster indicators for timely signals.",
-        "close_200_sma": "200 SMA: A long-term trend benchmark. Usage: Confirm overall market trend and identify golden/death cross setups. Tips: It reacts slowly; best for strategic trend confirmation rather than frequent trading entries.",
-        "close_10_ema": "10 EMA: A responsive short-term average. Usage: Capture quick shifts in momentum and potential entry points. Tips: Prone to noise in choppy markets; use alongside longer averages for filtering false signals.",
-        "macd": "MACD: Computes momentum via differences of EMAs. Usage: Look for crossovers and divergence as signals of trend changes. Tips: Confirm with other indicators in low-volatility or sideways markets.",
-        "macds": "MACD Signal: An EMA smoothing of the MACD line. Usage: Use crossovers with the MACD line to trigger trades. Tips: Should be part of a broader strategy to avoid false positives.",
-        "macdh": "MACD Histogram: Shows the gap between the MACD line and its signal. Usage: Visualize momentum strength and spot divergence early. Tips: Can be volatile; complement with additional filters in fast-moving markets.",
-        "rsi": "RSI: Measures momentum to flag overbought/oversold conditions. Usage: Apply 70/30 thresholds and watch for divergence to signal reversals. Tips: In strong trends, RSI may remain extreme; always cross-check with trend analysis.",
-        "boll": "Bollinger Middle: A 20 SMA serving as the basis for Bollinger Bands. Usage: Acts as a dynamic benchmark for price movement. Tips: Combine with the upper and lower bands to effectively spot breakouts or reversals.",
-        "boll_ub": "Bollinger Upper Band: Typically 2 standard deviations above the middle line. Usage: Signals potential overbought conditions and breakout zones. Tips: Confirm signals with other tools; prices may ride the band in strong trends.",
-        "boll_lb": "Bollinger Lower Band: Typically 2 standard deviations below the middle line. Usage: Indicates potential oversold conditions. Tips: Use additional analysis to avoid false reversal signals.",
-        "atr": "ATR: Averages true range to measure volatility. Usage: Set stop-loss levels and adjust position sizes based on current market volatility. Tips: It's a reactive measure, so use it as part of a broader risk management strategy.",
-        "vwma": "VWMA: A moving average weighted by volume. Usage: Confirm trends by integrating price action with volume data. Tips: Watch for skewed results from volume spikes; use in combination with other volume analyses."
-    }
+    indicator_descriptions = tier1_indicator_descriptions()
 
     if indicator not in supported_indicators:
+        # Keep error message consistent with other vendors by showing Tier-1 ids.
         raise ValueError(
-            f"Indicator {indicator} is not supported. Please choose from: {list(supported_indicators.keys())}"
+            f"Indicator {indicator} is not supported for alpha_vantage. "
+            f"Please choose from: {list(supported_indicators.keys())}. "
+            f"For the full Tier-1 set ({len(tier1_indicator_ids())}), use yfinance or kite as the "
+            f"`technical_indicators` vendor."
         )
 
     curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d")

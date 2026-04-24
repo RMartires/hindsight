@@ -74,3 +74,24 @@ def clamp_date_range(start_date: str, end_date: str) -> tuple[str, str]:
     if s > e:
         s = e
     return s, e
+
+
+def clamp_date_range_eod(start_date: str, end_date: str, trade_date: str) -> tuple[str, str]:
+    """Clamp (start, end) for end-of-day price fetches used for execution/mark-to-market.
+
+    Backtests cap information *inputs* to `simulation_data_end` to avoid lookahead. However,
+    the execution path must still be able to fetch the daily bar for `trade_date` (typically
+    requested via the yfinance-style window `[trade_date, trade_date+1)`).
+
+    This clamp preserves the normal cap, but ensures the effective cap is at least
+    `trade_date + 1 day` so `(trade_date, trade_date+1)` isn't collapsed to a prior
+    weekend/holiday calendar date.
+    """
+    cap = effective_data_end_date()
+    td = datetime.strptime(str(trade_date).strip()[:10], "%Y-%m-%d")
+    cap_eod = max(cap, (td + timedelta(days=1)).strftime("%Y-%m-%d"))
+    s = min(str(start_date).strip()[:10], cap_eod)
+    e = min(str(end_date).strip()[:10], cap_eod)
+    if s > e:
+        s = e
+    return s, e
