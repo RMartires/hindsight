@@ -1,7 +1,7 @@
 # TradingAgents — Implementation Roadmap
 
 > Gap analysis against the **Single-Stock Multi-Agent Trading System** paper architecture.
-> Derived from audit of the current codebase (April 2026).
+> **Last synced to the repo implementation:** April 24, 2026 (earlier “April 2026” audit still applies to most sections).
 
 ---
 
@@ -49,12 +49,12 @@
 ### 2.1 Technical Analyst 🔶
 **What it is:** An agent that interprets **normalized** technical indicators (MACD, RSI, KDJ) to detect trading patterns.
 
-**Current state:** `market_analyst.py` exists and calls `get_indicators` for MACD, RSI, Bollinger, ATR, SMA, EMA, VWMA, MFI. Indicators are **not normalized**. **KDJ is missing**.
+**Current state (partial):** `market_analyst.py` uses `get_indicators` and injects the **Tier-1** catalog from `tradingagents/dataflows/indicator_library.py` via `format_tier1_indicator_list_for_prompt()` (single source of truth for tool names + LLM copy). Vendors `y_finance.py`, `kite_indicator.py`, and `alpha_vantage_indicator.py` validate indicators with `validate_tier1_indicator` / use `tier1_indicator_descriptions()`. Indicators are still **raw stockstats values** (not min-max / z-score **normalized**). **KDJ is not in the Tier-1 catalog yet**.
 
 **What to build:**
-- [ ] Add **KDJ** (`k`, `d`, `j` from stockstats) to the indicator allowlist in `y_finance.py`, `kite_indicator.py`, and `alpha_vantage_indicator.py`
-- [ ] Add a **normalization layer** in `stockstats_utils.py` that min-max scales or z-scores each indicator over its rolling window before returning values
-- [ ] Update the market analyst system prompt to reflect normalized value ranges (0–1 or z-score)
+- [ ] Add **KDJ** to `indicator_library.py` (Tier-1) and ensure stockstats column names are wired; keep vendor validation consistent
+- [ ] Add a **normalization layer** in `stockstats_utils.py` (or post-process in the indicator path) that min-max scales or z-scores each indicator over its rolling window before tool/prompt return
+- [ ] Update the market analyst system prompt to reflect normalized value ranges (0–1 or z-score) once normalization exists
 
 ---
 
@@ -155,22 +155,21 @@
 
 ---
 
-### 3.3 60-Indicator Library ❌
+### 3.3 60-Indicator Library 🔶
 **What it is:** Pre-calculate 60 standard technical indicators from raw OHLCV data to provide fine-grained inputs for the Technical Agent.
 
-**Current state:** The indicator allowlist is **~13 indicators** (SMA-50, SMA-200, EMA-10, MACD/MACDS/MACDH, RSI, Bollinger upper/mid/lower, ATR, VWMA, MFI). `stockstats` can compute more but nothing exposes or pre-calculates a wider set.
+**Current state (partial):** `tradingagents/dataflows/indicator_library.py` exists. **v1** ships a **Tier-1** catalog (~**13** logical `indicator_id`s: trend + momentum + volatility + volume) with `IndicatorSpec`, `validate_tier1_indicator`, `compute_indicators(ohlcv, indicator_ids)`, and `format_tier1_indicator_list_for_prompt()`. Vendors and `market_analyst` consume this module (no duplicate hardcoded “best params” list per vendor). Tests: `tradingagents/tests/test_indicator_library.py`. This is the **infrastructure** for a larger library; the **60-indicator** breadth below is not implemented yet.
 
-**What to build:**
-- [ ] Create `tradingagents/dataflows/indicator_library.py` with a catalog of 60 indicators across categories:
+**What to build (remaining):**
+- [ ] Grow the catalog toward **60** indicators across categories (see original paper scope):
   - **Trend** (SMA-5/10/20/50/100/200, EMA-5/10/20/50, WMA, DEMA, TEMA, HMA, KAMA)
   - **Momentum** (RSI-14, MACD, Signal, Histogram, ROC, MOM, CCI, Williams %R, KDJ, Stochastic, StochRSI)
   - **Volatility** (ATR, Bollinger Bands, Keltner Channel, Donchian Channel, Historical Vol)
   - **Volume** (OBV, VWAP, VWMA, MFI, CMF, AD, Force Index, VROC)
   - **Trend strength** (ADX, +DI, -DI, Aroon Up/Down, PSAR)
   - **Oscillators** (DPO, TRIX, UO, PPO, Detrended Price)
-- [ ] Expose via a single `compute_indicators(df, indicator_names)` function
-- [ ] Update `best_ind_params` allowlists in all vendor files to reference this catalog
-- [ ] Update the market analyst prompt to reflect the full catalog
+- [ ] (Optional) Tiering: keep **Tier-1** small for LLM + validation; add Tier-2+ ids and validation rules as the catalog grows
+- [ ] Update the market analyst prompt and vendor docs to reflect the **expanded** catalog when added
 
 ---
 
@@ -196,6 +195,10 @@
 
 **Current state (partial):** `TradingAgentsGraph.propagate` sets `simulation_data_end` from `trade_date` via `simulation_context.effective_simulation_end_date_str` (default policy: **prior calendar day**). `route_to_vendor` clamps `get_stock_data`, `get_news`, `get_indicators`, and `get_global_news` date args. `stockstats_utils` / `y_finance` bulk downloads use `effective_data_end_date()` instead of wall-clock `today`. yfinance ticker news **excludes articles without a publish date** so undated items cannot bypass the window.
 
+**Backtest EOD / execution (fixed Apr 2026):** Agent tools must stay capped to the prior information date, but **marking portfolio value at the day’s close** must still request that session’s bar. The execution path `fetch_close_for_trade_date` in `tradingagents/backtest/prices.py` passes `eod_for_trade_date=...` into `route_to_vendor`, which uses `simulation_context.clamp_date_range_eod` (effective cap is at least `trade_date+1` calendar day) so a Monday backtest is not forced to only query a non-trading Sunday. Tests: `tradingagents/tests/test_simulation_temporal.py`.
+
+**Kite robustness (partial):** `kite_stock.get_stock_data` retries on `ConnectionResetError` in addition to `requests` connection errors (transient network disconnects to Zerodha).
+
 **What to build:**
 - [ ] Extend clamping / `simulation_data_end` to any remaining tool paths that accept dates (e.g. fundamentals if applicable)
 - [ ] Add integration tests with mocked vendor responses asserting row dates ≤ cap
@@ -218,6 +221,8 @@
 **What it is:** Standard ROI, Annualized Return, Sharpe/Sortino/Calmar, and Maximum Drawdown calculators.
 
 **Current state:** Implemented in **`tradingagents/backtest/metrics.py`** (`annualized_return`, `sharpe_ratio`, `sortino_ratio`, `calmar_ratio`, `compute_performance_stats`, `gross_total_return`, `buy_and_hold_total_return`). `runner.py` wires metrics into `summary.json` and `dates.csv` analysis columns.
+
+**Stability (fixed):** `annualized_return` returns **`None`** when `1 + total_return < 0` (worse than −100% total return), so Python does not produce a **complex** value from a fractional real exponent; this avoids `TypeError` / non-JSON-serializable `summary.json` in extreme loss paths. Tests: `tradingagents/tests/test_backtest_metrics.py`.
 
 **What to build:**
 - [ ] Optional: wire `buy_and_hold_total_return` into `summary.json` when a benchmark series is available
@@ -280,8 +285,8 @@ If `expected_signal_alpha < CBS` → single-agent mode is preferred.
 
 | Phase | Items | Rationale |
 |-------|-------|-----------|
-| **Phase 1 — Foundation** | 4.2 Temporal Cutoff, 4.3 Cost Model, 5.1 Performance Metrics | Fix backtest integrity first — all analytics are invalid without correct simulation |
-| **Phase 2 — Data** | 3.3 60-Indicator Library, 2.1 Technical Analyst (KDJ + norm), 2.4 Macro Analyst | Richer, cleaner data for agents before expanding agent count |
+| **Phase 1 — Foundation** | 4.2 Temporal Cutoff, 4.3 Cost Model, 5.1 Performance Metrics | **Partially done:** EOD price clamp (§4.2), Kite reset retries (§4.2), performance edge cases (§5.1). Remaining: broader tool clamp coverage + tests; optional B&H in `summary` |
+| **Phase 2 — Data** | 3.3 Expand indicator catalog, 2.1 (KDJ + norm), 2.4 Macro Analyst | Tier-1 `indicator_library` + vendor wiring exists; still need **scale** to ~60, **KDJ**, and **normalization** |
 | **Phase 3 — Agent Quality** | 1.1 JSON Schema (finish gaps), 1.2 Context Window (all nodes), 2.2 Quant Analyst, 2.6 CRO Veto Gate | Finish structured outputs and token management before adding more agents |
 | **Phase 4 — Anonymization** | 3.1 Ticker Map, 3.2 Noun Scrubber | Apply to all prompts once agent/data layer is stable |
 | **Phase 5 — Simulation** | 4.1 LOB Simulator | High-fidelity execution layer; depends on cost model and temporal cutoff |
@@ -290,6 +295,15 @@ If `expected_signal_alpha < CBS` → single-agent mode is preferred.
 ---
 
 ## File Map (New Files to Create)
+
+### Already present in repo (roadmap items partially landed)
+
+- `tradingagents/dataflows/indicator_library.py` — Tier-1 catalog, `compute_indicators`, prompt helpers (§3.3 partial)
+- `tradingagents/tests/test_indicator_library.py` — unit tests for catalog + compute path
+- `tradingagents/tests/test_simulation_temporal.py` — `clamp_date_range` / `clamp_date_range_eod` (§4.2)
+- `tradingagents/tests/test_backtest_metrics.py` — annualized return edge cases (§5.1)
+
+### Still to create (or expand)
 
 ```
 tradingagents/
@@ -304,8 +318,6 @@ tradingagents/
 ├── agents/
 │   └── risk_mgmt/
 │       └── cro_veto.py          # 2.6
-├── dataflows/
-│   └── indicator_library.py     # 3.3
 ├── simulation/
 │   ├── __init__.py
 │   └── order_book.py            # 4.1
@@ -325,4 +337,4 @@ dashboard/
 
 ---
 
-*Last updated: April 23, 2026*
+*Last updated: April 24, 2026*
