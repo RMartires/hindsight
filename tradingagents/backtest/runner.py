@@ -140,7 +140,7 @@ def write_backtest_mvp_artifacts(
     """Write backtest artifacts for current state.
 
     When ``write_equity_trades`` is True, writes ``equity.csv`` and ``trades.csv``.
-    Always writes ``summary.json``.
+    Returns a ``summary`` dict. Metrics persistence is handled via the dates schedule CSV.
     """
     initial_eq = float(initial_cash)
     final_eq = equity_rows[-1]["equity"] if equity_rows else initial_eq
@@ -237,8 +237,6 @@ def write_backtest_mvp_artifacts(
                     }
                 )
 
-    summary_path = base / "summary.json"
-    summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
 
 

@@ -24,6 +24,7 @@ from tradingagents.agents.utils.agent_states import (
 )
 from tradingagents.dataflows.config import set_config
 from tradingagents.dataflows.simulation_context import effective_simulation_end_date_str
+from tradingagents.anonymization.ticker_map import TickerMapper
 
 # Import the new abstract tool methods from agent_utils
 from tradingagents.agents.utils.agent_utils import (
@@ -49,9 +50,25 @@ from tradingagents.schemas import RiskAssessment
 class TradingAgentsGraph:
     """Main class that orchestrates the trading agents framework."""
 
+    @staticmethod
+    def effective_final_decision(final_state: Dict[str, Any]) -> str:
+        """
+        Return the run's effective final decision text.
+
+        In the full pipeline, `final_trade_decision` is produced by the Risk Judge.
+        In ablations that skip the risk phase, we rely on a post-Trader finalize node.
+        This helper is defense-in-depth so callers never KeyError on missing keys.
+        """
+        if not isinstance(final_state, dict):
+            return ""
+        v = str(final_state.get("final_trade_decision") or "").strip()
+        if v:
+            return v
+        return str(final_state.get("trader_investment_plan") or "").strip()
+
     def __init__(
         self,
-        selected_analysts=["market", "social", "news", "fundamentals"],
+        selected_analysts=None,
         debug=False,
         config: Dict[str, Any] = None,
         callbacks: Optional[List] = None,
@@ -139,8 +156,14 @@ class TradingAgentsGraph:
         self.ticker = None
         self.log_states_dict = {}  # date to full state dict
 
-        # Set up the graph
-        self.graph = self.graph_setup.setup_graph(selected_analysts)
+        analysts = selected_analysts or self.config.get(
+            "selected_analysts", ["market", "social", "news", "fundamentals"]
+        )
+        self.graph = self.graph_setup.setup_graph(
+            analysts,
+            run_investment_debate=bool(self.config.get("run_investment_debate", True)),
+            run_risk_phase=bool(self.config.get("run_risk_phase", True)),
+        )
 
     def _get_provider_kwargs(self) -> Dict[str, Any]:
         """Get provider-specific kwargs for LLM client creation."""
@@ -223,6 +246,12 @@ class TradingAgentsGraph:
 
         self.ticker = company_name
 
+        company_for_prompt = company_name
+        if self.config.get("enable_anonymization"):
+            mapper = TickerMapper.for_real_ticker(str(company_name))
+            company_for_prompt = mapper.anon_ticker
+            self.config = {**self.config, **mapper.to_config_payload()}
+
         # Historical backtest: cap OHLCV/news downloads to as-of date (no lookahead).
         set_config(
             {
@@ -240,7 +269,7 @@ class TradingAgentsGraph:
 
         # Initialize state
         init_agent_state = self.propagator.create_initial_state(
-            company_name, trade_date, portfolio_context=pc
+            company_for_prompt, trade_date, portfolio_context=pc
         )
         # Pass callbacks through to LangGraph so tool execution is observable.
         args = self.propagator.get_graph_args(callbacks=self.callbacks or None)
@@ -267,7 +296,7 @@ class TradingAgentsGraph:
         self._log_state(trade_date, final_state)
 
         # Return decision and processed signal (prefer structured risk assessment when present)
-        processed = self.process_signal(final_state["final_trade_decision"])
+        processed = self.process_signal(self.effective_final_decision(final_state))
         raw_struct = final_state.get("final_trade_decision_structured")
         if raw_struct:
             try:
@@ -341,6 +370,7 @@ class TradingAgentsGraph:
 
     def _log_state(self, trade_date, final_state):
         """Log the final state to a JSON file."""
+        effective_final = self.effective_final_decision(final_state)
         self.log_states_dict[str(trade_date)] = {
             "company_of_interest": final_state["company_of_interest"],
             "trade_date": final_state["trade_date"],
@@ -368,7 +398,7 @@ class TradingAgentsGraph:
                 "judge_decision": final_state["risk_debate_state"]["judge_decision"],
             },
             "investment_plan": final_state["investment_plan"],
-            "final_trade_decision": final_state["final_trade_decision"],
+            "final_trade_decision": effective_final,
         }
 
         # Save to file

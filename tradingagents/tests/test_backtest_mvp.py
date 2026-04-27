@@ -1,4 +1,3 @@
-import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -302,10 +301,10 @@ class TestWriteBacktestMvpArtifacts(unittest.TestCase):
             )
             self.assertEqual(s["status"], "running")
             self.assertEqual(s["dates_completed"], 1)
-            data = json.loads((base / "summary.json").read_text(encoding="utf-8"))
-            self.assertEqual(data["last_completed_date"], "2024-01-01")
+            self.assertEqual(s["last_completed_date"], "2024-01-01")
             self.assertTrue((base / "equity.csv").is_file())
             self.assertTrue((base / "trades.csv").is_file())
+            self.assertFalse((base / "summary.json").exists())
 
     def test_write_equity_trades_off(self):
         with tempfile.TemporaryDirectory() as td:
@@ -335,7 +334,7 @@ class TestWriteBacktestMvpArtifacts(unittest.TestCase):
                 write_equity_trades=False,
             )
             self.assertEqual(s["status"], "running")
-            self.assertTrue((base / "summary.json").is_file())
+            self.assertFalse((base / "summary.json").exists())
             self.assertFalse((base / "equity.csv").exists())
             self.assertFalse((base / "trades.csv").exists())
 

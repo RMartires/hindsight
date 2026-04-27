@@ -32,6 +32,14 @@ DEFAULT_CONFIG = {
     "max_debate_rounds": 1,
     "max_risk_discuss_rounds": 1,
     "max_recur_limit": 100,
+    # Paper/backtest ablations (A1/A2/A3/Full) are expressed via config keys.
+    # `tradingagents.paper_ablation.apply_paper_ablation_to_config` applies PAPER_ABLATION (``scripts/backtest_mvp``).
+    "paper_ablation": os.getenv("PAPER_ABLATION", "").strip().lower() or "full",
+    "selected_analysts": ["market", "social", "news", "fundamentals"],
+    "run_investment_debate": True,
+    "run_risk_phase": True,
+    # Anonymization (ROADMAP §3.1/§3.2). When enabled, the graph run sets a per-run mapping in config.
+    "enable_anonymization": (os.getenv("ENABLE_ANONYMIZATION", "").strip().lower() in ("1", "true", "yes", "y")),
     # Data vendor configuration
     # Category-level configuration (default for all tools in category)
     "data_vendors": {

@@ -3,6 +3,8 @@ from datetime import datetime
 from langchain_core.tools import tool
 from typing import Annotated
 from tradingagents.dataflows.interface import route_to_vendor
+from tradingagents.dataflows.config import get_config
+from tradingagents.anonymization.ticker_map import deanonymize_ticker, scrub_ticker_text
 
 
 def _normalize_iso_date_arg(param_name: str, raw: str) -> str:
@@ -46,4 +48,7 @@ def get_stock_data(
     """
     start_date = _normalize_iso_date_arg("start_date", start_date)
     end_date = _normalize_iso_date_arg("end_date", end_date)
-    return route_to_vendor("get_stock_data", symbol, start_date, end_date)
+    cfg = get_config()
+    real = deanonymize_ticker(symbol, cfg)
+    out = route_to_vendor("get_stock_data", real, start_date, end_date)
+    return scrub_ticker_text(out, cfg)

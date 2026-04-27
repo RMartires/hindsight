@@ -1,6 +1,9 @@
 from langchain_core.tools import tool
 from typing import Annotated
 from tradingagents.dataflows.interface import route_to_vendor
+from tradingagents.dataflows.config import get_config
+from tradingagents.anonymization.ticker_map import deanonymize_ticker, scrub_ticker_text
+from tradingagents.anonymization.noun_scrubber import scrub_news_text
 
 @tool
 def get_news(
@@ -18,7 +21,12 @@ def get_news(
     Returns:
         str: A formatted string containing news data
     """
-    return route_to_vendor("get_news", ticker, start_date, end_date)
+    cfg = get_config()
+    real = deanonymize_ticker(ticker, cfg)
+    out = route_to_vendor("get_news", real, start_date, end_date)
+    out = scrub_news_text(out, cfg)
+    out = scrub_ticker_text(out, cfg)
+    return out
 
 @tool
 def get_global_news(
@@ -36,7 +44,11 @@ def get_global_news(
     Returns:
         str: A formatted string containing global news data
     """
-    return route_to_vendor("get_global_news", curr_date, look_back_days, limit)
+    cfg = get_config()
+    out = route_to_vendor("get_global_news", curr_date, look_back_days, limit)
+    out = scrub_news_text(out, cfg)
+    out = scrub_ticker_text(out, cfg)
+    return out
 
 @tool
 def get_insider_transactions(
@@ -50,4 +62,8 @@ def get_insider_transactions(
     Returns:
         str: A report of insider transaction data
     """
-    return route_to_vendor("get_insider_transactions", ticker)
+    cfg = get_config()
+    real = deanonymize_ticker(ticker, cfg)
+    out = route_to_vendor("get_insider_transactions", real)
+    out = scrub_ticker_text(out, cfg)
+    return out

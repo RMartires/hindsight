@@ -1,6 +1,8 @@
 from langchain_core.tools import tool
 from typing import Annotated
 from tradingagents.dataflows.interface import route_to_vendor
+from tradingagents.dataflows.config import get_config
+from tradingagents.anonymization.ticker_map import deanonymize_ticker, scrub_ticker_text
 
 @tool
 def get_indicators(
@@ -22,10 +24,13 @@ def get_indicators(
     """
     # LLMs sometimes pass multiple indicators as a comma-separated string;
     # split and process each individually.
+    cfg = get_config()
+    real = deanonymize_ticker(symbol, cfg)
     indicators = [i.strip() for i in indicator.split(",") if i.strip()]
     if len(indicators) > 1:
         results = []
         for ind in indicators:
-            results.append(route_to_vendor("get_indicators", symbol, ind, curr_date, look_back_days))
-        return "\n\n".join(results)
-    return route_to_vendor("get_indicators", symbol, indicator.strip(), curr_date, look_back_days)
+            results.append(route_to_vendor("get_indicators", real, ind, curr_date, look_back_days))
+        return scrub_ticker_text("\n\n".join(results), cfg)
+    out = route_to_vendor("get_indicators", real, indicator.strip(), curr_date, look_back_days)
+    return scrub_ticker_text(out, cfg)

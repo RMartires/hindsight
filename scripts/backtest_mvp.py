@@ -3,11 +3,11 @@
 MVP historical backtest: run TradingAgentsGraph per date (no live portfolio),
 execute paper trades at close, write eval_results/<ticker>/backtest_mvp_<id>/.
 
-For one-off runs (no ``--dates-csv``), `equity.csv`, `trades.csv`, and `summary.json` are refreshed.
+For one-off runs (no ``--dates-csv``), `equity.csv` and `trades.csv` are refreshed.
 When ``--dates-csv`` is provided, the schedule CSV becomes the source of truth for progress and portfolio state:
 columns `date`, `processed`, `final_signal`, `close`, `cash`, `shares`, `equity`, `error` (atomic rewrites).
 Saturday/Sunday rows are not backtested: they are marked ``processed=true`` with ``error=not trading day``.
-In this mode, the per-run output folder only updates `summary.json`.
+In this mode, the schedule CSV is the metrics source of truth (no `summary.json`).
 
 Usage (from repo root):
   .venv/bin/python scripts/backtest_mvp.py --ticker RELIANCE --dates 2024-05-03,2024-05-10
@@ -40,6 +40,7 @@ from tradingagents.backtest.dates_schedule import (
     write_dates_schedule_atomic,
 )
 from tradingagents.observability.langfuse_config import get_langfuse_client, get_langfuse_handler
+from tradingagents.paper_ablation import apply_paper_ablation_to_config
 
 
 def _load_dotenv(path: Path | None = None) -> None:
@@ -126,6 +127,14 @@ def _build_config() -> dict:
         "fundamental_data": "yfinance",
         "news_data": "alpha_vantage",
     }
+
+    # Enable anonymization by default for the backtest paper workflow.
+    # Can be disabled by setting ENABLE_ANONYMIZATION=0 in the environment.
+    if os.getenv("ENABLE_ANONYMIZATION", "").strip() == "":
+        cfg["enable_anonymization"] = True
+
+    # Paper/backtest ablation: set PAPER_ABLATION in `.env` to a1, a2, a3, or full (unknown → exit 2 in main).
+    apply_paper_ablation_to_config(cfg)
 
     return cfg
 
@@ -288,7 +297,12 @@ def main() -> int:
                 )
             return 2
 
-    config = _build_config()
+    try:
+        config = _build_config()
+    except ValueError as e:
+        logging.error("%s", e)
+        return 2
+
     cost_bps = float(config.get("backtest_cost_bps", 0) or 0)
     if args.cost_bps is not None:
         cost_bps = float(args.cost_bps)
@@ -317,7 +331,12 @@ def main() -> int:
     if langfuse_handler is not None:
         callbacks.append(langfuse_handler)
 
-    graph = TradingAgentsGraph(debug=args.debug, config=config, callbacks=callbacks)
+    graph = TradingAgentsGraph(
+        debug=args.debug,
+        config=config,
+        callbacks=callbacks,
+        selected_analysts=list(config.get("selected_analysts") or []),
+    )
 
     ticker = args.ticker.strip()
     langfuse_meta = {
