@@ -46,6 +46,25 @@ class TestSchemaCoercion(unittest.TestCase):
         )
         self.assertEqual(tp.narrative, "Rationale only.")
 
+    def test_investment_plan_judgment_narrative_backfill(self):
+        ip = InvestmentPlanJudgment.model_validate(
+            {
+                "recommendation": "Hold",
+                "rationale": "Debate summary only; model skipped narrative.",
+            }
+        )
+        self.assertEqual(ip.narrative, "Debate summary only; model skipped narrative.")
+        ip2 = InvestmentPlanJudgment.model_validate(
+            {
+                "recommendation": "Sell",
+                "strategic_actions": "Reduce size.",
+                "rationale": "",
+            }
+        )
+        self.assertEqual(ip2.narrative, "Recommendation: Sell. Reduce size.")
+        ip3 = InvestmentPlanJudgment.model_validate({"recommendation": "Buy"})
+        self.assertTrue(ip3.narrative.strip().startswith("Investment stance:"))
+
 
 class TestExtractStructuredScheduleLiterals(unittest.TestCase):
     def test_empty_state(self):

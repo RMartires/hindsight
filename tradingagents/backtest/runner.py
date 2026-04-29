@@ -23,10 +23,14 @@ OnDayCompleteCallback = Callable[
     None,
 ]
 
+# Called after each disk write of ``equity.csv`` when ``write_equity_trades`` is True (path to that file).
+OnEquityCsvWrittenCallback = Callable[[Path], None]
+
 from tradingagents.backtest.dates_schedule import (
     SCHEDULE_ANALYSIS_FIELDNAMES,
     empty_schedule_analysis_values,
 )
+from tradingagents.runtime_warnings import apply_backtest_warning_filters
 from tradingagents.backtest.structured_literals import extract_structured_schedule_literals
 from tradingagents.backtest.ledger import PaperLedger
 from tradingagents.backtest.metrics import compute_performance_stats
@@ -240,6 +244,25 @@ def write_backtest_mvp_artifacts(
     return summary
 
 
+def _normalize_prepended_equity_row(r: Dict[str, Any]) -> Dict[str, Any]:
+    """Coerce CSV-loaded equity dict to types expected by artifact metrics / append logic."""
+    out: Dict[str, Any] = dict(r)
+    close_raw = out.get("close")
+    if close_raw is None or (isinstance(close_raw, str) and not str(close_raw).strip()):
+        out["close"] = None
+    else:
+        out["close"] = float(close_raw)
+    for key in ("cash", "shares", "equity", "fees_day", "cumulative_fees"):
+        v = out.get(key)
+        if v is None or (isinstance(v, str) and not str(v).strip()):
+            continue
+        out[key] = float(v)
+    ps = out.get("processed_signal")
+    if ps is not None and not isinstance(ps, str):
+        out["processed_signal"] = str(ps)
+    return out
+
+
 def run_backtest_mvp(
     graph: Any,
     ticker: str,
@@ -256,9 +279,12 @@ def run_backtest_mvp(
     use_live_portfolio: bool = False,
     langfuse_meta: Optional[Dict[str, Any]] = None,
     on_day_complete: Optional[OnDayCompleteCallback] = None,
+    on_equity_csv_written: Optional[OnEquityCsvWrittenCallback] = None,
     initial_ledger: Optional[PaperLedger] = None,
     initial_last_close: Optional[float] = None,
     langfuse_dates_total: Optional[int] = None,
+    prepend_equity_rows: Optional[List[Dict[str, Any]]] = None,
+    total_trading_days: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Run the full agent graph per date, apply paper trades at close, write CSV/JSON.
@@ -283,7 +309,13 @@ def run_backtest_mvp(
         initial_ledger: Optional starting paper ledger for resume.
         initial_last_close: Optional starting close used for NAV when a close is missing.
         langfuse_dates_total: Overrides ``dates_total`` in Langfuse trace metadata (e.g. full schedule size).
+        on_equity_csv_written: If set, called with the path to ``equity.csv`` after each snapshot write
+            (only when equity/trades files are written, i.e. ``on_day_complete`` is None).
+        prepend_equity_rows: Prior days already written (e.g. from a CSV resume); must align with
+            ``initial_ledger`` / ``initial_last_close``. ``dates`` should list only remaining days.
+        total_trading_days: Full schedule length for summary artifacts (defaults to ``len(dates)``).
     """
+    apply_backtest_warning_filters()
     ticker = ticker.strip()
     run_id = uuid.uuid4().hex[:10]
     langfuse_client = get_langfuse_client()
@@ -307,20 +339,31 @@ def run_backtest_mvp(
         )
     )
     equity_rows: List[Dict[str, Any]] = []
+    if prepend_equity_rows:
+        for raw in prepend_equity_rows:
+            equity_rows.append(_normalize_prepended_equity_row(raw))
+    prepend_offset = len(equity_rows)
+    schedule_days_report = (
+        int(total_trading_days)
+        if total_trading_days is not None
+        else prepend_offset + len(dates)
+    )
     last_close: Optional[float] = (
         float(initial_last_close) if initial_last_close is not None else None
     )
     trace_dates_total = (
-        int(langfuse_dates_total) if langfuse_dates_total is not None else len(dates)
+        int(langfuse_dates_total)
+        if langfuse_dates_total is not None
+        else prepend_offset + len(dates)
     )
 
     def _write_snapshot(*, complete: bool, last_completed: Optional[str]) -> Dict[str, Any]:
-        return write_backtest_mvp_artifacts(
+        summary = write_backtest_mvp_artifacts(
             base,
             ticker,
             run_id,
             initial_cash,
-            len(dates),
+            schedule_days_report,
             equity_rows,
             ledger,
             complete=complete,
@@ -328,6 +371,11 @@ def run_backtest_mvp(
             langfuse_dates_total=langfuse_dates_total,
             write_equity_trades=write_equity_trades,
         )
+        if write_equity_trades and on_equity_csv_written is not None:
+            eq_path = base / "equity.csv"
+            if eq_path.is_file():
+                on_equity_csv_written(eq_path)
+        return summary
 
     def _propagate_one_day(d: str, day_index: int) -> tuple[Any, Any]:
         propagate_kw = {"use_live_portfolio": use_live_portfolio}
@@ -344,7 +392,7 @@ def run_backtest_mvp(
         trace_input: Dict[str, Any] = {
             "company_name": ticker,
             "trade_date": d,
-            "date_index": day_index + 1,
+            "date_index": prepend_offset + day_index + 1,
             "dates_total": trace_dates_total,
             "run": "backtest_mvp",
             "backtest_run_id": run_id,
@@ -401,8 +449,7 @@ def run_backtest_mvp(
                                 (final_state or {}).get("final_trade_decision") or ""
                             )[:500],
                         }
-                    root_span.set_trace_io(input=trace_input, output=out_payload)
-                    root_span.update(output=out_payload)
+                    root_span.update(input=trace_input, output=out_payload)
             finally:
                 propagate_cm.__exit__(None, None, None)
                 trace_cm.__exit__(None, None, None)

@@ -136,6 +136,31 @@ def _backfill_missing_narrative(data: object) -> object:
     return out
 
 
+def _backfill_investment_plan_judgment_narrative(data: object) -> object:
+    """If structured JSON omits ``narrative``, use rationale → strategic_actions → recommendation."""
+    if not isinstance(data, dict):
+        return data
+    n = data.get("narrative")
+    if n is not None and isinstance(n, str) and n.strip():
+        return data
+    out = dict(data)
+    r = out.get("rationale")
+    if isinstance(r, str) and r.strip():
+        out["narrative"] = r
+        return out
+    sa = out.get("strategic_actions")
+    if isinstance(sa, str) and sa.strip():
+        rec = out.get("recommendation")
+        rec_s = str(rec).strip() if rec is not None else ""
+        prefix = f"Recommendation: {rec_s}. " if rec_s else ""
+        out["narrative"] = prefix + sa
+        return out
+    rec = out.get("recommendation")
+    rec_s = str(rec).strip() if rec is not None else "Hold"
+    out["narrative"] = f"Investment stance: {rec_s}."
+    return out
+
+
 class AnalystReport(BaseModel):
     """Structured extraction from an analyst's prose report. Literal outlook first for schema emphasis."""
 
@@ -249,6 +274,11 @@ class InvestmentPlanJudgment(BaseModel):
             "Keys: recommendation, rationale, strategic_actions, narrative — no aliases like decision/summary."
         ),
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _narrative_from_rationale_or_actions_if_missing(cls, data: object) -> object:
+        return _backfill_investment_plan_judgment_narrative(data)
 
 
 class TradeProposal(BaseModel):
