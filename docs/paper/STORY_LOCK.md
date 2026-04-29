@@ -25,7 +25,7 @@
 
 ## Contributions (must be traceable to memory modules)
 
-**Submission prose (abstract + contributions) and PDF progress:** root [PAPER_ROADMAP.md](../../PAPER_ROADMAP.md).
+**Manuscript (submit / PDF):** [manuscript.md](manuscript.md). **Roadmap & progress:** [paper-roadmap.md](paper-roadmap.md).
 
 These map to code paths listed in `.cursor/memory.md`, not to future `ROADMAP.md` items.
 
@@ -64,5 +64,6 @@ Same four buckets as before (agents-for-trading, leakage/memorization, multi-age
 
 | Date | Change |
 |------|--------|
+| 2026-04-29 | Manuscript → `manuscript.md`; roadmap → `paper-roadmap.md` (under `docs/paper/`); root `PAPER_ROADMAP.md` is stub. |
 | 2026-04-29 | Abstract, contributions, and PDF checklist consolidated into root `PAPER_ROADMAP.md`. |
 | 2026-04-29 | Rewritten to drop CBS / predictive-validation / future-code roadmap dependencies; align with `memory.md`. |

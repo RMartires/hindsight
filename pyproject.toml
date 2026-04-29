@@ -42,6 +42,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
 notebooks = [
     "matplotlib>=3.8.0",
     "jupyter>=1.0.0",

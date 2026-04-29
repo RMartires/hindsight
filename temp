@@ -11,3 +11,8 @@ PYTHONUNBUFFERED=1 python3 -u scripts/backtest_mvp.py \
   --ticker RELIANCE.NS \
   --dates-csv results/dates.csv \
   --debug 2>&1 | tee eval_results/backtest_mvp_run.log
+
+python scripts/backtest_mvp_ablations.py 2>&1 | tee run.log
+
+
+pandoc docs/paper/manuscript.md -o paper-draft.pdf --pdf-engine=tectonic

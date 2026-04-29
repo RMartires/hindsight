@@ -1,6 +1,6 @@
 # Paper outline (memory-aligned)
 
-Companion to [STORY_LOCK.md](STORY_LOCK.md). Submission draft + PDF progress: [../../PAPER_ROADMAP.md](../../PAPER_ROADMAP.md). Sections cite **what exists** per **`.cursor/memory.md`**.
+Companion to [STORY_LOCK.md](STORY_LOCK.md). **Manuscript:** [manuscript.md](manuscript.md). **Roadmap & PDF progress:** [paper-roadmap.md](paper-roadmap.md). Sections cite **what exists** per **`.cursor/memory.md`**.
 
 **Do not** commit to experiments or metrics that require `ROADMAP.md` features not yet built unless you implement them and update memory.
 
@@ -19,7 +19,7 @@ Companion to [STORY_LOCK.md](STORY_LOCK.md). Submission draft + PDF progress: [.
 - Task and why point-in-time + traceability matter.
 - Contributions = **S1–S5** from `STORY_LOCK.md` (all memory-backed).
 
-**Draft prose:** [../../PAPER_ROADMAP.md](../../PAPER_ROADMAP.md) §1 Introduction.
+**Draft prose:** [manuscript.md](manuscript.md) §1 Introduction.
 
 ---
 
@@ -28,7 +28,7 @@ Companion to [STORY_LOCK.md](STORY_LOCK.md). Submission draft + PDF progress: [.
 - Multi-agent LLM finance stacks; leakage/memorization; execution realism.
 - **We position** on implemented controls (temporal cap, anonymization, structured outputs, fees), not on unshipped analytics from `ROADMAP.md`.
 
-**Draft prose:** [../../PAPER_ROADMAP.md](../../PAPER_ROADMAP.md) §2 Related Work.
+**Draft prose:** [manuscript.md](manuscript.md) §2 Related Work.
 
 ---
 
