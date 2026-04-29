@@ -1,105 +1,68 @@
-# Phase 0 — Story lock
+# Story lock (memory-aligned)
 
-**Status:** locked for drafting (update only with co-author agreement).  
+**Scope:** Claims and framing must match **`.cursor/memory.md`** — no dependence on features that exist only in `ROADMAP.md` as unbuilt work.
+
 **Last updated:** 2026-04-29.
-
-This file is the single source of truth for title, pitch, contributions, related-work positioning, and submission naming. Phase 2+ experiments must not expand claims beyond what maps to the [claim–evidence map](claim-evidence-map.md).
 
 ---
 
-## 1. Title and pitch (§1.1)
+## Title and pitch (working — refine with co-authors)
 
-### Primary title
+**Working title:** *Point-in-Time Multi-Agent LLM Trading: A Reproducible LangGraph Stack with Ablations and Fair Backtesting*
 
-**Coordination Breakeven Spread: When Multi-Agent LLM Trading Pays for Its Own Latency**
+**One-line pitch:** We describe an open **LangGraph** trading pipeline with specialist analysts, bull/bear and risk debates, **structured outputs** per stage, a **simulation date cap** and optional **ticker anonymization**, and a **paper backtest** with preset **ablations** (`a1`–`full`) so depth-of-pipeline comparisons stay reproducible on historical as-of dates.
 
-### Alternate titles (keep for rebuttal / venue-specific retitling)
+---
 
-1. *Coordination Breakeven Spread: A Latency-Adjusted Metric for Single-Stock Multi-Agent LLM Backtests*
-2. *CBS: Measuring When Multi-Agent LLM Coordination Beats Single-Agent Mode Under Intraday Volatility*
-
-### One-line pitch (reuse as Abstract sentence 1 and Intro Part-A closing)
-
-We introduce **Coordination Breakeven Spread (CBS)**—a closed-form breakeven that compares expected per-decision alpha from deeper multi-agent coordination against **end-to-end LLM latency × intraday price volatility per second** plus **transaction cost in basis points**—and pair it with a reproducible **`a1`→`a2`→`a3`→`full` ablation lattice** so that **single-agent mode is preferred when expected alpha falls below CBS**, not when headlines prefer “more agents.”
-
-### System naming (double-blind vs public)
+## Naming
 
 | Context | Name |
 |--------|------|
-| Manuscript body (venue expects blind build) | Neutral: “our system,” “the baseline implementation,” or “an open-source LangGraph trading stack.” |
-| Supplementary / code / GitHub / blog | **Hindsight 20/20** is fine and matches this repo. |
-| Camera-ready / arXiv after acceptance | Authors may use **Hindsight 20/20** in title or subtitle if venue allows. |
-
-**Locked rule:** Do not put the product name in the anonymized PDF title unless the venue explicitly allows de-anonymized titles.
+| Product / repo / supplementary | **Hindsight 20/20** |
+| Blind manuscript (if required) | Neutral: “our implementation,” “the open-source stack” |
 
 ---
 
-## 2. Claimed contributions (§1.2)
+## Contributions (must be traceable to memory modules)
 
-Four **numbered contributions** for Abstract and Intro (contribution list). Everything else is **setup** or **empirical validation**.
+**Submission prose (abstract + contributions) and PDF progress:** root [PAPER_ROADMAP.md](../../PAPER_ROADMAP.md).
 
-| ID | Contribution | One-sentence statement | Primary artifact |
-|----|----------------|------------------------|------------------|
-| **C1** | **CBS metric** | CBS = (mean graph LLM latency in seconds × σ_price per second on the decision day) + cost_bps (aligned with `ROADMAP.md` §5.3); it is a **per-decision breakeven hurdle** for coordination depth. | Method §5 or §4.7 + Fig. CBS curve |
-| **C2** | **Ablation lattice + auditability** | A four-level preset lattice (`a1`/`a2`/`a3`/`full` via `tradingagents/paper_ablation.py`) over the same engine with **Pydantic structured outputs** per stage (`tradingagents/schemas/outputs.py`). | Method + Table ablations |
-| **C3** | **Fair measurement** | **Strict temporal cutoff** (`simulation_context`, `interface._clamp_vendor_args`) and **deterministic ticker anonymization** (`TickerMapper`) so CBS and ablations are not inflated by lookahead or verbatim-symbol memorization. | Method + appendix cap-off / anonymization runs |
-| **C4** | **Predictive validation** | Across **multi-ticker × multi-period** backtests, CBS **ranks or predicts** which ablation wins on **held-out** segments (pre-specified metric: net total return or Sharpe; lock in Exp notebook before runs). | Exp 3 + correlation / calibration figure |
+These map to code paths listed in `.cursor/memory.md`, not to future `ROADMAP.md` items.
 
-**Explicitly not a headline contribution (setup detail):**
+| ID | Contribution | Grounding (memory) |
+|----|----------------|---------------------|
+| **S1** | **Multi-agent decision graph** with debate phases and configurable depth | `tradingagents-graph`, `tradingagents-agents` |
+| **S2** | **Ablation presets** over the same engine (`PAPER_ABLATION` / `paper_ablation.py`) | `config-and-env`, `scripts` |
+| **S3** | **Structured stage outputs** (Pydantic schemas + JSON-in-state) for an auditable trace | `tradingagents-schemas`, `tradingagents-llm-clients` |
+| **S4** | **Fair-as-of data access**: simulation end date + vendor clamps; optional **anonymization** | `tradingagents-dataflows`, `tradingagents-anonymization` |
+| **S5** | **Backtest harness**: paper ledger, fee models, performance metrics, CSV artifacts | `tradingagents-backtest`, `scripts` |
 
-- **Realistic fees / gross vs net** — Zerodha-style cost stack (`zerodha_fees.py`) and `gross_total_return` vs net in `summary.json`: **Method / reproducibility** only; one sentence in Abstract max.
-
----
-
-## 3. Related work — clusters and “they X, we Y” (§1.3)
-
-Each paragraph in Related Work will follow this order: **trading LLM stacks → lookahead / memorization → coordination cost → execution cost.**
-
-### Cluster A — LLM agent stacks for trading
-
-**Representative anchors (verify keys in [bib-seed.bib](bib-seed.bib)):** TradingAgents (multi-role firm metaphor), FinMem (layered memory agent), FinGPT (FinLLM ecosystem / data-centric framing). Add 2–4 more: e.g. FINCON, QuantAgent, PIXIU—fill from your target venue’s recent citations.
-
-**They X, we Y:** *They* propose increasingly rich multi-agent or memory-augmented **architectures** and report **raw backtest performance**; *we* fix **a decision criterion (CBS)** for when deeper coordination is **not** worth its **latency × volatility** cost, on top of an **explicit ablation lattice** and **temporal + anonymization controls.*
-
-### Cluster B — Lookahead and memorization in LLM finance
-
-**Anchors:** calendar-aware evaluation in practitioner critiques; ticker- and entity-aware leakage in replayed news; structure around “point-in-time” data in quant—add canonical **PEAD / point-in-time** citations from your bibliography manager.
-
-**They X, we Y:** *They* document **leakage** and **memorization** as threats; *we* **implement** a vendor-wide **simulation end date** clamp and **deterministic symbol anonymization** so CBS comparisons remain **interpretable** under those threats.
-
-### Cluster C — Coordination cost in multi-agent LLM systems
-
-**Anchors:** inference-cost-aware routing for MoE / multi-agent tool use; latency–quality tradeoffs in agentic workflows—add 3 recent **systems / NLP** papers (not necessarily finance).
-
-**They X, we Y:** *They* optimize **tokens, routing, or wall clock** in generic agents; *we* give a **finance-native breakeven** that combines **measured per-graph latency** with **intraday price volatility per second** and **broker-realistic cost_bps**, tied to **trading ablations**.
-
-### Cluster D — Realistic execution and transaction costs
-
-**Anchors:** market microstructure texts or broker fee documentation; backtest frameworks that separate gross and net.
-
-**They X, we Y:** *They* motivate **execution realism**; *we* adopt a **documented statutory + brokerage stack** and report **gross vs net** so CBS **does not** mix “paper alpha” with **ignored fees**.
+Optional **one line** in abstract: **Langfuse**-compatible tracing (`tradingagents-observability`, `backend`) for debugging and run correlation — not a scientific claim unless you analyze traces in the paper.
 
 ---
 
-## 4. Figure / section mapping (contribution → deliverable)
+## Related work — paragraph buckets
 
-| Contribution | Main figure | Main table | Experiment ref. (`PAPER_ROADMAP` §4) |
-|--------------|--------------|------------|--------------------------------------|
-| C1 | CBS vs latency (regimes) | Ablation rows + CBS column | §4.2 |
-| C2 | Pipeline + lattice diagram | Full ablation table | §4.1 |
-| C3 | (optional) timeline of cap | Appendix: cap on/off | §4.1 + cap-off |
-| C4 | Calibration: predicted vs actual winner | Held-out summary | §4.1 split + §4.5 |
+Same four buckets as before (agents-for-trading, leakage/memorization, multi-agent cost, execution realism), but **“we Y”** should describe **what is implemented** (ablations, temporal cap, anonymization, structured outputs, fees), not metrics or modules from `ROADMAP.md` that are not shipped.
+
+**BibTeX starter:** [bib-seed.bib](bib-seed.bib).
 
 ---
 
-## 5. BibTeX seed
+## Figure / table ideas (all derivable without new engine code)
 
-See [bib-seed.bib](bib-seed.bib). Expand to ~30 entries before intro freeze; **do not** cite placeholders in submission PDF.
+| Idea | Source |
+|------|--------|
+| Pipeline / DAG | Topology from LangGraph setup + `memory/tradingagents-graph.md` |
+| Ablation equity curves | Existing `results/*.csv`, `scripts/backtest_ablation_analysis.ipynb` |
+| Metrics table | `equity.csv` / schedule columns / `metrics.py` formulas |
+| Qualitative trace | `eval_results/.../full_states_log_*.json` |
 
 ---
 
-## 6. Changelog
+## Changelog
 
 | Date | Change |
 |------|--------|
-| 2026-04-29 | Phase 0 lock: title, pitch, four contributions, four related-work clusters, naming policy. |
+| 2026-04-29 | Abstract, contributions, and PDF checklist consolidated into root `PAPER_ROADMAP.md`. |
+| 2026-04-29 | Rewritten to drop CBS / predictive-validation / future-code roadmap dependencies; align with `memory.md`. |

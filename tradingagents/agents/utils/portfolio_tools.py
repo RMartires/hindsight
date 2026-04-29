@@ -133,7 +133,13 @@ def get_available_funds() -> str:
 
         # Include raw payload for debugging/LLM if desired
         raw = json.dumps(margins, indent=2, default=str)
-        return "## Funds and margins\n" + "\n\n".join(parts) + "\n\n### Raw (debug)\n```json\n" + raw + "\n```"
+        return (
+            "## Funds and margins\n"
+            + "\n\n".join(parts)
+            + "\n\n### Raw (debug)\n```json\n"
+            + raw
+            + "\n```"
+        )
     except Exception as e:
         converted = maybe_convert_to_kite_rate_limit(e)
         if isinstance(converted, KiteRateLimitError):
