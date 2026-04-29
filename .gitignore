@@ -45,3 +45,4 @@ yarn-error.log*
 eval_*
 results
 *data_cache*
+.cursor*
