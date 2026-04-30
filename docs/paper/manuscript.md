@@ -2,7 +2,7 @@
 
 **Purpose:** Submission-facing prose only. Scope and checklist live in [paper-roadmap.md](paper-roadmap.md). Claims must match **`.cursor/memory.md`**.
 
-**Last updated:** 2026-04-29.
+**Last updated:** 2026-04-30.
 
 **PDF:** Pandoc alone is not enough — it needs a LaTeX engine on your `PATH`.
 
@@ -39,7 +39,7 @@ We target **historical, point-in-time** use: on each trade date the pipeline may
 
 This paper presents **Hindsight 20/20**, an open-source implementation built on **LangGraph**, focused on *reproducibility and fair comparison* rather than on claiming a new state-of-the-art return. The same graph drives live UI/CLI runs and scripted backtests. Analyst and researcher modules gather context through a vendor layer governed by a **simulation end date**; **structured outputs** (Pydantic schemas with structured-output fallbacks) make stage artifacts inspectable. For studies that seek to reduce direct ticker exposure in model-visible strings, optional **anonymization** can be enabled via configuration. **Preset ablations** (`a1`–`full`), selected through a single environment-controlled flag, vary which analysts and debate stages execute while importing the same engine code, so ablation studies do not require parallel forks. A **paper backtest** replays produced signals through a ledger with configurable fees and standard performance metrics, emitting CSV-style artifacts and pairing with notebooks for offline analysis.
 
-**Structure.** §2 surveys related themes at a high level. §3 describes the system as implemented—graph orchestration, tools and data routing, structured outputs, temporal policy, anonymization, ablations, and the backtest harness—grounded in the public codebase (see **`.cursor/memory.md`** for module-level pointers). §4 outlines an empirical protocol that uses existing scripts and stored run artifacts; concrete tables and figures should reflect runs you have actually executed. §5 concludes with limitations honest to the current design (for example single-asset paper execution, vendor dependence). **Contributions** are listed at the end of this document.
+**Structure.** §2 surveys related themes at a high level. §3 describes the system as implemented—graph orchestration, tools and data routing, structured outputs, temporal policy, anonymization, ablations, and the backtest harness—grounded in the public codebase (see **`.cursor/memory.md`** for module-level pointers). §4 reports a concrete evaluation protocol and results from stored CSV artifacts and companion notebooks (single ticker; expanded benchmarks deferred). §5 concludes with limitations honest to the current design. **Contributions** are listed at the end of this document.
 
 ---
 
@@ -56,6 +56,104 @@ This paper presents **Hindsight 20/20**, an open-source implementation built on 
 **Execution realism and evaluation harnesses.** Research prototypes often report model-side decisions without a transparent link to **fees, ledger state, and realized mark-to-market assumptions**—choices that dominate single-asset P&L in realistic settings. Open financial model stacks (Yang et al., 2023) improve accessibility of *models*; we instead document a **paper-ledger backtest** with configurable costs and standard summary metrics, so that agent outputs can be turned into equity curves and tables under stated assumptions. This does not simulate full limit-order-book microstructure; it **matches the fidelity of the shipped code** and keeps evaluation claims auditable.
 
 **Positioning.** Relative to Xiao et al. (2024), Yu et al. (2023), and Yang et al. (2023), Hindsight 20/20 does not introduce a new standalone monetary benchmark winner. It contributes an **open, memory-aligned implementation narrative**: multi-agent LangGraph orchestration, structured outputs, temporal and anonymization controls, preset ablations, and a fee-aware backtest harness suitable for reporting results tied to **concrete artifacts** (CSVs, logs, notebooks).
+
+---
+
+## 3. Method / System
+
+This section summarizes the **shipped** implementation at the level of architecture and interfaces; file-level pointers follow **`.cursor/memory.md`**.
+
+### 3.1 Architecture
+
+The runtime centers on **`TradingAgentsGraph`** (`tradingagents/graph/trading_graph.py`), which wires LangGraph nodes defined by **`GraphSetup`** (`tradingagents/graph/setup.py`) and **`ConditionalLogic`** (`tradingagents/graph/conditional_logic.py`)—specialist analysts, optional bull/bear investment debate, trader synthesis, optional risk debate and judge, and signal extraction toward an executable instruction. Propagation per trade date uses **`Propagator`** (`tradingagents/graph/propagation.py`) with **`Reflector`** and **`SignalProcessor`** hooks as configured. The same graph class backs interactive CLI/UI flows and scripted **`run_backtest_mvp`** runs so backtests exercise the same orchestration path as exploratory sessions.
+
+### 3.2 Agents, tools, and data routing
+
+Analyst modules (market, social/news, fundamentals, etc.) consume tools implemented on **`tradingagents.agents.utils.agent_utils`**—price history, indicators, fundamentals line items, news, and related feeds—backed by vendor adapters and caches under **`tradingagents/dataflows/`**. Configuration flows through **`set_config`** and **`default_config.py`** so provider choice and credentials remain centralized.
+
+### 3.3 Structured stage outputs
+
+Stages that call LLMs can request **schema-constrained** completions aligned with Pydantic models in **`tradingagents/schemas/`**, with **`invoke_fallback`** handling providers that do not reliably honor native structured output. Validated objects are merged into **LangGraph state**, which downstream nodes and logging can consume without ad hoc parsing of unstructured blobs—supporting design goals **S3** / **M3** even though we do not claim log-level empirical analyses here.
+
+### 3.4 Point-in-time policy
+
+**`effective_simulation_end_date_str`** and related helpers clamp vendor-facing reads so that, on date \(d\), tooling does not request post-\(d\) facts through the normal routing path (**M4**). Exact adapter semantics vary by source; the invariant we encode is an explicit simulation horizon wired through propagation rather than ad hoc date strings scattered across tools.
+
+### 3.5 Optional ticker anonymization
+
+When enabled, **`TickerMapper`** substitutes opaque identifiers for raw tickers in prompts and tool I/O suitable for anonymization-aware experiments (**M5**), reducing trivial symbol leakage without replacing fundamentals semantics inside adapters.
+
+### 3.6 Preset ablations
+
+**`PAPER_ABLATION`** selects among **`a1`**, **`a2`**, **`a3`**, and **`full`** (`tradingagents/paper_ablation.py`). **`apply_paper_ablation_to_config`** sets **`selected_analysts`**, **`run_investment_debate`**, and **`run_risk_phase`** in place:
+
+| Preset | Analysts | Investment debate | Risk phase |
+|--------|------------|-------------------|------------|
+| `a1` | market only | off | off |
+| `a2` | market, social, news, fundamentals | off | off |
+| `a3` | four analysts | on | off |
+| `full` | four analysts | on | on |
+
+All presets share one codebase path (**S2** / **M2**).
+
+### 3.7 Paper backtest harness
+
+**`run_backtest_mvp`** (`tradingagents/backtest/runner.py`) iterates trading dates, calls **`graph.propagate`** per day, maps graph output to **`BUY` / `SELL` / `HOLD`** via **`SignalProcessor`** when **`use_llm_signal`** is enabled for ambiguous heuristics, and applies fills through **`PaperLedger`** with **`cost_model`** (`flat_bps`, **`zerodha_delivery`**, **`zerodha_intraday`**) and optional **`slippage_bps`** (**M6**). Scripts **`scripts/backtest_mvp.py`** and **`scripts/backtest_mvp_ablations.py`** build configs from **`.env`** / env overrides (LLM provider, fee knobs, ablation flag). Schedule mode (**`--dates-csv`**) atomically updates a wide CSV (signals, equity path, per-stage outlook snapshots where emitted); standalone runs write **`equity.csv`**, **`trades.csv`**, and **`summary.json`** under **`eval_results/<ticker>/backtest_mvp_<id>/`**.
+
+### 3.8 Observability (non-empirical)
+
+When Langfuse credentials are present, runs attach correlation metadata for debugging (**optional trace hooks**); we do not treat trace dashboards as experimental evidence in §4.
+
+---
+
+## 4. Experiments
+
+### 4.1 Goals and scope
+
+We illustrate the stack with **small-scale, fully reproducible** runs aligned with the **Frozen E1** artifact table in [claim-evidence-map.md](claim-evidence-map.md): **one Indian equity listing (`RELIANCE.NS`)**, cost assumptions recorded in outputs (**e.g. `zerodha_delivery`** with **`slippage_bps=0`** in the longitudinal CSV header), and **preset ablations** over a fixed calendar window. We report **ending paper equity** from stored CSVs; Sharpe, drawdown, and richer summaries can be recomputed in notebooks via **`tradingagents.backtest.metrics`**. We **do not** claim breadth across universes, regimes, or alternative LLMs—the goal is a documented baseline tied to files in **`results/`**.
+
+### 4.2 Protocol
+
+**Longitudinal schedule CSV.** **`scripts/backtest_mvp.py`** was run in **`--dates-csv`** mode to produce **`results/dates.csv`**: one row per calendar row in the schedule, **`processed`** flags, **`final_signal`**, ledger columns, risk-adjusted summary columns when populated, and per-analyst **outlook** fields mirroring structured state for qualitative inspection. **`scripts/backtest_analysis.ipynb`** loads this file for plots.
+
+**Fixed-window ablations.** **`scripts/backtest_mvp_ablations.py`** loops **`a1` … `full`** over weekdays from **`2024-05-01`** through **`2024-06-28`**, writing **`results/{preset}_2024-05-01_2024-06-30_RELIANCE_NS.csv`** (filename uses the requested range endpoints). The bundled inline driver sets **`initial_cash=100,000`**, **`buy_fraction=1.0`**, and **`use_llm_signal=False`**, i.e. no LLM **`SignalProcessor`** fallback when the heuristic mapper is ambiguous. **`scripts/backtest_ablation_analysis.ipynb`** overlays equity curves and tabulates metrics.
+
+**LLM.** Frozen E1 runs used **`qwen/qwen3.5-flash-02-23`** (OpenRouter model slug) per the active **`scripts/backtest_mvp.py`** / **`.env`** configuration when those CSVs were produced; pin **`QUICK_THINK_LLM`**, **`DEEP_THINK_LLM`**, and provider keys in an appendix if quick and deep models differ.
+
+### 4.3 Results
+
+**Ablations (May–June 2024, `RELIANCE.NS`).** Table 1 lists **ending portfolio value** after fees from the frozen CSVs (**initial cash $100,000**). Rankings are **not** stable extrapolations—two months on one name illustrate dispersion across pipeline depth only.
+
+**Table 1.** Ending equity by ablation preset (frozen artifacts under **`results/`**).
+
+| Preset | Ending equity (notional) |
+|--------|-------------------------|
+| `a1` | \$111,480.32 |
+| `a2` | \$110,159.53 |
+| `a3` | \$89,749.01 |
+| `full` | \$103,026.10 |
+
+Under these runs, **more pipeline depth is not monotone in return**: the **`a1`** (single-analyst, no debates) path finishes highest and **`a3`** (debates without risk) finishes lowest, suggesting interactions between signal variance, turnover, and fees—consistent with the need for controlled ablations rather than informal “add agents” comparisons.
+
+**Longitudinal `dates.csv`.** The schedule CSV spans additional calendar rows; the **last processed row with populated ledger fields** in our artifact ends **`2024-07-29`** with equity **\$106,029.65** and reported **`total_return` ≈ 6.03%** over the logged schedule fragment—use **`backtest_analysis.ipynb`** for full curves, turnover, and cost decomposition.
+
+### 4.4 Figures
+
+Regenerate publication plots from **`results/`** without Jupyter::
+
+```bash
+MPLCONFIGDIR=.mpl_cache .venv/bin/python scripts/generate_paper_figures.py
+```
+
+This writes **`docs/paper/figures/`** (`fig_ablation_equity`, `fig_ablation_drawdown`, `fig_ablation_signal_counts`, `fig_dates_portfolio`, `fig_dates_signals_close`, `fig_dates_signal_transitions`, `fig_dates_outlook_heatmap`, `fig_dates_outlook_consensus`) as PDF and PNG; figures include a small suptitle with the LLM id (`--no-llm-label` to omit). **`scripts/backtest_analysis.ipynb`** and **`scripts/backtest_ablation_analysis.ipynb`** remain the exploratory counterparts. A **conceptual DAG** of LangGraph nodes can be drafted from **`GraphSetup`** for Figure 1 if the venue requires architecture artwork.
+
+---
+
+## 5. Conclusion
+
+We presented **Hindsight 20/20**, an open LangGraph implementation for single-stock LLM trading research with **preset ablations**, **structured outputs**, **simulation-date-aware data routing**, optional **ticker anonymization**, and a **fee-aware paper backtest** producing CSV artifacts and notebooks. Empirically, we documented **Frozen E1** runs on **`RELIANCE.NS`**, showing how ending equity varies across **`a1`–`full`** on a two-month window while a richer **`dates.csv`** trace supports qualitative inspection of stage outlooks.
+
+**Limitations.** Evaluation is **narrow** (one ticker, short horizon, environment-specific LLM and vendors). **`use_llm_signal`** was **disabled** in the bundled ablation driver, so reported paths emphasize deterministic heuristic mapping unless separately enabled. We do **not** simulate microstructure, partial fills, or portfolio-wide constraints; **`PaperLedger`** is a research scaffold, not a broker simulator. Future work includes broader universes, model sweeps, and features tracked in **`ROADMAP.md`** once implemented and reflected in memory—distinct from claims in this manuscript.
 
 ---
 
@@ -82,3 +180,5 @@ Each item maps to **S1–S5** in [STORY_LOCK.md](STORY_LOCK.md) and to [claim-ev
 | Date | Change |
 |------|--------|
 | 2026-04-29 | Split from root `PAPER_ROADMAP.md`; paper-only export target. |
+| 2026-04-30 | Added §3 Method, §4 Experiments (Frozen E1 numbers), §5 Conclusion; aligned intro structure text. |
+| 2026-04-30 | Fig export script + `docs/paper/figures/`; pinned LLM id Qwen 3.5 Flash (`qwen/qwen3.5-flash-02-23`) in §4. |

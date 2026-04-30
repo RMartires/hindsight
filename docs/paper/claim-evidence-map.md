@@ -2,7 +2,7 @@
 
 **Rule:** Each claim below must be supportable from **existing code and artifacts** described in **`.cursor/memory.md`**. Do not add rows that require features listed only in `ROADMAP.md` as not implemented.
 
-**Last updated:** 2026-04-29.
+**Last updated:** 2026-04-30.
 
 ---
 
@@ -26,9 +26,23 @@ Only state what you have actually run. Examples:
 | ID | Claim | Evidence |
 |----|--------|----------|
 | E1 | Ablation X vs Y differ on metric Z for ticker T and window W | Your `results/` or `eval_results/` CSVs + notebook |
-| E2 | Structured literals appear in schedule / logs for traceability | `extract_structured_schedule_literals`, `full_states_log_*.json` |
 
 Add rows **after** you freeze a table from real runs. Remove or downgrade any claim if the artifact is missing.
+
+### Frozen E1 (current manuscript inputs)
+
+Write §4 Experiments against **these** artifacts unless you replace them after more runs:
+
+| Field | Value |
+|--------|--------|
+| Ticker | `RELIANCE.NS` |
+| Ablation window | `2024-05-01` .. `2024-06-30` |
+| Presets | `a1`, `a2`, `a3`, `full` (`PAPER_ABLATION`) |
+| Long MVP schedule CSV | `results/dates.csv` — from `scripts/backtest_mvp.py` |
+| Per-ablation equity CSVs | `results/a1_2024-05-01_2024-06-30_RELIANCE_NS.csv`, same for `a2`, `a3`, `full` — from `scripts/backtest_mvp_ablations.py` |
+| Analysis notebooks | `scripts/backtest_analysis.ipynb`, `scripts/backtest_ablation_analysis.ipynb` |
+
+Expand this table when you add tickers or windows; keep paths aligned with what ships in `results/`.
 
 ---
 
@@ -44,3 +58,4 @@ Add rows **after** you freeze a table from real runs. Remove or downgrade any cl
 | Date | Note |
 |------|------|
 | 2026-04-29 | Replaced CBS / held-out / cap-off rows; scoped to memory + user-generated run evidence. |
+| 2026-04-30 | Dropped E2 empirical row; added Frozen E1 table for current `results/` + scripts. |

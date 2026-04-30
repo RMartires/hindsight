@@ -6,7 +6,19 @@
 
 **Submission draft (PDF / LaTeX source of truth):** [manuscript.md](manuscript.md)
 
-**Last updated:** 2026-04-29 — manuscript through **§2 Related Work** + contributions; Method / Experiments / Conclusion still to add in `manuscript.md`.
+**Last updated:** 2026-04-30.
+
+**Done since last reset:** full **`manuscript.md`** draft (§1–§5 + Contributions); **[Frozen E1](claim-evidence-map.md)** table + empirical Table 1; **§4.2** pins LLM **`qwen/qwen3.5-flash-02-23`**; **`scripts/generate_paper_figures.py`** builds **`figures/`** (ablation + `dates.csv` panels, PDF/PNG); empirical row **E2** removed from claim map.
+
+**Blocking submission:** pick **venue** → template / length / blind-review rules → port prose → **`paper.pdf`**.
+
+**Non-blocking / queued:** expand **`bib-seed.bib`** (explicitly deferred); optional **DAG** figure; README reproducibility pointer; frozen **git commit** hash after submission freeze.
+
+---
+
+## Venue / template / anonymization
+
+**Not inferable from `results/`:** page limits, LaTeX or Word template, citation style, blind-review rules, and supplementary policies come from the **target venue** only. After you pick one, trim `manuscript.md` to length and strip identifying URLs if required.
 
 ---
 
@@ -31,7 +43,7 @@ All of the following are documented in the memory index:
 | Simulation date cap (no lookahead), vendor routing | `tradingagents-dataflows` |
 | Ticker anonymization (`TickerMapper`) | `tradingagents-anonymization` |
 | Backtest runner, ledger, Zerodha-style fees, metrics | `tradingagents-backtest` |
-| MVP / ablation scripts, analysis notebooks | `scripts` |
+| MVP / ablation scripts, analysis notebooks, paper figures CLI | `scripts` (**includes `generate_paper_figures.py`**) |
 | Langfuse traces, correlation IDs | `tradingagents-observability`, `backend` |
 | UI + SSE (if mentioned as demo only) | `frontend`, `backend` |
 
@@ -47,16 +59,26 @@ All of the following are documented in the memory index:
 | [paper-roadmap.md](paper-roadmap.md) | **This file** — scope, memory bounds, progress to PDF |
 | [STORY_LOCK.md](STORY_LOCK.md) | Title, pitch, memory-backed contribution table (S1–S5) |
 | [outline.md](outline.md) | Section skeleton referencing real modules |
-| [claim-evidence-map.md](claim-evidence-map.md) | Claims ↔ evidence from code + logs + CSVs |
-| [bib-seed.bib](bib-seed.bib) | Starter citations for Related Work |
+| [claim-evidence-map.md](claim-evidence-map.md) | Claims ↔ evidence + **Frozen E1** artifact table |
+| [bib-seed.bib](bib-seed.bib) | Starter BibTeX (§2 cites seed keys; broaden when venue set) |
+| [figures/](figures/) | PDF/PNG plots — regenerate via **[`scripts/generate_paper_figures.py`](../scripts/generate_paper_figures.py)** (`results/` → `docs/paper/figures/`) |
 
 ---
 
 ## Progress toward `paper.pdf`
 
-**Snapshot:** **In `manuscript.md`:** working title, Abstract, §1–§2, Contributions. **Not yet in `manuscript.md`:** §3 Method, §4 Experiments, §5 Conclusion. **Not started:** figures, venue LaTeX. **`bib-seed.bib`:** three arXiv entries; expand before camera-ready.
+**Snapshot**
 
-**Rule:** Favor claims in `manuscript.md` + [STORY_LOCK.md](STORY_LOCK.md). Empirical rows need real artifacts ([claim-evidence-map.md](claim-evidence-map.md) E1–E2).
+| Track | Status |
+|-------|--------|
+| Prose (`manuscript.md`) | §1–§5 + Contributions drafted |
+| Empirical freeze | [Frozen E1](claim-evidence-map.md) + Table 1 (ending equity) |
+| Figures | ✅ **`figures/`** — `{fig_ablation_*, fig_dates_*}.{pdf,png}` |
+| LLM reproducibility | **`qwen/qwen3.5-flash-02-23`** named in §4.2 (+ env appendix optional) |
+| Bibliography | Starter only — expansion **deferred** |
+| PDF delivery | ⬜ `pandoc` / **`scripts/build_manuscript_pdf.sh`** after venue template |
+
+**Rule:** Favor claims in `manuscript.md` + [STORY_LOCK.md](STORY_LOCK.md). Empirical rows need real artifacts ([claim-evidence-map.md](claim-evidence-map.md) **E1** + **Frozen E1** table).
 
 **Legend:** ✅ done · 🟡 draft / needs review · ⬜ not started · 🔁 optional / venue-dependent
 
@@ -64,33 +86,36 @@ All of the following are documented in the memory index:
 
 | Section | Status | Notes / artifact |
 |--------|--------|------------------|
-| Title | 🟡 | Working title in manuscript |
-| Abstract | 🟡 | First draft in manuscript |
-| Contributions | 🟡 | Numbered list in manuscript |
-| 1. Introduction | 🟡 | First draft |
-| 2. Related Work | 🟡 | Expand `bib-seed.bib` before CR |
-| 3. Method / System | ⬜ | Map to `memory/*.md` per [outline.md](outline.md) |
-| 4. Experiments | ⬜ | Freeze E1: presets, tickers, windows, `results/` paths |
-| 5. Conclusion + limitations | ⬜ | `memory/overview.md` / honest gaps |
-| Appendix / supplementary | 🔁 | Env snapshot, hyperparams, log excerpt |
+| Title | 🟡 | Working title; tighten for venue word limit |
+| Abstract | 🟡 | First draft |
+| Contributions | 🟡 | Numbered list at document end |
+| 1. Introduction | 🟡 | Points to §2–§5 |
+| 2. Related Work | 🟡 | Uses **`bib-seed.bib`** keys only — broaden bibliography **when venue chosen** |
+| 3. Method / System | 🟡 | Full §3 drafted; spot-check vs `.cursor/memory.md` before submission |
+| 4. Experiments | 🟡 | Frozen E1, Table 1, **`qwen/qwen3.5-flash-02-23`**, §4.4 figure script command |
+| 5. Conclusion + limitations | 🟡 | Mirrors shipped scope + ROADMAP honest gaps |
+| Appendix / supplementary | 🔁 | Optional: `.env` snapshot for runs, DAG figure |
 
 ### Figures and tables
 
-| Item | Status | Source idea (`STORY_LOCK.md`) |
-|------|--------|-------------------------------|
-| Pipeline / DAG figure | ⬜ | LangGraph topology |
-| Ablation equity curves | ⬜ | `results/*.csv`, `scripts/backtest_ablation_analysis.ipynb` |
-| Metrics table | ⬜ | `equity.csv`, schedule columns, metrics formulas |
-| Qualitative trace (optional) | ⬜ | `full_states_log_*.json` |
+| Item | Status | Source |
+|------|--------|--------|
+| Pipeline / DAG figure | ⬜ | LangGraph topology (`GraphSetup`) — optional for venue |
+| Ablation equity / drawdown / signal counts | ✅ | **`figures/fig_ablation_*.pdf`** (+ `.png`) |
+| Schedule (`dates.csv`) portfolio / signals / outlook | ✅ | **`figures/fig_dates_*.pdf`** |
+| Ending-equity table | ✅ | **Table 1** in **`manuscript.md`** §4.3 |
+| Extended metrics table | 🔁 | `tradingagents.backtest.metrics` / notebooks — optional extras |
+| Qualitative trace | 🔁 | Not claimed (E2 removed); **`full_states_log_*.json`** unused |
 
 ### Bibliography and formatting
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Merge `bib-seed.bib` into master `.bib` | ⬜ | Venue-required related work |
-| Citation pass on intro + related | 🟡 | §2 uses seed keys only |
-| Venue template (LaTeX / Word) | ⬜ | Port `manuscript.md` → template → PDF |
-| Final PDF build | ⬜ | `scripts/build_manuscript_pdf.sh` or `pandoc` + `tectonic` / `pdflatex` |
+| Expand `bib-seed.bib` / venue `.bib` | 🔁 | **Deferred** until target venue + related-work breadth agreed |
+| Citation pass on intro + related | 🟡 | §2 aligned with seed keys; rerun after bib grows |
+| Inline `\includegraphics` / numbered captions | ⬜ | Wire **`figures/*.pdf`** after LaTeX port |
+| Venue template (LaTeX / Word) | ⬜ | Port `manuscript.md` → template |
+| Final PDF build | ⬜ | **`scripts/build_manuscript_pdf.sh`** or `pandoc` + `tectonic` / `pdflatex` |
 
 ### Repo / supplementary (if venue allows)
 
