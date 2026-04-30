@@ -10,7 +10,7 @@
 
 **Done since last reset:** full **`manuscript.md`** draft (§1–§5 + Contributions); **[Frozen E1](claim-evidence-map.md)** table + empirical Table 1; **§4.2** pins LLM **`qwen/qwen3.5-flash-02-23`**; **`scripts/generate_paper_figures.py`** builds **`figures/`** (ablation + `dates.csv` panels, PDF/PNG); empirical row **E2** removed from claim map.
 
-**Blocking submission:** pick **venue** → template / length / blind-review rules → port prose → **`paper.pdf`**.
+**Blocking submission:** submit **`docs/paper/submission/Hindsight2020_AlgorithmicFinance_IOS_submission.pdf`** or `.docx` via **[Algorithmic Finance](https://www.iospress.com/catalog/journals/algorithmic-finance)** portal — replace bracketed author placeholders in **`ios_manuscript.md`** then rebuild; complete declarations; **decline optional gold OA** for \$0.
 
 **Non-blocking / queued:** expand **`bib-seed.bib`** (explicitly deferred); optional **DAG** figure; README reproducibility pointer; frozen **git commit** hash after submission freeze.
 
@@ -18,7 +18,21 @@
 
 ## Venue / template / anonymization
 
-**Not inferable from `results/`:** page limits, LaTeX or Word template, citation style, blind-review rules, and supplementary policies come from the **target venue** only. After you pick one, trim `manuscript.md` to length and strip identifying URLs if required.
+**Not inferable from `results/`:** fine-grained layout (margins, heading numbering), submission-portal fields, and declaration checkboxes come from **[Algorithmic Finance — Instructions](https://www.iospress.com/catalog/journals/algorithmic-finance)** only.
+
+### **Chosen venue:** [Algorithmic Finance](https://www.iospress.com/catalog/journals/algorithmic-finance) (IOS Press)
+
+| Topic | Note |
+|-------|------|
+| **Author fees** | **No publication fee** on default track; [optional gold OA is paid](https://www.iospress.com/catalog/journals/algorithmic-finance)—skip to stay at **\$0** |
+| **Submission file** | IOS: manuscript as **one file** (PDF or Word or zip) **with tables and figures included**, unless their current form specifies otherwise—follow live author instructions |
+| **Abstract** | **≤200 words** (current [`manuscript.md`](manuscript.md) abstract ≈ **218 words**—needs a short trim) |
+| **References** | **Harvard** style (adjust from draft author–year prose / BibTeX pipeline when exporting) |
+| **Still on you** | Portal login, corresponding-author contact, copyright / competing-interest declarations, **final read**, ticking **no paid OA** at acceptance if offered |
+
+**Alternatives (not chosen):** Decision Support Systems; Expert Systems with Applications; Knowledge-Based Systems; Neural Computing and Applications — see older notes if you switch journals.
+
+**Visibility without APC:** post an **[arXiv](https://arxiv.org/)** preprint + **[Zenodo](https://zenodo.org/)** artifact DOIs in parallel (lawful under journal policy—check **[Sherpa Romeo](https://v2.sherpa.ac.uk/romeo/)** or the journal’s preprint rules).
 
 ---
 
@@ -61,7 +75,7 @@ All of the following are documented in the memory index:
 | [outline.md](outline.md) | Section skeleton referencing real modules |
 | [claim-evidence-map.md](claim-evidence-map.md) | Claims ↔ evidence + **Frozen E1** artifact table |
 | [bib-seed.bib](bib-seed.bib) | Starter BibTeX (§2 cites seed keys; broaden when venue set) |
-| [figures/](figures/) | PDF/PNG plots — regenerate via **[`scripts/generate_paper_figures.py`](../scripts/generate_paper_figures.py)** (`results/` → `docs/paper/figures/`) |
+| [submission/](submission/) | **Algorithmic Finance** IOS package (`ios_manuscript.md`, PDF/DOCX, `build_ios_package.sh`) |
 
 ---
 
@@ -76,7 +90,8 @@ All of the following are documented in the memory index:
 | Figures | ✅ **`figures/`** — `{fig_ablation_*, fig_dates_*}.{pdf,png}` |
 | LLM reproducibility | **`qwen/qwen3.5-flash-02-23`** named in §4.2 (+ env appendix optional) |
 | Bibliography | Starter only — expansion **deferred** |
-| PDF delivery | ⬜ `pandoc` / **`scripts/build_manuscript_pdf.sh`** after venue template |
+| Target venue | ✅ **[Algorithmic Finance](https://www.iospress.com/catalog/journals/algorithmic-finance)** (IOS Press, \$0 default; decline optional OA) |
+| IOS-formatted submission PDF / Word | ✅ | **`docs/paper/submission/`** — run **`build_ios_package.sh`** |
 
 **Rule:** Favor claims in `manuscript.md` + [STORY_LOCK.md](STORY_LOCK.md). Empirical rows need real artifacts ([claim-evidence-map.md](claim-evidence-map.md) **E1** + **Frozen E1** table).
 
@@ -87,10 +102,10 @@ All of the following are documented in the memory index:
 | Section | Status | Notes / artifact |
 |--------|--------|------------------|
 | Title | 🟡 | Working title; tighten for venue word limit |
-| Abstract | 🟡 | First draft |
+| Abstract | 🟡 | ≤200 words for IOS — trimmed in **`submission/ios_manuscript.md`** and synced here |
 | Contributions | 🟡 | Numbered list at document end |
 | 1. Introduction | 🟡 | Points to §2–§5 |
-| 2. Related Work | 🟡 | Uses **`bib-seed.bib`** keys only — broaden bibliography **when venue chosen** |
+| 2. Related Work | 🟡 | Uses **`bib-seed.bib`** keys only — broaden optionally; **Harvard** list at export |
 | 3. Method / System | 🟡 | Full §3 drafted; spot-check vs `.cursor/memory.md` before submission |
 | 4. Experiments | 🟡 | Frozen E1, Table 1, **`qwen/qwen3.5-flash-02-23`**, §4.4 figure script command |
 | 5. Conclusion + limitations | 🟡 | Mirrors shipped scope + ROADMAP honest gaps |
@@ -111,11 +126,11 @@ All of the following are documented in the memory index:
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Expand `bib-seed.bib` / venue `.bib` | 🔁 | **Deferred** until target venue + related-work breadth agreed |
+| Expand `bib-seed.bib` / venue `.bib` | 🔁 | **Deferred**; export references in **Harvard** style for IOS |
 | Citation pass on intro + related | 🟡 | §2 aligned with seed keys; rerun after bib grows |
-| Inline `\includegraphics` / numbered captions | ⬜ | Wire **`figures/*.pdf`** after LaTeX port |
-| Venue template (LaTeX / Word) | ⬜ | Port `manuscript.md` → template |
-| Final PDF build | ⬜ | **`scripts/build_manuscript_pdf.sh`** or `pandoc` + `tectonic` / `pdflatex` |
+| Figures embedded / captioned per IOS | ✅ | Embedded in **`submission/*.pdf`**; **`figures/*.pdf`** in bundle |
+| Venue template (LaTeX / Word) | ✅ | **`ios_manuscript.md`** → PDF/DOCX via pandoc |
+| Final PDF build | ✅ | **`docs/paper/submission/Hindsight2020_AlgorithmicFinance_IOS_submission.pdf`** |
 
 ### Repo / supplementary (if venue allows)
 

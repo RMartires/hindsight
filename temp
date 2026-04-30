@@ -16,3 +16,5 @@ python scripts/backtest_mvp_ablations.py 2>&1 | tee run.log
 
 
 pandoc docs/paper/manuscript.md -o paper-draft.pdf --pdf-engine=tectonic
+
+./docs/paper/submission/build_ios_package.sh
