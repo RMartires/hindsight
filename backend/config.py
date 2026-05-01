@@ -18,6 +18,7 @@ def build_config() -> dict:
 
     # LLM provider — TradingAgents defaults to "openai" (needs OPENAI_API_KEY).
     # If only OpenRouter is configured, use OPENROUTER_API_KEY + provider "openrouter".
+    # If only NVIDIA NIM is configured, use NVIDIA_API_KEY + provider "nvidia".
     explicit_provider = os.getenv("LLM_PROVIDER")
     if explicit_provider:
         config["llm_provider"] = explicit_provider
@@ -25,6 +26,12 @@ def build_config() -> dict:
         os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_KEY")
     ):
         config["llm_provider"] = "openrouter"
+    elif os.getenv("NVIDIA_API_KEY") and not (
+        os.getenv("OPENAI_API_KEY")
+        or os.getenv("OPENAI_KEY")
+        or os.getenv("OPENROUTER_API_KEY")
+    ):
+        config["llm_provider"] = "nvidia"
     if os.getenv("DEEP_THINK_LLM"):
         config["deep_think_llm"] = os.getenv("DEEP_THINK_LLM")
     if os.getenv("QUICK_THINK_LLM"):

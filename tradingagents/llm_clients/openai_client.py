@@ -409,7 +409,7 @@ class UnifiedChatOpenAI(ChatOpenAI):
 
 
 class OpenAIClient(BaseLLMClient):
-    """Client for OpenAI, Ollama, OpenRouter, and xAI providers."""
+    """Client for OpenAI, Ollama, OpenRouter, NVIDIA NIM (integrate API), and xAI."""
 
     def __init__(
         self,
@@ -432,8 +432,14 @@ class OpenAIClient(BaseLLMClient):
                 llm_kwargs["api_key"] = api_key
         elif self.provider == "openrouter":
             llm_kwargs["base_url"] = "https://openrouter.ai/api/v1"
-            api_key = os.environ.get("OPENROUTER_API_KEY")
-            if api_key:
+            if "api_key" not in self.kwargs:
+                api_key = (os.environ.get("OPENROUTER_API_KEY") or "").strip()
+                if not api_key:
+                    raise ValueError(
+                        "OPENROUTER_API_KEY is missing or empty while using "
+                        "LLM_PROVIDER=openrouter (pass api_key=... or set the env var). "
+                        "Otherwise ChatOpenAI uses OPENAI_API_KEY and requests get HTTP 401."
+                    )
                 llm_kwargs["api_key"] = api_key
             if (
                 "http_client" not in self.kwargs
@@ -443,6 +449,20 @@ class OpenAIClient(BaseLLMClient):
                 hc, ahc = _build_http_clients_with_capture()
                 llm_kwargs["http_client"] = hc
                 llm_kwargs["http_async_client"] = ahc
+        elif self.provider == "nvidia":
+            llm_kwargs["base_url"] = (
+                os.environ.get("NVIDIA_API_BASE_URL", "").strip()
+                or "https://integrate.api.nvidia.com/v1"
+            )
+            if "api_key" not in self.kwargs:
+                api_key = (os.environ.get("NVIDIA_API_KEY") or "").strip()
+                if not api_key:
+                    raise ValueError(
+                        "NVIDIA_API_KEY is missing or empty while using LLM_PROVIDER=nvidia "
+                        "(pass api_key=... or set the env var). Otherwise ChatOpenAI defaults "
+                        "to OPENAI_API_KEY and NVIDIA returns HTTP 401."
+                    )
+                llm_kwargs["api_key"] = api_key
         elif self.provider == "ollama":
             llm_kwargs["base_url"] = "http://localhost:11434/v1"
             llm_kwargs["api_key"] = "ollama"  # Ollama doesn't require auth

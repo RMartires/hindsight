@@ -159,6 +159,10 @@ def select_shallow_thinking_agent(provider) -> str:
             ("NVIDIA Nemotron 3 Nano 30B (free)", "nvidia/nemotron-3-nano-30b-a3b:free"),
             ("Z.AI GLM 4.5 Air (free)", "z-ai/glm-4.5-air:free"),
         ],
+        "nvidia": [
+            ("NVIDIA Nemotron Super 49B", "nvidia/llama-3.3-nemotron-super-49b-v1"),
+            ("DeepSeek V3.2", "deepseek-ai/deepseek-v3.2"),
+        ],
         "ollama": [
             ("Qwen3:latest (8B, local)", "qwen3:latest"),
             ("GPT-OSS:latest (20B, local)", "gpt-oss:latest"),
@@ -226,6 +230,11 @@ def select_deep_thinking_agent(provider) -> str:
             ("Z.AI GLM 4.5 Air (free)", "z-ai/glm-4.5-air:free"),
             ("NVIDIA Nemotron 3 Nano 30B (free)", "nvidia/nemotron-3-nano-30b-a3b:free"),
         ],
+        "nvidia": [
+            ("DeepSeek V3.2", "deepseek-ai/deepseek-v3.2"),
+            ("NVIDIA Nemotron Super 49B", "nvidia/llama-3.3-nemotron-super-49b-v1"),
+            ("Meta Llama 3.1 405B Instruct", "meta/llama-3.1-405b-instruct"),
+        ],
         "ollama": [
             ("GLM-4.7-Flash:latest (30B, local)", "glm-4.7-flash:latest"),
             ("GPT-OSS:latest (20B, local)", "gpt-oss:latest"),
@@ -264,6 +273,7 @@ def select_llm_provider() -> tuple[str, str]:
         ("Anthropic", "https://api.anthropic.com/"),
         ("xAI", "https://api.x.ai/v1"),
         ("Openrouter", "https://openrouter.ai/api/v1"),
+        ("NVIDIA", "https://integrate.api.nvidia.com/v1"),
         ("Ollama", "http://localhost:11434/v1"),
     ]
     

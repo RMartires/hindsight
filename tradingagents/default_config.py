@@ -15,7 +15,7 @@ DEFAULT_CONFIG = {
     # Provider-specific thinking configuration
     "google_thinking_level": None,      # "high", "minimal", etc.
     "openai_reasoning_effort": None,    # "medium", "high", "low"
-    # OpenAI-compatible clients only (OpenAI, OpenRouter, xAI, Ollama): forwarded to ChatOpenAI
+    # OpenAI-compatible clients only (OpenAI, OpenRouter, NVIDIA NIM, xAI, Ollama): forwarded to ChatOpenAI
     # max_retries = HTTP-level retries in the OpenAI SDK (5xx, 429, etc.)
     "llm_max_retries": None,
     "llm_timeout": None,

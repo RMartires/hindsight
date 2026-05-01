@@ -3,11 +3,14 @@ import unittest
 import httpx
 import openai
 
+from tradingagents.llm_clients.factory import create_llm_client
 from tradingagents.llm_clients.openai_client import (
+    OpenAIClient,
     _is_retriable_openai_compatible_payload,
     _is_retriable_openai_sdk_error,
     _is_retriable_provider_value_error,
 )
+from tradingagents.llm_clients.validators import validate_model
 
 
 class TestOpenAIClientRetryHelpers(unittest.TestCase):
@@ -65,6 +68,12 @@ class TestOpenAIClientRetryHelpers(unittest.TestCase):
         resp = httpx.Response(401, request=req)
         err = openai.AuthenticationError("nope", response=resp, body={})
         self.assertFalse(_is_retriable_openai_sdk_error(err))
+
+    def test_nvidia_factory_and_validator(self):
+        self.assertTrue(validate_model("nvidia", "deepseek-ai/deepseek-v3.2"))
+        client = create_llm_client("nvidia", "deepseek-ai/deepseek-v3.2")
+        self.assertIsInstance(client, OpenAIClient)
+        self.assertEqual(client.provider, "nvidia")
 
 
 if __name__ == "__main__":
