@@ -257,6 +257,7 @@ class TradingAgentsGraph:
             {
                 **self.config,
                 "simulation_data_end": effective_simulation_end_date_str(str(trade_date)),
+                "active_trade_date": str(trade_date).strip(),
             }
         )
 

@@ -129,6 +129,15 @@ class TestKiteDataFunctions(unittest.TestCase):
         self.assertIn("2024-01-02: 10.0", out)
         self.assertIn("2024-01-01: 9.0", out)
 
+    @patch("tradingagents.dataflows.kite_indicator._get_stockstats_indicator_bulk")
+    def test_get_indicators_aliases_50_sma(self, mock_bulk):
+        from tradingagents.dataflows.kite_indicator import get_indicators
+
+        mock_bulk.return_value = {"2024-01-02": "12.34"}
+        out = get_indicators("RELIANCE.NS", "50_sma", "2024-01-02", look_back_days=0)
+        mock_bulk.assert_called_once()
+        self.assertIn("close_50_sma", out)
+
     def test_get_indicators_unsupported_indicator(self):
         from tradingagents.dataflows.kite_indicator import get_indicators
 
@@ -148,6 +157,13 @@ class TestKiteDataFunctions(unittest.TestCase):
             )
         self.assertIn("end_date", str(ctx.exception).lower())
         self.assertIn("yyyy-mm-dd", str(ctx.exception).lower())
+
+    def test_get_stock_data_tool_repairs_duplicated_leading_year_digit(self):
+        """11-char dates like 22025-mm-dd (doubled first digit) normalize to valid ISO."""
+        from tradingagents.agents.utils import core_stock_tools as cst
+
+        self.assertEqual(cst._normalize_iso_date_arg("end_date", "22025-01-31"), "2025-01-31")
+        self.assertEqual(cst._normalize_iso_date_arg("end_date", "22024-06-15"), "2024-06-15")
 
 
 if __name__ == "__main__":

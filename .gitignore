@@ -47,3 +47,5 @@ results
 *data_cache*
 .cursor*
 *figures*
+
+*.ipynb

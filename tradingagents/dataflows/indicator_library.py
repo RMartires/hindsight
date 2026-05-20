@@ -164,6 +164,31 @@ def _tier1_specs() -> tuple[IndicatorSpec, ...]:
     )
 
 
+# Alternate names models emit; values must match tier1 ``indicator_id`` keys exactly.
+_TIER1_INDICATOR_ALIASES: dict[str, str] = {
+    "50_sma": "close_50_sma",
+    "200_sma": "close_200_sma",
+    "10_ema": "close_10_ema",
+}
+
+
+def normalize_tier1_indicator_id(indicator_id: str) -> str:
+    """Lowercase strip + map common shorthand to canonical Tier-1 ids."""
+    s = indicator_id.strip().lower()
+    return _TIER1_INDICATOR_ALIASES.get(s, s)
+
+
+def resolve_tier1_indicator_id(indicator_id: str) -> str:
+    """Return canonical Tier-1 id or raise ``ValueError`` (same messaging as legacy validate)."""
+    nid = normalize_tier1_indicator_id(indicator_id)
+    if nid not in tier1_indicator_specs():
+        raise ValueError(
+            f"Indicator {indicator_id!r} is not supported (resolved={nid!r}). "
+            f"Please choose from: {tier1_indicator_ids()}"
+        )
+    return nid
+
+
 def tier1_indicator_ids() -> list[str]:
     return [s.indicator_id for s in _tier1_specs()]
 
@@ -177,10 +202,7 @@ def tier1_indicator_specs() -> dict[str, IndicatorSpec]:
 
 
 def validate_tier1_indicator(indicator_id: str) -> None:
-    if indicator_id not in tier1_indicator_specs():
-        raise ValueError(
-            f"Indicator {indicator_id} is not supported. Please choose from: {tier1_indicator_ids()}"
-        )
+    resolve_tier1_indicator_id(indicator_id)
 
 
 def compute_indicators(
@@ -199,14 +221,13 @@ def compute_indicators(
     if not isinstance(ohlcv, pd.DataFrame):
         raise TypeError("ohlcv must be a pandas DataFrame")
     specs = tier1_indicator_specs()
-    requested = [str(i).strip() for i in indicator_ids if str(i).strip()]
-    if not requested:
+    raw_ids = [str(i).strip() for i in indicator_ids if str(i).strip()]
+    if not raw_ids:
         return pd.DataFrame()
-    unknown = [i for i in requested if i not in specs]
-    if unknown:
-        raise ValueError(
-            f"Unsupported indicator(s): {unknown}. Please choose from: {tier1_indicator_ids()}"
-        )
+    try:
+        requested = [resolve_tier1_indicator_id(i) for i in raw_ids]
+    except ValueError as e:
+        raise ValueError(str(e)) from e
 
     data = _clean_dataframe(ohlcv.copy())
     if data.empty:

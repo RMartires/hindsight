@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 import hashlib
+import logging
+import re
 from dataclasses import dataclass
 from typing import Dict, Optional
 
 from tradingagents.dataflows.config import get_config
+
+_LOG = logging.getLogger(__name__)
+_STOCK_ANON_RE = re.compile(r"STOCK_\d{4}$")
 
 
 def _stable_stock_id(real: str) -> str:
@@ -48,6 +53,37 @@ def get_active_ticker_mapper(cfg: Optional[dict] = None) -> Optional[TickerMappe
     if not isinstance(real_ticker, str) or not isinstance(anon_ticker, str):
         return None
     return TickerMapper(real_ticker=real_ticker, anon_ticker=anon_ticker)
+
+
+def coerce_agent_symbol(symbol: str, cfg: Optional[dict] = None) -> str:
+    """Normalize agent-emitted ticker before ``deanonymize_ticker``.
+
+    When anonymization is on and the session has a **single** mapped anonymous id,
+    repair common LLM mistakes: truncated ``ST``, or a wrong ``STOCK_####`` that
+    is not in the session unmap.
+    """
+    c = cfg or get_config()
+    s = (symbol or "").strip()
+    if not c.get("enable_anonymization"):
+        return s
+    unmap = c.get("anonymization_ticker_unmap") or {}
+    if not isinstance(unmap, dict) or not unmap:
+        return s
+    if s in unmap:
+        return s
+    if len(unmap) != 1:
+        return s
+    only_anon = next(iter(unmap.keys()))
+    if not isinstance(only_anon, str):
+        return s
+    if s == "ST" or (_STOCK_ANON_RE.match(s) and s not in unmap):
+        _LOG.info(
+            "coerce_agent_symbol: replacing agent symbol %r with session ticker %r",
+            s,
+            only_anon,
+        )
+        return only_anon
+    return s
 
 
 def deanonymize_ticker(t: str, cfg: Optional[dict] = None) -> str:

@@ -15,7 +15,7 @@ from .kite_common import (
 from .kite_instruments import get_instrument_mapper
 from .config import get_config
 from .stockstats_utils import _clean_dataframe
-from .indicator_library import tier1_indicator_descriptions, validate_tier1_indicator
+from .indicator_library import resolve_tier1_indicator_id, tier1_indicator_descriptions
 
 
 BEST_IND_PARAMS: Dict[str, str] = tier1_indicator_descriptions()
@@ -125,8 +125,7 @@ def get_indicators(
     Retrieve a single technical indicator window around `curr_date`.
     Uses Kite OHLCV + stockstats to compute indicators.
     """
-    indicator = indicator.strip().lower()
-    validate_tier1_indicator(indicator)
+    indicator = resolve_tier1_indicator_id(indicator)
 
     try:
         indicator_data = _get_stockstats_indicator_bulk(symbol, indicator, curr_date)

@@ -456,6 +456,13 @@ def run_backtest_mvp(
     try:
         for day_index, d in enumerate(dates):
             d = str(d).strip()
+            _log.info(
+                "backtest day start ticker=%s date=%s progress=%d/%d",
+                ticker,
+                d,
+                day_index + 1,
+                len(dates),
+            )
             try:
                 final_state, processed = _propagate_one_day(d, day_index)
                 structured_lit = extract_structured_schedule_literals(final_state)

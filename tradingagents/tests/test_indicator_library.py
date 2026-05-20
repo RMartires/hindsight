@@ -30,6 +30,18 @@ class TestIndicatorLibrary(unittest.TestCase):
         with self.assertRaises(ValueError):
             compute_indicators(self._sample_ohlcv(), ["not_a_real_indicator"])
 
+    def test_resolve_indicator_alias(self):
+        from tradingagents.dataflows.indicator_library import resolve_tier1_indicator_id
+
+        self.assertEqual(resolve_tier1_indicator_id("50_sma"), "close_50_sma")
+        self.assertEqual(resolve_tier1_indicator_id("200_sma"), "close_200_sma")
+
+    def test_compute_indicators_accepts_50_sma_alias(self):
+        from tradingagents.dataflows.indicator_library import compute_indicators
+
+        df = compute_indicators(self._sample_ohlcv(), ["50_sma"])
+        self.assertIn("close_50_sma", df.columns)
+
 
 if __name__ == "__main__":
     unittest.main()

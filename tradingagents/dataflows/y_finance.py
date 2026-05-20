@@ -5,7 +5,7 @@ import yfinance as yf
 import os
 from .stockstats_utils import StockstatsUtils, _clean_dataframe
 from .simulation_context import effective_data_end_date
-from .indicator_library import tier1_indicator_descriptions, validate_tier1_indicator
+from .indicator_library import resolve_tier1_indicator_id, tier1_indicator_descriptions
 
 def get_YFin_data_online(
     symbol: Annotated[str, "ticker symbol of the company"],
@@ -56,7 +56,7 @@ def get_stock_stats_indicators_window(
     ],
     look_back_days: Annotated[int, "how many days to look back"],
 ) -> str:
-    validate_tier1_indicator(indicator)
+    indicator = resolve_tier1_indicator_id(indicator)
     best_ind_params = tier1_indicator_descriptions()
 
     end_date = curr_date
