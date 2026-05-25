@@ -1,0 +1,21 @@
+[Unit]
+Description=Hindsight 20/20 backtest
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hindsight
+WorkingDirectory=/opt/hindsight2020
+EnvironmentFile=/opt/hindsight2020/.env
+ExecStart=/opt/hindsight2020/.venv/bin/python -u scripts/backtest_mvp.py \
+    --ticker RELIANCE.NS \
+    --dates-csv results/dates.csv \
+    --prefetch-check
+Restart=on-failure
+RestartSec=15
+StandardOutput=append:/var/log/hindsight/backtest.log
+StandardError=append:/var/log/hindsight/backtest.log
+
+[Install]
+WantedBy=multi-user.target
