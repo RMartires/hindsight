@@ -1,66 +1,25 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
+import os
+from datetime import datetime
+from typing import Dict
 
 from dateutil.relativedelta import relativedelta
-import pandas as pd
 from stockstats import wrap
 
-from .kite_common import (
-    KITE_HISTORICAL_MAX_INTERVAL_DAYS,
-    get_kite_session,
-    maybe_convert_to_kite_rate_limit,
-)
-from .kite_instruments import get_instrument_mapper
 from .config import get_config
-from .stockstats_utils import _clean_dataframe
 from .indicator_library import resolve_tier1_indicator_id, tier1_indicator_descriptions
+from .kite_ohlcv import fetch_kite_ohlcv_df, indicator_bulk_date_range
+from .kite_common import KiteRateLimitError, maybe_convert_to_kite_rate_limit
+from .stockstats_utils import _clean_dataframe
 
 
 BEST_IND_PARAMS: Dict[str, str] = tier1_indicator_descriptions()
 
 
-def _get_kite_ohlcv(symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
-    """
-    Fetch OHLCV data from Kite and return a DataFrame with:
-    Date, Open, High, Low, Close, Volume
-    """
-    mapper = get_instrument_mapper()
-    resolved = mapper.resolve(symbol)
-    kite = get_kite_session().get_client()
-
-    start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-    end_dt = datetime.strptime(end_date, "%Y-%m-%d")
-
-    records: List[Dict[str, Any]] = kite.historical_data(
-        resolved["instrument_token"],
-        start_dt,
-        end_dt,
-        interval="day",
-    )
-    if not records:
-        return pd.DataFrame(columns=["Date", "Open", "High", "Low", "Close", "Volume"])
-
-    df = pd.DataFrame.from_records(records)
-    if "date" in df.columns:
-        df = df.rename(columns={"date": "Date"})
-
-    # Normalize column casing (kite returns lower-case names)
-    rename_map = {}
-    for k in ["open", "high", "low", "close", "volume"]:
-        if k in df.columns:
-            rename_map[k] = k.capitalize() if k != "volume" else "Volume"
-    if rename_map:
-        df = df.rename(columns=rename_map)
-
-    if "Close" in df.columns and "Adj Close" not in df.columns:
-        # stockstats doesn't require Adj Close, but keep compatibility if present
-        df["Adj Close"] = df["Close"]
-
-    keep = [c for c in ["Date", "Open", "High", "Low", "Close", "Volume"] if c in df.columns]
-    df = df[keep]
-    return df
+def _get_kite_ohlcv(symbol: str, start_date: str, end_date: str):
+    """Fetch OHLCV from Kite (delegates to ``kite_ohlcv.fetch_kite_ohlcv_df``)."""
+    return fetch_kite_ohlcv_df(symbol, start_date, end_date)
 
 
 def _get_stockstats_indicator_bulk(symbol: str, indicator: str, curr_date: str) -> Dict[str, str]:
@@ -69,21 +28,12 @@ def _get_stockstats_indicator_bulk(symbol: str, indicator: str, curr_date: str) 
 
     Returns a dict mapping YYYY-MM-DD -> indicator_value (as string).
     """
+    import pandas as pd
+
     cfg = get_config()
     cache_dir = cfg.get("data_cache_dir", "dataflows/data_cache")
 
-    end_dt = datetime.strptime(curr_date, "%Y-%m-%d")
-    ideal_start = end_dt - relativedelta(years=15)
-    max_span_start = end_dt - timedelta(
-        days=KITE_HISTORICAL_MAX_INTERVAL_DAYS - 1
-    )
-    start_dt = max(ideal_start, max_span_start)
-
-    start_date_str = start_dt.strftime("%Y-%m-%d")
-    end_date_str = end_dt.strftime("%Y-%m-%d")
-
-    # Local import to keep this module lightweight if unused.
-    import os
+    start_date_str, end_date_str = indicator_bulk_date_range(curr_date)
 
     os.makedirs(cache_dir, exist_ok=True)
     data_file = os.path.join(cache_dir, f"{symbol}-Kite-data-{start_date_str}-{end_date_str}.csv")
@@ -100,7 +50,6 @@ def _get_stockstats_indicator_bulk(symbol: str, indicator: str, curr_date: str) 
     df = wrap(data)
     df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
 
-    # Trigger stockstats indicator calc
     _ = df[indicator]
 
     result_dict: Dict[str, str] = {}
@@ -135,7 +84,6 @@ def get_indicators(
         curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d")
         before = curr_date_dt - relativedelta(days=look_back_days)
 
-        # Build the indicator string for each day in the window (including non-trading days)
         current_dt = curr_date_dt
         ind_string = ""
         while current_dt >= before:
@@ -157,10 +105,8 @@ def get_indicators(
         return result_str
     except Exception as e:
         converted = maybe_convert_to_kite_rate_limit(e)
-        # route_to_vendor will only fall back on KiteRateLimitError
         from .kite_common import KiteRateLimitError as _KiteRateLimitError
 
         if isinstance(converted, _KiteRateLimitError):
             raise converted
         raise
-

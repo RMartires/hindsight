@@ -120,13 +120,16 @@ def _build_config() -> dict:
         except ValueError:
             pass
 
-    # Configure data vendors (default uses yfinance, no extra API keys needed)
+    # Offline OHLCV/indicators from DuckDB (populate via scripts/prefetch_market_data.py)
     cfg["data_vendors"] = {
-        "core_stock_apis": "kite",
-        "technical_indicators": "kite",
+        "core_stock_apis": "local",
+        "technical_indicators": "local",
         "fundamental_data": "yfinance",
         "news_data": "alpha_vantage",
     }
+    _mdb = os.getenv("MARKET_DB_PATH", "").strip()
+    if _mdb:
+        cfg["market_db_path"] = _mdb
 
     # Enable anonymization by default for the backtest paper workflow.
     # Can be disabled by setting ENABLE_ANONYMIZATION=0 in the environment.
@@ -228,6 +231,11 @@ def main() -> int:
     parser.add_argument("--use-llm-signal", action="store_true", help="Use SignalProcessor when heuristic fails")
     parser.add_argument("--debug", action="store_true", help="LangGraph debug stream (verbose)")
     parser.add_argument("--results-dir", default="", help="Override output directory base")
+    parser.add_argument(
+        "--prefetch-check",
+        action="store_true",
+        help="Verify local DuckDB has OHLCV for all run dates before starting",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -302,6 +310,22 @@ def main() -> int:
     except ValueError as e:
         logging.error("%s", e)
         return 2
+
+    if args.prefetch_check:
+        from tradingagents.dataflows.config import set_config
+        from tradingagents.dataflows.local_db.prefetch_check import verify_local_ohlcv_coverage
+        from tradingagents.dataflows.local_db.store import LocalDataError
+
+        set_config(config)
+        check_dates = dates
+        if schedule_rows is not None:
+            check_dates = [str(r.get("date", "")).strip() for r in schedule_rows if str(r.get("date", "")).strip()]
+        try:
+            verify_local_ohlcv_coverage(args.ticker, check_dates)
+            logging.info("Prefetch check passed for %s (%s weekday(s))", args.ticker, len(check_dates))
+        except LocalDataError as e:
+            logging.error("%s", e)
+            return 2
 
     cost_bps = float(config.get("backtest_cost_bps", 0) or 0)
     if args.cost_bps is not None:

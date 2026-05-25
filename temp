@@ -2,7 +2,6 @@ python server.py
 
 npm run dev
 
-
 python main.py 2>&1 | tee "run-$(date +%Y%m%d-%H%M%S).log"
 
 python scripts/kite_token_server.py
@@ -17,3 +16,5 @@ python scripts/backtest_mvp_ablations.py 2>&1 | tee run.log
 pandoc docs/paper/manuscript.md -o paper-draft.pdf --pdf-engine=tectonic
 
 ./docs/paper/submission/build_ios_package.sh
+
+python scripts/prefetch_market_data.py --ticker RELIANCE.NS --dates-csv results/dates.csv

@@ -31,6 +31,11 @@ from .kite import (
     get_stock as get_kite_stock,
     get_indicator as get_kite_indicator,
 )
+from .local import (
+    get_stock as get_local_stock,
+    get_indicator as get_local_indicator,
+)
+from .local_db.store import LocalDataError
 
 # Configuration and routing logic
 from .config import get_config
@@ -108,6 +113,7 @@ VENDOR_LIST = [
     "yfinance",
     "alpha_vantage",
     "kite",
+    "local",
 ]
 
 # Mapping of methods to their vendor-specific implementations
@@ -117,12 +123,14 @@ VENDOR_METHODS = {
         "alpha_vantage": get_alpha_vantage_stock,
         "yfinance": get_YFin_data_online,
         "kite": get_kite_stock,
+        "local": get_local_stock,
     },
     # technical_indicators
     "get_indicators": {
         "alpha_vantage": get_alpha_vantage_indicator,
         "yfinance": get_stock_stats_indicators_window,
         "kite": get_kite_indicator,
+        "local": get_local_indicator,
     },
     # fundamental_data
     "get_fundamentals": {
@@ -204,6 +212,18 @@ def route_to_vendor(method: str, *args, **kwargs):
 
         try:
             return impl_func(*args, **kwargs)
+        except LocalDataError as e:
+            if len(primary_vendors) > 1:
+                _log.warning(
+                    "data_vendor_fallback method=%s vendor=%s %s: %s",
+                    method,
+                    vendor,
+                    type(e).__name__,
+                    e,
+                    exc_info=True,
+                )
+                continue
+            raise
         except (AlphaVantageRateLimitError, KiteRateLimitError, KiteAuthError) as e:
             # Only rate limits / auth issues trigger fallback (log full traceback for Kite API detail)
             _log.warning(

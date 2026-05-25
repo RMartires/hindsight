@@ -231,6 +231,7 @@ def _run_ablation_grid(
     debug: bool,
     results_dir: Path | None,
     resume_enabled: bool = True,
+    prefetch_check: bool = False,
 ) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
@@ -250,6 +251,19 @@ def _run_ablation_grid(
     if not dates:
         logging.error("No weekdays in range %s .. %s", start_date, end_date)
         return 2
+
+    if prefetch_check:
+        from tradingagents.dataflows.config import set_config
+        from tradingagents.dataflows.local_db.prefetch_check import verify_local_ohlcv_coverage
+        from tradingagents.dataflows.local_db.store import LocalDataError
+
+        set_config(_build_config())
+        try:
+            verify_local_ohlcv_coverage(ticker, dates)
+            logging.info("Prefetch check passed for %s (%s weekday(s))", ticker, len(dates))
+        except LocalDataError as e:
+            logging.error("%s", e)
+            return 2
 
     results_base = (results_dir if results_dir is not None else ROOT / "results").resolve()
     ticker = ticker.strip()
@@ -431,6 +445,7 @@ def main() -> int:
             debug=bool(p.get("debug", False)),
             results_dir=results_path,
             resume_enabled=bool(p.get("resume", True)),
+            prefetch_check=bool(p.get("prefetch_check", False)),
         )
 
     parser = argparse.ArgumentParser(
@@ -467,6 +482,11 @@ def main() -> int:
         action="store_true",
         help="Always recompute the full date range and overwrite CSVs (default: reuse partial CSV prefixes)",
     )
+    parser.add_argument(
+        "--prefetch-check",
+        action="store_true",
+        help="Verify local DuckDB has OHLCV for all run dates before starting",
+    )
     args = parser.parse_args()
 
     return _run_ablation_grid(
@@ -480,6 +500,7 @@ def main() -> int:
         debug=args.debug,
         results_dir=args.results_dir,
         resume_enabled=not args.no_resume,
+        prefetch_check=args.prefetch_check,
     )
 
 
