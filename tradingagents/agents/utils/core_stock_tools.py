@@ -5,8 +5,7 @@ from typing import Annotated
 from tradingagents.dataflows.interface import route_to_vendor
 from tradingagents.dataflows.config import get_config
 from tradingagents.anonymization.ticker_map import (
-    coerce_agent_symbol,
-    deanonymize_ticker,
+    resolve_ticker_for_vendor,
     scrub_ticker_text,
 )
 
@@ -76,6 +75,6 @@ def get_stock_data(
     start_date = _normalize_iso_date_arg("start_date", start_date)
     end_date = _normalize_iso_date_arg("end_date", end_date)
     cfg = get_config()
-    real = deanonymize_ticker(coerce_agent_symbol(symbol, cfg), cfg)
+    real = resolve_ticker_for_vendor(symbol, "get_stock_data", cfg)
     out = route_to_vendor("get_stock_data", real, start_date, end_date)
     return scrub_ticker_text(out, cfg)

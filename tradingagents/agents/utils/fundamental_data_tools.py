@@ -2,7 +2,7 @@ from langchain_core.tools import tool
 from typing import Annotated
 from tradingagents.dataflows.interface import route_to_vendor
 from tradingagents.dataflows.config import get_config
-from tradingagents.anonymization.ticker_map import deanonymize_ticker, scrub_ticker_text
+from tradingagents.anonymization.ticker_map import resolve_ticker_for_vendor, scrub_ticker_text
 
 
 @tool
@@ -20,7 +20,7 @@ def get_fundamentals(
         str: A formatted report containing comprehensive fundamental data
     """
     cfg = get_config()
-    real = deanonymize_ticker(ticker, cfg)
+    real = resolve_ticker_for_vendor(ticker, "get_fundamentals", cfg)
     out = route_to_vendor("get_fundamentals", real, curr_date)
     return scrub_ticker_text(out, cfg)
 
@@ -42,7 +42,7 @@ def get_balance_sheet(
         str: A formatted report containing balance sheet data
     """
     cfg = get_config()
-    real = deanonymize_ticker(ticker, cfg)
+    real = resolve_ticker_for_vendor(ticker, "get_balance_sheet", cfg)
     out = route_to_vendor("get_balance_sheet", real, freq, curr_date)
     return scrub_ticker_text(out, cfg)
 
@@ -64,7 +64,7 @@ def get_cashflow(
         str: A formatted report containing cash flow statement data
     """
     cfg = get_config()
-    real = deanonymize_ticker(ticker, cfg)
+    real = resolve_ticker_for_vendor(ticker, "get_cashflow", cfg)
     out = route_to_vendor("get_cashflow", real, freq, curr_date)
     return scrub_ticker_text(out, cfg)
 
@@ -86,6 +86,6 @@ def get_income_statement(
         str: A formatted report containing income statement data
     """
     cfg = get_config()
-    real = deanonymize_ticker(ticker, cfg)
+    real = resolve_ticker_for_vendor(ticker, "get_income_statement", cfg)
     out = route_to_vendor("get_income_statement", real, freq, curr_date)
     return scrub_ticker_text(out, cfg)

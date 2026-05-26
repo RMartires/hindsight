@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 import logging
 
@@ -171,20 +171,20 @@ def get_category_for_method(method: str) -> str:
             return category
     raise ValueError(f"Method '{method}' not found in any category")
 
-def get_vendor(category: str, method: str = None) -> str:
+def get_vendor(category: str, method: str = None, config: Optional[dict] = None) -> str:
     """Get the configured vendor for a data category or specific tool method.
     Tool-level configuration takes precedence over category-level.
     """
-    config = get_config()
+    cfg = config if config is not None else get_config()
 
     # Check tool-level configuration first (if method provided)
     if method:
-        tool_vendors = config.get("tool_vendors", {})
+        tool_vendors = cfg.get("tool_vendors", {})
         if method in tool_vendors:
             return tool_vendors[method]
 
     # Fall back to category-level configuration
-    return config.get("data_vendors", {}).get(category, "default")
+    return cfg.get("data_vendors", {}).get(category, "default")
 
 def route_to_vendor(method: str, *args, **kwargs):
     """Route method calls to appropriate vendor implementation with fallback support."""

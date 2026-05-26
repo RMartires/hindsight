@@ -11,6 +11,16 @@ from tradingagents.dataflows.config import get_config
 _LOG = logging.getLogger(__name__)
 _STOCK_ANON_RE = re.compile(r"STOCK_\d{4}$")
 
+# Alpha Vantage NEWS_SENTIMENT rejects exchange dots (e.g. RELIANCE.NS) but accepts
+# colon forms (RELIANCE:NSE). See vendor encode/decode helpers below.
+_VENDORS_COLON_EXCHANGE = frozenset({"alpha_vantage"})
+_DOT_TO_COLON_SUFFIX = (
+    (".NSE", ":NSE"),
+    (".NS", ":NSE"),
+    (".BSE", ":BSE"),
+    (".BO", ":BSE"),
+)
+
 
 def _stable_stock_id(real: str) -> str:
     s = (real or "").strip().upper()
@@ -36,9 +46,11 @@ class TickerMapper:
         return TickerMapper(real_ticker=real_ticker, anon_ticker=_stable_stock_id(real_ticker))
 
     def to_config_payload(self) -> Dict[str, Dict[str, str]]:
+        ticker_map = {self.real_ticker: self.anon_ticker}
         return {
-            "anonymization_ticker_map": {self.real_ticker: self.anon_ticker},
+            "anonymization_ticker_map": ticker_map,
             "anonymization_ticker_unmap": {self.anon_ticker: self.real_ticker},
+            "anonymization_ticker_scrub_aliases": build_scrub_aliases(ticker_map),
         }
 
 
@@ -86,8 +98,47 @@ def coerce_agent_symbol(symbol: str, cfg: Optional[dict] = None) -> str:
     return s
 
 
+def encode_ticker_for_vendor(canonical: str, vendor: str) -> str:
+    """Return a vendor-safe ticker while keeping canonical form in the session map."""
+    primary = (vendor or "").strip().lower().split(",")[0]
+    if primary not in _VENDORS_COLON_EXCHANGE:
+        return (canonical or "").strip()
+    s = (canonical or "").strip().upper()
+    for dot_suffix, colon_suffix in _DOT_TO_COLON_SUFFIX:
+        if s.endswith(dot_suffix):
+            return s[: -len(dot_suffix)] + colon_suffix
+    return s
+
+
+def vendor_ticker_aliases(canonical: str) -> set[str]:
+    """All real/vendor ticker spellings that may appear in vendor responses."""
+    base = (canonical or "").strip()
+    if not base:
+        return set()
+    forms = {base}
+    encoded = encode_ticker_for_vendor(base, "alpha_vantage")
+    forms.add(encoded)
+    if ":" in encoded:
+        forms.add(encoded.replace(":", "_"))
+    return forms
+
+
+def build_scrub_aliases(ticker_map: Dict[str, str]) -> Dict[str, str]:
+    """Map canonical + vendor-encoded tickers back to anonymous ids for output scrubbing."""
+    aliases: Dict[str, str] = {}
+    if not isinstance(ticker_map, dict):
+        return aliases
+    for real, anon in ticker_map.items():
+        if not isinstance(real, str) or not isinstance(anon, str) or not real:
+            continue
+        for form in vendor_ticker_aliases(real):
+            for variant in {form, form.upper(), form.lower()}:
+                aliases[variant] = anon
+    return aliases
+
+
 def deanonymize_ticker(t: str, cfg: Optional[dict] = None) -> str:
-    """Map STOCK_#### back to the real ticker for vendor calls."""
+    """Map STOCK_#### back to the canonical real ticker (e.g. RELIANCE.NS)."""
     c = cfg or get_config()
     if not c.get("enable_anonymization"):
         return t
@@ -99,13 +150,38 @@ def deanonymize_ticker(t: str, cfg: Optional[dict] = None) -> str:
     return t
 
 
+def resolve_ticker_for_vendor(
+    agent_symbol: str,
+    method: str,
+    cfg: Optional[dict] = None,
+) -> str:
+    """Coerce agent symbol, de-anonymize, then apply vendor-specific ticker encoding."""
+    c = cfg or get_config()
+    canonical = deanonymize_ticker(coerce_agent_symbol(agent_symbol, c), c)
+    from tradingagents.dataflows.interface import get_category_for_method, get_vendor
+
+    category = get_category_for_method(method)
+    vendor = get_vendor(category, method, c)
+    return encode_ticker_for_vendor(canonical, vendor)
+
+
 def scrub_ticker_text(text: str, cfg: Optional[dict] = None) -> str:
-    """Replace any occurrences of real tickers with anonymized IDs."""
+    """Replace canonical and vendor-encoded tickers with anonymized IDs."""
     if not text:
         return text
     c = cfg or get_config()
     if not c.get("enable_anonymization"):
         return text
+
+    aliases = c.get("anonymization_ticker_scrub_aliases") or {}
+    if isinstance(aliases, dict) and aliases:
+        out = str(text)
+        for real_form in sorted(aliases, key=len, reverse=True):
+            anon = aliases[real_form]
+            if isinstance(anon, str) and real_form:
+                out = out.replace(real_form, anon)
+        return out
+
     m = c.get("anonymization_ticker_map") or {}
     if not isinstance(m, dict) or not m:
         return text

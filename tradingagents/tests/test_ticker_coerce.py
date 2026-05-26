@@ -2,7 +2,11 @@
 
 import unittest
 
-from tradingagents.anonymization.ticker_map import coerce_agent_symbol
+from tradingagents.anonymization.ticker_map import (
+    TickerMapper,
+    coerce_agent_symbol,
+    resolve_ticker_for_vendor,
+)
 
 
 class TestCoerceAgentSymbol(unittest.TestCase):
@@ -39,6 +43,18 @@ class TestCoerceAgentSymbol(unittest.TestCase):
             },
         }
         self.assertEqual(coerce_agent_symbol("STOCK_4240", cfg), "STOCK_4240")
+
+    def test_resolve_news_ticker_for_alpha_vantage(self):
+        mapper = TickerMapper.for_real_ticker("RELIANCE.NS")
+        cfg = {
+            "enable_anonymization": True,
+            **mapper.to_config_payload(),
+            "data_vendors": {"news_data": "alpha_vantage"},
+        }
+        self.assertEqual(
+            resolve_ticker_for_vendor("ST", "get_news", cfg),
+            "RELIANCE:NSE",
+        )
 
 
 if __name__ == "__main__":

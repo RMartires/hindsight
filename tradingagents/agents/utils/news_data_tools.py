@@ -2,7 +2,7 @@ from langchain_core.tools import tool
 from typing import Annotated
 from tradingagents.dataflows.interface import route_to_vendor
 from tradingagents.dataflows.config import get_config
-from tradingagents.anonymization.ticker_map import deanonymize_ticker, scrub_ticker_text
+from tradingagents.anonymization.ticker_map import resolve_ticker_for_vendor, scrub_ticker_text
 from tradingagents.anonymization.noun_scrubber import scrub_news_text
 
 @tool
@@ -22,7 +22,7 @@ def get_news(
         str: A formatted string containing news data
     """
     cfg = get_config()
-    real = deanonymize_ticker(ticker, cfg)
+    real = resolve_ticker_for_vendor(ticker, "get_news", cfg)
     out = route_to_vendor("get_news", real, start_date, end_date)
     out = scrub_news_text(out, cfg)
     out = scrub_ticker_text(out, cfg)
@@ -63,7 +63,7 @@ def get_insider_transactions(
         str: A report of insider transaction data
     """
     cfg = get_config()
-    real = deanonymize_ticker(ticker, cfg)
+    real = resolve_ticker_for_vendor(ticker, "get_insider_transactions", cfg)
     out = route_to_vendor("get_insider_transactions", real)
     out = scrub_ticker_text(out, cfg)
     return out

@@ -1,7 +1,7 @@
 from langchain_core.tools import tool
 from typing import Annotated, Optional
 
-from tradingagents.anonymization.ticker_map import coerce_agent_symbol, deanonymize_ticker, scrub_ticker_text
+from tradingagents.anonymization.ticker_map import resolve_ticker_for_vendor, scrub_ticker_text
 from tradingagents.agents.utils.core_stock_tools import _normalize_iso_date_arg
 from tradingagents.dataflows.config import get_config
 from tradingagents.dataflows.indicator_library import resolve_tier1_indicator_id
@@ -46,7 +46,7 @@ def get_indicators(
     # split and process each individually.
     cfg = get_config()
     as_of = _resolve_curr_date("curr_date", curr_date, cfg)
-    real = deanonymize_ticker(coerce_agent_symbol(symbol, cfg), cfg)
+    real = resolve_ticker_for_vendor(symbol, "get_indicators", cfg)
     indicators = [resolve_tier1_indicator_id(p) for p in (i.strip() for i in indicator.split(",")) if p]
     if len(indicators) > 1:
         results = []
