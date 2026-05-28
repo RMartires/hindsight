@@ -1,67 +1,53 @@
 # Paper outline (memory-aligned)
 
-Companion to [STORY_LOCK.md](STORY_LOCK.md). **Manuscript:** [manuscript.md](manuscript.md). **Roadmap & PDF progress:** [paper-roadmap.md](paper-roadmap.md). Sections cite **what exists** per **`.cursor/memory.md`**.
-
-**Do not** commit to experiments or metrics that require `ROADMAP.md` features not yet built unless you implement them and update memory.
+Companion to [STORY_LOCK.md](STORY_LOCK.md). **Manuscript:** [manuscript.md](manuscript.md). **Roadmap:** [paper-roadmap.md](paper-roadmap.md).
 
 ---
 
 ## Abstract
 
-- Problem: single-stock, historical “as of” decisions with LLM agents; need reproducibility and fair data use.
-- Approach: LangGraph multi-agent stack + ablations + structured outputs + simulation cap + optional anonymization + paper backtest (**memory:** graph, agents, schemas, dataflows, anonymization, backtest).
-- Evidence: point to **your** ablation/equity results (CSVs/notebooks), not hypothetical tables.
+- Problem: reproducible LLM trading stacks; need fair as-of evaluation.
+- Approach: LangGraph + structured outputs + PIT cap + anonymization + paper backtest.
+- Evidence: **full** pipeline on **RELIANCE.NS** under **bear** (Aug 2024–Jan 2025) and **bull** (Jan–May 2025) windows; agent vs buy-and-hold.
 
 ---
 
 ## 1. Introduction
 
-- Task and why point-in-time + traceability matter.
-- Contributions = **S1–S5** from `STORY_LOCK.md` (all memory-backed).
-
-**Draft prose:** [manuscript.md](manuscript.md) §1 Introduction.
+- Point-in-time + traceability; contributions **S1–S5**.
 
 ---
 
 ## 2. Related Work
 
-- Multi-agent LLM finance stacks; leakage/memorization; execution realism.
-- **We position** on implemented controls (temporal cap, anonymization, structured outputs, fees), not on unshipped analytics from `ROADMAP.md`.
-
-**Draft prose:** [manuscript.md](manuscript.md) §2 Related Work.
+- LLM trading agents; leakage; **evaluation under market regimes**; execution realism.
+- Position on implemented controls, not unshipped `ROADMAP.md` items.
 
 ---
 
 ## 3. Method / System
 
-Map subsections to memory notes (paths from `memory/*.md`):
-
-- **Architecture:** `TradingAgentsGraph`, LangGraph, streaming vs `propagate` — `tradingagents-graph`
-- **Stages and tools:** `tradingagents-agents`, `tradingagents-dataflows`
-- **Structured outputs:** `tradingagents-schemas`, `tradingagents-llm-clients`
-- **Temporal policy and vendors:** `tradingagents-dataflows`
-- **Anonymization:** `tradingagents-anonymization`
-- **Backtest and metrics:** `tradingagents-backtest`
-- **Ablations:** `config-and-env`, `paper_ablation`
-- **(Optional)** UI + SSE demo: `backend`, `frontend` — supplementary only unless core to the venue
+- Architecture, tools, structured outputs, PIT, anonymization.
+- **§3.6** optional one paragraph: `PAPER_ABLATION` hook exists; §4 uses **`full`** only.
+- Backtest harness (`backtest_mvp.py --dates-csv`).
 
 ---
 
 ## 4. Experiments
 
-- **Setup:** models (env), tickers/dates, `PAPER_ABLATION`, cost model — from `scripts/backtest_mvp.py` / `backtest_mvp_ablations.py` (`memory/scripts`, `tradingagents-backtest`).
-- **Results:** tables/figures from **existing** `equity.csv` / `results/` runs and `backtest_ablation_analysis.ipynb`.
-- **No requirement** for CBS curves, automated rationale scores, or cap-off A/B unless you add them as experiments **and** the code is real (then update memory).
+- **Regime definition** (exogenous ±10% underlying return rule) — [claim-evidence-map.md](claim-evidence-map.md).
+- **Protocol:** two independent $100k runs; `PAPER_ABLATION=full`; LLM pinned.
+- **Results:** Table 1 (metrics), Table 2 (outlook breakdown); figures from `generate_paper_figures.py`.
+- **Limitation:** bull window truncated at 2025-05-16 (API limits).
 
 ---
 
 ## 5. Conclusion
 
-- Restate S1–S5; limitations from actual design (single-asset paper book, BM25 memory, vendor dependence, etc.) — see `memory/overview.md` / `ROADMAP.md` for honest “future work” language.
+- S1–S5; narrow scope (one ticker, two windows); future universes / model sweeps → `ROADMAP.md`.
 
 ---
 
 ## Appendix (optional)
 
-- Hyperparameters, env snapshot, example `full_states_log` excerpt.
-- **Future work** may cite `ROADMAP.md`; keep distinct from **done** system description.
+- Env snapshot; `PAPER_ABLATION` preset table for repo users only.

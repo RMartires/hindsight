@@ -1,3 +1,6 @@
 relience
-aug 2024 - jan 2025 - bear
-jan 2025 - june 2025 - bull
+aug 2024 - jan 2025 - bear (processed through 2025-01-03)
+jan 2025 - may 2025 - bull (processed through 2025-05-16; schedule through june 2025)
+
+Regime labels (exogenous): bear if underlying B&H return <= -10%; bull if >= +10%.
+Pipeline: PAPER_ABLATION=full, initial_cash=100000, LLM qwen/qwen3.5-flash-02-23.
