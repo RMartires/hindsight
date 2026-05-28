@@ -44,12 +44,12 @@ USE_INLINE_PARAMS = True
 INLINE_PARAMS: dict[str, Any] = {
     "ticker": "RELIANCE.NS",
     "start_date": "2024-05-01",
-    "end_date": "2024-06-30",
+    "end_date": "2025-05-01",
     "initial_cash": 100_000.0,
     "buy_fraction": 1.0,
     "cost_bps": None,
     "use_llm_signal": False,
-    "debug": False,
+    "debug": True,
     "results_dir": None,
     # True: reuse existing output CSV rows as a prefix when dates match; continue remaining weekdays.
     "resume": True,

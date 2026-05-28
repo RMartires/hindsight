@@ -6,12 +6,23 @@ python main.py 2>&1 | tee "run-$(date +%Y%m%d-%H%M%S).log"
 
 python scripts/kite_token_server.py
 
+
+
 PYTHONUNBUFFERED=1 python3 -u scripts/backtest_mvp.py \
   --ticker RELIANCE.NS \
-  --dates-csv results/dates.csv \
-  --debug 2>&1 | tee eval_results/backtest_mvp_run.log
+  --dates-csv results/dates-REL-aug-2024-jan-2025-bear-dates.csv \
+  --debug 2>&1 | tee eval_results/dates-REL-aug-2024-jan-2025-bear-dates.log
 
-python scripts/backtest_mvp_ablations.py 2>&1 | tee run.log
+
+PYTHONUNBUFFERED=1 python3 -u scripts/backtest_mvp.py \
+  --ticker RELIANCE.NS \
+  --dates-csv results/dates-REL-jan-2025-june-2025-bull-dates.csv \
+  --debug 2>&1 | tee eval_results/dates-REL-jan-2025-june-2025-bull-dates.log
+
+
+
+
+PYTHONUNBUFFERED=1 python -u scripts/backtest_mvp_ablations.py 2>&1 | tee run.log
 
 pandoc docs/paper/manuscript.md -o paper-draft.pdf --pdf-engine=tectonic
 

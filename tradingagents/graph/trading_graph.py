@@ -1,6 +1,7 @@
 # TradingAgents/graph/trading_graph.py
 
 import os
+import sys
 from pathlib import Path
 import json
 from datetime import date
@@ -283,6 +284,9 @@ class TradingAgentsGraph:
                     pass
                 else:
                     chunk["messages"][-1].pretty_print()
+                    # stdout is block-buffered when piped (e.g. ``| tee``); flush so debug
+                    # banners appear alongside stderr logging lines.
+                    sys.stdout.flush()
                     trace.append(chunk)
 
             final_state = trace[-1]
