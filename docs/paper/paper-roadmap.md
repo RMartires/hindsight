@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-05-29.
 
-**Done:** Multi-ticker Frozen E1 (RELIANCE + TCS, four CSVs); updated notebook + figures; manuscript + IOS sync.
+**Done:** Multi-ticker Frozen E1 (RELIANCE + TCS, four CSVs); reviewer-driven manuscript revision (case-study reframe, excess Sharpe, positioning table, fee breakeven); IOS sync.
 
 ---
 

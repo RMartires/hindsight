@@ -1,5 +1,4 @@
-% Seed bibliography for Related Work — expand to ~30 entries before intro freeze.
-% Verify keys and add venue pages for any camera-ready citation.
+% Bibliography for Hindsight 20/20 — verify venue pages before camera-ready.
 
 @misc{xiao2024tradingagents,
   title        = {TradingAgents: Multi-Agents LLM Financial Trading Framework},
@@ -31,9 +30,118 @@
   url          = {https://arxiv.org/abs/2306.06031}
 }
 
-% --- TODO: add before submission (replace with verified BibTeX) ---
-% FINCON (Yu et al., verbal RL manager-analyst) — arXiv / proceedings TBD
-% QuantAgent (HF multi-agent LLM) arXiv:2509.09995 — verify final citation
-% PIXIU / FinLLM benchmarks
-% Point-in-time / PEAD standard references (quant equity)
-% Mixture-of-Experts or multi-agent inference cost (systems / NLP 2024–2026)
+% --- Methodological standards and bias control ---
+
+@misc{nguyen2026reliableeval,
+  title        = {Toward Reliable Evaluation of LLM-Based Financial Multi-Agent Systems: Taxonomy, Coordination Primacy, and Cost Awareness},
+  author       = {Phat Nguyen and Thang Pham},
+  year         = {2026},
+  eprint       = {2603.27539},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.MA},
+  url          = {https://arxiv.org/abs/2603.27539}
+}
+
+@misc{jeon2026blindtrade,
+  title        = {Can Blindfolded LLMs Still Trade? An Anonymization-First Framework for Portfolio Optimization},
+  author       = {Joohyoung Jeon and Hongchul Lee},
+  year         = {2026},
+  eprint       = {2603.17692},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.LG},
+  url          = {https://arxiv.org/abs/2603.17692}
+}
+
+@article{bailey2014pseudomath,
+  title        = {Pseudo-Mathematics and Financial Charlatanism: The Effects of Backtest Overfitting on Out-of-Sample Performance},
+  author       = {David H. Bailey and Jonathan M. Borwein and Marcos L{\'o}pez de Prado and Qiji Jim Zhu},
+  journal      = {Notices of the American Mathematical Society},
+  volume       = {61},
+  number       = {5},
+  pages        = {458--471},
+  year         = {2014},
+  doi          = {10.1090/noti1105},
+  url          = {https://arxiv.org/abs/2308659}
+}
+
+% --- Task granularity and decision architecture ---
+
+@misc{miyazaki2026expertteams,
+  title        = {Toward Expert Investment Teams: A Multi-Agent LLM System with Fine-Grained Trading Tasks},
+  author       = {Kunihiro Miyazaki and Takanobu Kawahara and Stephen Roberts and Stefan Zohren},
+  year         = {2026},
+  eprint       = {2602.23330},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.AI},
+  url          = {https://arxiv.org/abs/2602.23330}
+}
+
+@inproceedings{li2025quantagents,
+  title        = {QuantAgents: Towards Multi-agent Financial System via Simulated Trading},
+  author       = {Xiangyu Li and Yawen Zeng and Xiaofen Xing and Jin Xu and Xiangmin Xu},
+  booktitle    = {Findings of the Association for Computational Linguistics: EMNLP 2025},
+  pages        = {17438--17464},
+  year         = {2025},
+  address      = {Suzhou, China},
+  publisher    = {Association for Computational Linguistics},
+  doi          = {10.18653/v1/2025.findings-emnlp.945},
+  url          = {https://aclanthology.org/2025.findings-emnlp.945/}
+}
+
+@misc{zhao2025alphaagents,
+  title        = {AlphaAgents: Large Language Model based Multi-Agents for Equity Portfolio Constructions},
+  author       = {Tianjiao Zhao and Jingrao Lyu and Stokes Jones and Harrison Garber and Stefano Pasquali and Dhagash Mehta},
+  year         = {2025},
+  eprint       = {2508.11152},
+  archivePrefix= {arXiv},
+  primaryClass = {q-fin.ST},
+  url          = {https://arxiv.org/abs/2508.11152}
+}
+
+% --- Evaluation benchmarks and simulation realism ---
+
+@misc{papadakis2025stocksim,
+  title        = {StockSim: A Dual-Mode Order-Level Simulator for Evaluating Multi-Agent LLMs in Financial Markets},
+  author       = {Charidimos Papadakis and Giorgos Filandrianos and Angeliki Dimitriou and Maria Lymperaiou and Konstantinos Thomas and Giorgos Stamou},
+  year         = {2025},
+  eprint       = {2507.09255},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CE},
+  url          = {https://arxiv.org/abs/2507.09255}
+}
+
+@inproceedings{qian2026ama,
+  title        = {When Agents Trade: Live Multi-Market Trading Arena for {LLM} Agents},
+  author       = {Lingfei Qian and Xueqing Peng and Yan Wang and Vincent Jim Zhang and Huan He and Zehan Li and Hanley Smith and Yi Han and Yueru He and Haohang Li and Yupeng Cao and Yangyang Yu and Alejandro Lopez-Lira and Peng Lu and Jian-Yun Nie and Guojun Xiong and Jimin Huang and Sophia Ananiadou},
+  booktitle    = {Proceedings of the ACM Web Conference 2026},
+  year         = {2026},
+  doi          = {10.1145/3774904.3792821},
+  eprint       = {2510.11695},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL},
+  url          = {https://arxiv.org/abs/2510.11695}
+}
+
+@article{dewansh2026explainable,
+  title        = {Policy Convergence and Explainable Stability in Orchestrated Multi-Agent {LLM} Trading Frameworks},
+  author       = {Shourya Dewansh},
+  journal      = {International Journal of Advanced Engineering and Management Science},
+  volume       = {12},
+  number       = {2},
+  pages        = {058--064},
+  year         = {2026},
+  doi          = {10.22161/ijaems.122.8},
+  url          = {https://ijaems.com/detail/policy-convergence-and-explainable-stability-in-orchestrated-multi-agent-llm-trading-frameworks/}
+}
+
+% --- Systemic context ---
+
+@misc{badica2025contemporary,
+  title        = {Contemporary Agent Technology: LLM-Driven Advancements vs Classic Multi-Agent Systems},
+  author       = {Costin B{\u{a}}dic{\u{a}} and Amelia B{\u{a}}dic{\u{a}} and Maria Ganzha and Mirjana Ivanovi{\'c} and Marcin Paprzycki and Dan Seli{\c{s}}teanu and Zofia Wrona},
+  year         = {2025},
+  eprint       = {2509.02515},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.MA},
+  url          = {https://arxiv.org/abs/2509.02515}
+}

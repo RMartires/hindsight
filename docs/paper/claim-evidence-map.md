@@ -16,6 +16,7 @@
 | M4 | Vendor calls respect simulation end date (point-in-time) | `simulation_context.py`, `interface.route_to_vendor`; memory `tradingagents-dataflows` |
 | M5 | Optional ticker anonymization in prompts/tool I/O | `tradingagents/anonymization/`; memory `tradingagents-anonymization` |
 | M6 | Backtest applies signals with configurable cost model and metrics | `tradingagents/backtest/`; memory `tradingagents-backtest` |
+| M7 | Analyst roles are tool-bound to concrete tasks (indicators, statements, news) | `tradingagents/agents/analysts/*.py`, `indicator_library.py` |
 
 ---
 
@@ -23,7 +24,9 @@
 
 | ID | Claim | Evidence |
 |----|--------|----------|
-| E1 | The **full** pipeline (`PAPER_ABLATION=full`) on **two large-cap NSE listings** yields regime-dependent agent vs buy-and-hold outcomes under **per-ticker exogenous bear/bull windows** | Four frozen CSVs below + `scripts/backtest_regime_analysis.ipynb` |
+| E1 | The **full** pipeline (`PAPER_ABLATION=full`) on **two large-cap NSE listings** yields **observed** regime-dependent agent vs buy-and-hold outcomes under **per-ticker exogenous bear/bull windows** (N=1 trajectory per window) | Four frozen CSVs + `scripts/backtest_regime_analysis.ipynb` |
+
+**Not claimed:** multi-seed variance; index-universe generalization; SOTA Sharpe.
 
 ---
 
@@ -36,11 +39,11 @@
 | **Bear** | Underlying B&H return **≤ −10%** |
 | **Bull** | Underlying B&H return **≥ +10%** |
 
-**Calendar windows** are pre-specified in `regime-timeranges` **before** agent backtests. Windows **differ by ticker** because drawdowns and rallies are not synchronous. Each run uses **fresh $100,000** paper cash.
+**Calendar windows** are pre-specified in `regime-timeranges` **before** agent backtests. Windows **differ by ticker**. Each run uses **fresh $100,000** paper cash.
 
 ---
 
-### Frozen E1 — four runs (two tickers × two regimes)
+### Frozen E1 — four windows (two tickers × two regimes)
 
 | Ticker | Regime | Calendar intent | Processed window | Days | Artifact CSV | Log |
 |--------|--------|-----------------|------------------|------|--------------|-----|
@@ -51,32 +54,42 @@
 
 **Shared protocol:** `PAPER_ABLATION=full`; `initial_cash=$100,000`; `cost_model=zerodha_delivery`, `slippage_bps=0`; anonymization enabled; LLM `qwen/qwen3.5-flash-02-23`; driver `scripts/backtest_mvp.py --dates-csv <artifact>`.
 
-### Frozen metrics (Table 1 source)
+### Frozen metrics — Table 1 (primary)
 
-| Ticker | Regime | B&H return | Agent return | B&H MDD | Agent MDD | Sharpe | BUY / HOLD / SELL | Fees ($) |
-|--------|--------|------------|--------------|---------|-----------|--------|-------------------|----------|
-| RELIANCE | Bear | −17.43% | −7.54% | 21.0% | 5.11% | −3.12 | 7 / 28 / 76 | 1,010.32 |
-| RELIANCE | Bull | +15.09% | +5.56% | 11.0% | 2.80% | −3.35 | 9 / 25 / 74 | 635.44 |
-| TCS | Bear | −20.42% | −4.83% | 23.9% | 6.78% | −1.83 | 12 / 24 / 52 | 1,909.83 |
-| TCS | Bull | +21.86% | +19.61% | 5.5% | 1.65% | +4.25 | 13 / 14 / 40 | 2,197.78 |
+| Ticker | Regime | B&H return | Agent (net) | Gross | Fee drag | α vs B&H | B&H MDD | Agent MDD | Fees ($) | B/H/S |
+|--------|--------|------------|-------------|-------|----------|----------|---------|-----------|----------|-------|
+| RELIANCE | Bear | −17.43% | −7.54% | −6.53% | 1.01 pp | +9.89 pp | 21.0% | 5.11% | 1,010.32 | 7 / 28 / 76 |
+| RELIANCE | Bull | +15.09% | +5.56% | +6.19% | 0.64 pp | −9.53 pp | 11.0% | 2.80% | 635.44 | 9 / 25 / 74 |
+| TCS | Bear | −20.42% | −4.83% | −2.92% | 1.91 pp | +15.59 pp | 23.9% | 6.78% | 1,909.83 | 12 / 24 / 52 |
+| TCS | Bull | +21.86% | +19.61% | +21.80% | 2.20 pp | −2.25 pp | 5.5% | 1.65% | 2,197.78 | 13 / 14 / 40 |
 
-**B&H MDD:** peak-to-trough on buy-and-hold equity from the same adjusted closes in each schedule CSV (`max_drawdown` on `$100{,}000 × close/close_0$`). **Sharpe:** agent daily equity only; annualized $\sqrt{252}$ (252 trading days/year, US convention; NSE ≈ 240–250; retained for comparability); no risk-free rate subtracted.
+**Source:** daily `equity` and `close` in frozen CSVs; gross = net + fees/$100k.
 
-**Cross-ticker summary:** In **both bear windows**, agent return exceeds buy-and-hold (smaller loss) and agent MDD is **substantially below** B&H MDD. In **bull windows**, outcomes **diverge**: RELIANCE agent lags B&H; TCS agent nearly tracks B&H. Sharpe is negative in three of four runs despite positive total return in one of them (RELIANCE bull).
+### Frozen metrics — Table 2 (secondary, post-hoc)
 
-**Analysis / figures:** `scripts/backtest_regime_analysis.ipynb`, `scripts/generate_paper_figures.py` → `fig_regime_equity_grid`, `fig_regime_returns_by_ticker`, `fig_regime_signals_by_ticker`, `fig_regime_outlook_bullish`.
+**Excess Sharpe:** daily agent/B&H equity; $R_f = 6.5\%$ p.a. → daily $r_f/252$; annualized $\sqrt{252}$.
 
-**Retired:** `results/_retired/` (ablation CSVs, old longitudinal `dates.csv`).
+| Ticker | Regime | Excess Sharpe (agent) | Excess Sharpe (B&H) | Sortino | Calmar |
+|--------|--------|----------------------|---------------------|---------|--------|
+| RELIANCE | Bear | −4.27 | −2.51 | −3.10 | −0.96 |
+| RELIANCE | Bull | +0.74 | +1.25 | +3.67 | +1.94 |
+| TCS | Bear | −2.69 | −3.13 | −2.25 | −0.71 |
+| TCS | Bull | +3.86 | +3.27 | +24.22 | +11.88 |
 
-**Planned but not in §4:** Infosys windows in `regime-timeranges` (not run).
+**Cross-ticker summary:** Bear windows: positive alpha vs B&H, lower MDD. Bull windows: heterogeneous alpha; REL bull under-participation not explained by fee drag alone.
+
+**Analysis / figures:** `scripts/backtest_regime_analysis.ipynb`, `scripts/generate_paper_figures.py`.
+
+**Retired:** `results/_retired/`. **Planned but not in §4:** Infosys windows in `regime-timeranges`.
 
 ---
 
 ## Forbidden in camera-ready unless you have proof
 
 - Regime labels from agent outlook columns.
-- “Same calendar across tickers” (windows are per-ticker).
-- SOTA or regime-prediction claims.
+- “Same calendar across tickers.”
+- SOTA, regime-prediction, or multi-seed generalization claims.
+- “Four independent runs” meaning four **seeds** (use **four regime windows**).
 
 ---
 
@@ -85,4 +98,5 @@
 | Date | Note |
 |------|------|
 | 2026-05-28 | Initial regime freeze (RELIANCE only). |
-| 2026-05-29 | **Multi-ticker Frozen E1:** REL bull completed through 2025-06-03; TCS bear + bull added. |
+| 2026-05-29 | Multi-ticker Frozen E1: REL bull + TCS bear/bull. |
+| 2026-05-29 | Reviewer revision: reframe case study; excess Sharpe; extended tables; N=1 scope. |
