@@ -6,7 +6,7 @@ fontsize: 12pt
 documentclass: article
 numbersections: true
 abstract: |
-  Published LLM trading stacks are often hard to reproduce, rarely enforce temporal data boundaries, and seldom report net returns after fees. We present **Hindsight 20/20**, an open **LangGraph** stack with structured **Pydantic** outputs, point-in-time data access, optional **ticker anonymization**, and a fee-aware **paper backtest**. The primary contribution is reproducible systems engineering with frozen CSV artifacts---not a universe-scale alpha benchmark. As an illustrative case study, we evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in **four pre-specified regime windows** (two tickers $\times$ exogenous bear/bull labels; **one trajectory per window**, no seed averaging). In both bear windows, the agent loses less than buy-and-hold with lower drawdown; bull outcomes diverge (RELIANCE lags B\&H; TCS nearly tracks it). We interpret heterogeneous bull results as an architectural boundary of defensive multi-stage coordination. Code: https://github.com/RMartires/hindsight
+  Published LLM trading stacks are often hard to reproduce, rarely enforce temporal data boundaries, and seldom report net returns after fees. We present **Hindsight 20/20**, an open **LangGraph** stack with structured **Pydantic** outputs, point-in-time data access, optional **ticker anonymization**, and a fee-aware **paper backtest**. The primary contribution is reproducible systems engineering with frozen CSV artifacts---not a universe-scale alpha benchmark. As an illustrative case study, we evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in **four pre-specified regime windows** (two tickers $\times$ exogenous bear/bull labels; **one trajectory per window**, no seed averaging). In both bear windows, the agent loses less than buy-and-hold with lower drawdown; bull outcomes diverge (RELIANCE lags B\&H; TCS nearly tracks it). Heterogeneous bull outcomes are consistent with a structurally defensive posture; whether this reflects coordinated de-risking or reduced equity exposure is underdetermined at N=1. Code: https://github.com/RMartires/hindsight
 header-includes:
   - \usepackage{setspace}
   - \doublespacing
@@ -92,7 +92,7 @@ Costs & Net (Zerodha) & Varies & Varies & Varies \\
 
 ### Results
 
-**Table 1.** Primary metrics from frozen CSVs (\$100,000 start).
+**Table 3.** Primary metrics from frozen CSVs (\$100,000 start).
 
 \begin{table}[htbp]
 \centering
@@ -114,7 +114,7 @@ TCS & Bull & 67 & \mbox{+21.9\%} & \agentpct{+19.6} & \mbox{+21.8\%} & 2.2pp & \
 \end{table}
 \normalsize
 
-**Table 3.** Excess Sharpe (6.5\% p.a.\ $R_f$), Sortino, Calmar (post-hoc on frozen equity).
+**Table 4.** Excess Sharpe (6.5\% p.a.\ $R_f$), Sortino, Calmar (post-hoc on frozen equity).
 
 \begin{table}[htbp]
 \centering
@@ -133,7 +133,13 @@ TCS & Bull & +3.86 & +3.27 & +24.22 & +11.88 \\
 \end{table}
 \normalsize
 
-**Patterns.** Bear (2/2): smaller loss and lower MDD than B\&H; SELL-heavy signals. Bull: TCS nearly tracks B\&H; RELIANCE lags despite positive return (+5.6\%)---fee drag ($\approx$0.6pp) does not explain the $\approx$9.5pp alpha gap; defensive final policy (74 SELL days) is the plausible binding constraint. Internal bull stances can remain buy-leaning while final signals stay defensive.
+**Patterns.** Bear (2/2): the agent generated smaller losses and lower MDD than B\&H; SELL-heavy signals in both windows. Bull: TCS nearly tracks B\&H; RELIANCE generated a positive return (+5.6\%) but lagged by about 9.5pp; fee drag (about 0.6pp) is insufficient to explain the gap; 74 SELL days in the bull window is the plausible binding factor. Internal bull stances can remain buy-leaning while final signals stay defensive.
+
+**Capture and exposure.** Approximate upside/downside capture ratios reveal a ticker-level distinction. RELIANCE exhibits 43\% downside capture and 37\% upside capture, a near-symmetric reduction consistent with effective equity exposure below 1.0 rather than selective de-risking. TCS exhibits 24\% downside capture and 89\% upside capture, a meaningfully asymmetric profile. At N=1 these ratios are descriptive, not diagnostic, but they counsel caution in attributing RELIANCE bear outperformance to regime-aware coordination; a structurally low-exposure posture produces the same pattern mechanically.
+
+**Ticker-vs-regime ambiguity.** The secondary risk-adjusted metrics (Table 4) reorganise the story: the agent exceeds B\&H excess Sharpe in both TCS windows and trails in both RELIANCE windows, a ticker-level split. This reading is equally consistent with the four data points as the regime framing. Neither interpretation is statistically supportable at N=4; both are noted for transparency.
+
+**RELIANCE bear Sharpe note.** In the RELIANCE bear window the agent records a smaller absolute loss (\mbox{-7.5\%} vs \mbox{-17.4\%}) yet a worse excess Sharpe (\mbox{-4.27} vs \mbox{-2.51} for B\&H). A near-cash, low-volatility posture with a small negative excess return produces a large negative annualised Sharpe on a short window; this is a mechanical artefact of the ratio on concentrated SELL sequences, not a contradiction in the data.
 
 ### Figures
 
@@ -165,14 +171,14 @@ TCS & Bull & +3.86 & +3.27 & +24.22 & +11.88 \\
 
 ## Conclusion
 
-We presented a reproducible point-in-time LangGraph stack and a **scoped four-window case study**. Bear windows show lower loss and drawdown than B\&H; bull outcomes are heterogeneous---an **architectural boundary** of defensive coordination, not a universal alpha claim.
+We presented a reproducible point-in-time LangGraph stack and a **scoped four-window case study**. Bear windows show lower loss and drawdown than B\&H; bull outcomes are heterogeneous. Risk-adjusted metrics split by ticker rather than regime---both framings are equally consistent with N=4 data points, and no causal claim about coordination quality is made.
 
 **Limitations:** N=1 per window; two tickers; one LLM; anonymization not ablated; no multi-seed or index-universe evaluation; no latency CBS. **Future work:** seeds, broader PIT universes, anonymization ablations.
 
 ## Contributions
 
 1. Reproducible backtest harness and frozen CSV artifacts.
-2. Point-in-time policy and optional anonymization.
+2. Point-in-time policy and optional anonymization (ablation deferred to future work).
 3. Structured Pydantic stage outputs.
 4. Multi-agent graph with tool-bound analyst decomposition.
 5. Honest regime-conditioned case study with documented limits.
