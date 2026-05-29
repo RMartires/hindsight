@@ -9,15 +9,15 @@ python scripts/kite_token_server.py
 
 
 PYTHONUNBUFFERED=1 python3 -u scripts/backtest_mvp.py \
-  --ticker RELIANCE.NS \
-  --dates-csv results/dates-REL-aug-2024-jan-2025-bear-dates.csv \
-  --debug 2>&1 | tee eval_results/dates-REL-aug-2024-jan-2025-bear-dates.log
+  --ticker TCS.NS \
+  --dates-csv results/dates-TCS-dec-2024-april-2025-bear-dates.csv \
+  --debug 2>&1 | tee eval_results/dates-TCS-dec-2024-april-2025-bear-dates.log
 
 
 PYTHONUNBUFFERED=1 python3 -u scripts/backtest_mvp.py \
-  --ticker RELIANCE.NS \
-  --dates-csv results/dates-REL-jan-2025-june-2025-bull-dates.csv \
-  --debug 2>&1 | tee eval_results/dates-REL-jan-2025-june-2025-bull-dates.log
+  --ticker TCS.NS \
+  --dates-csv results/dates-TCS-june-2024-sept-2024-bull-dates.csv \
+  --debug 2>&1 | tee eval_results/dates-TCS-june-2024-sept-2024-bull-dates.log
 
 
 
@@ -28,4 +28,4 @@ pandoc docs/paper/manuscript.md -o paper-draft.pdf --pdf-engine=tectonic
 
 ./docs/paper/submission/build_ios_package.sh
 
-python scripts/prefetch_market_data.py --ticker RELIANCE.NS --dates-csv results/dates.csv
+python scripts/prefetch_market_data.py --ticker TCS.NS --dates-csv results/dates-TCS-june-2024-sept-2024-bull-dates.csv

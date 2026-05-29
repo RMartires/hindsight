@@ -1,6 +1,16 @@
-relience
-aug 2024 - jan 2025 - bear (processed through 2025-01-03)
-jan 2025 - may 2025 - bull (processed through 2025-05-16; schedule through june 2025)
+# Per-ticker regime windows (pre-specified before agent runs)
+# Regime label: bear if underlying B&H <= -10%; bull if >= +10% over processed window.
+# Pipeline: PAPER_ABLATION=full, initial_cash=100000, LLM qwen/qwen3.5-flash-02-23
 
-Regime labels (exogenous): bear if underlying B&H return <= -10%; bull if >= +10%.
-Pipeline: PAPER_ABLATION=full, initial_cash=100000, LLM qwen/qwen3.5-flash-02-23.
+RELIANCE.NS
+  bear: aug 2024 - jan 2025  -> processed 2024-08-01 .. 2025-01-03
+  bull: jan 2025 - jun 2025   -> processed 2025-01-01 .. 2025-06-03
+
+TCS.NS
+  bull: jun 2024 - sep 2024   -> processed 2024-06-03 .. 2024-09-03
+  bear: dec 2024 - apr 2025   -> processed 2024-12-02 .. 2025-04-03
+
+# Planned (not run for paper):
+INFY.NS
+  bull: may 2024 - aug 2024
+  bear: jan 2025 - apr 2025
