@@ -6,7 +6,7 @@ fontsize: 12pt
 documentclass: article
 numbersections: true
 abstract: |
-  Large language models are increasingly used in financial decision pipelines, yet published agent stacks are often hard to reproduce and rarely evaluated under distinct market conditions on historical as-of dates. We present **Hindsight 20/20**, an open **LangGraph** stack with structured **Pydantic** outputs, point-in-time data access, optional **ticker anonymization**, and a fee-aware **paper backtest**. We evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in **exogenous bear and bull windows** (per-ticker underlying return at most -10% or at least +10%), each from $100,000 paper cash. In **both bear windows**, the agent loses less than buy-and-hold; in **bull windows**, outcomes diverge (RELIANCE lags B&H; TCS nearly tracks it). Frozen CSV artifacts reproduce tables and figures.
+  Large language models are increasingly used in financial decision pipelines, yet published agent stacks are often hard to reproduce and rarely evaluated under distinct market conditions on historical as-of dates. We present **Hindsight 20/20**, an open **LangGraph** stack with structured **Pydantic** outputs, point-in-time data access, optional **ticker anonymization**, and a fee-aware **paper backtest**. We evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in **exogenous bear and bull windows** (per-ticker underlying return at most -10% or at least +10%), each from $100,000 paper cash. In **both bear windows**, the agent loses less than buy-and-hold; in **bull windows**, outcomes diverge (RELIANCE lags B&H; TCS nearly tracks it). Frozen CSV artifacts reproduce tables and figures. Code and artifacts: https://github.com/RMartires/hindsight
 header-includes:
   - \usepackage{setspace}
   - \doublespacing
@@ -23,7 +23,7 @@ header-includes:
 
 ## Introduction
 
-Researchers are experimenting with LLMs inside trading workflows, but rarely report how the **same stack** behaves across **different underlying trends** or **more than one issuer**. **Hindsight 20/20** extends the open-source **TradingAgents** multi-agent LangGraph framework (Xiao et al., 2024) with point-in-time data access, optional ticker anonymization, and a reproducible backtest harness; we evaluate this extended stack under exogenous bear and bull windows. We evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in four independent runs (bear and bull per ticker). Section 2 surveys related work; Section 3 the system; Section 4 results; Section 5 concludes; Section 6 lists contributions.
+Researchers are experimenting with LLMs inside trading workflows, but rarely report how the **same stack** behaves across **different underlying trends** or **more than one issuer**. **Hindsight 20/20** extends the open-source **TradingAgents** multi-agent LangGraph framework (Xiao et al., 2024) with point-in-time data access, optional ticker anonymization, and a reproducible backtest harness; we evaluate this extended stack under exogenous bear and bull windows. We evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in four independent runs (bear and bull per ticker). The implementation, frozen evaluation artifacts, and figure scripts are available at \url{https://github.com/RMartires/hindsight}. Section 2 surveys related work; Section 3 the system; Section 4 results; Section 5 concludes; Section 6 lists contributions.
 
 ## Related Work
 
