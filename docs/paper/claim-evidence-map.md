@@ -53,14 +53,16 @@
 
 ### Frozen metrics (Table 1 source)
 
-| Ticker | Regime | B&H return | Agent return | Ending equity | Max DD | Sharpe | BUY / HOLD / SELL | Fees ($) |
-|--------|--------|------------|--------------|---------------|--------|--------|-------------------|----------|
-| RELIANCE | Bear | −17.43% | −7.54% | 92,459.38 | 5.11% | −3.12 | 7 / 28 / 76 | 1,010.32 |
-| RELIANCE | Bull | +15.09% | +5.56% | 105,559.45 | 2.80% | −3.35 | 9 / 25 / 74 | 635.44 |
-| TCS | Bear | −20.42% | −4.83% | 95,166.22 | 6.78% | −1.83 | 12 / 24 / 52 | 1,909.83 |
-| TCS | Bull | +21.86% | +19.61% | 119,607.21 | 1.65% | +4.25 | 13 / 14 / 40 | 2,197.78 |
+| Ticker | Regime | B&H return | Agent return | B&H MDD | Agent MDD | Sharpe | BUY / HOLD / SELL | Fees ($) |
+|--------|--------|------------|--------------|---------|-----------|--------|-------------------|----------|
+| RELIANCE | Bear | −17.43% | −7.54% | 21.0% | 5.11% | −3.12 | 7 / 28 / 76 | 1,010.32 |
+| RELIANCE | Bull | +15.09% | +5.56% | 11.0% | 2.80% | −3.35 | 9 / 25 / 74 | 635.44 |
+| TCS | Bear | −20.42% | −4.83% | 23.9% | 6.78% | −1.83 | 12 / 24 / 52 | 1,909.83 |
+| TCS | Bull | +21.86% | +19.61% | 5.5% | 1.65% | +4.25 | 13 / 14 / 40 | 2,197.78 |
 
-**Cross-ticker summary:** In **both bear windows**, agent return exceeds buy-and-hold (smaller loss). In **bull windows**, outcomes **diverge**: RELIANCE agent lags B&H; TCS agent nearly tracks B&H.
+**B&H MDD:** peak-to-trough on buy-and-hold equity from the same adjusted closes in each schedule CSV (`max_drawdown` on `$100{,}000 × close/close_0$`). **Sharpe:** agent daily equity only; annualized $\sqrt{252}$ (252 trading days/year, US convention; NSE ≈ 240–250; retained for comparability); no risk-free rate subtracted.
+
+**Cross-ticker summary:** In **both bear windows**, agent return exceeds buy-and-hold (smaller loss) and agent MDD is **substantially below** B&H MDD. In **bull windows**, outcomes **diverge**: RELIANCE agent lags B&H; TCS agent nearly tracks B&H. Sharpe is negative in three of four runs despite positive total return in one of them (RELIANCE bull).
 
 **Analysis / figures:** `scripts/backtest_regime_analysis.ipynb`, `scripts/generate_paper_figures.py` → `fig_regime_equity_grid`, `fig_regime_returns_by_ticker`, `fig_regime_signals_by_ticker`, `fig_regime_outlook_bullish`.
 

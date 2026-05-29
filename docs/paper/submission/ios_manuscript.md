@@ -1,6 +1,5 @@
 ---
 title: "Point-in-Time Multi-Agent LLM Trading: A Reproducible LangGraph Stack with Regime-Conditioned Evaluation and Fair Backtesting"
-author: "[Rohit Edward Martires] (Independent researcher, [Goa, India]). Email: [rohitmartires14@gmail.com]."
 date: 29 May 2026
 geometry: margin=1in
 fontsize: 12pt
@@ -13,13 +12,18 @@ header-includes:
   - \doublespacing
   - \usepackage{graphicx}
   - \usepackage{amsmath}
+  - \usepackage{booktabs}
+  - \usepackage{float}
+  - \usepackage{xcolor}
+  - \newcommand{\agentpct}[1]{\mbox{\textcolor{blue}{#1}\%}}
+  - \AtBeginDocument{\author{Rohit Edward Martires\\Independent researcher, Goa, India\\\texttt{rohitmartires14@gmail.com}}}
 ---
 
 **Keywords:** algorithmic trading; large language models; multi-agent systems; reproducibility; point-in-time data; market regimes.
 
 ## Introduction
 
-Researchers are experimenting with LLMs inside trading workflows, but rarely report how the **same stack** behaves across **different underlying trends** or **more than one issuer**. We present **Hindsight 20/20**, an open **LangGraph** implementation with structured outputs, optional anonymization, a simulation end date, and a paper backtest. We evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in four independent runs (bear and bull per ticker). Section 2 surveys related work; Section 3 the system; Section 4 results; Section 5 concludes; Section 6 lists contributions.
+Researchers are experimenting with LLMs inside trading workflows, but rarely report how the **same stack** behaves across **different underlying trends** or **more than one issuer**. **Hindsight 20/20** extends the open-source **TradingAgents** multi-agent LangGraph framework (Xiao et al., 2024) with point-in-time data access, optional ticker anonymization, and a reproducible backtest harness; we evaluate this extended stack under exogenous bear and bull windows. We evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in four independent runs (bear and bull per ticker). Section 2 surveys related work; Section 3 the system; Section 4 results; Section 5 concludes; Section 6 lists contributions.
 
 ## Related Work
 
@@ -33,7 +37,15 @@ Researchers are experimenting with LLMs inside trading workflows, but rarely rep
 
 ## Method / System
 
-**TradingAgentsGraph** composes analysts, bull/bear **debate roles** (internal agents, distinct from market regimes), trader, and risk. Section 4 uses **`PAPER_ABLATION=full`**. **`backtest_mvp.py --dates-csv`** produces wide schedule CSVs.
+**TradingAgentsGraph** composes analysts, bull/bear **debate roles** (internal agents, distinct from market regimes), trader, and risk. Core analyst → debate → trader → risk routing follows **TradingAgents** (Xiao et al., 2024); our modifications focus on temporal data policy, schema-constrained outputs, and the backtest/evaluation pipeline described below. Section 4 uses **`PAPER_ABLATION=full`**. **`backtest_mvp.py --dates-csv`** produces wide schedule CSVs.
+
+### Ticker anonymization
+
+Large language models trained on public text often encode firm-specific narratives—brand reputation, sector themes, and historical events—tied to ticker symbols and company names. In a point-in-time backtest, that **pretraining leakage** can bias decisions: the same vendor data may elicit different agent behavior on `RELIANCE.NS` versus an unseen alias. Hindsight 20/20 optionally **anonymizes the issuer** for all LLM-facing prompts and tool outputs: each real symbol maps to a deterministic synthetic id (`STOCK_####`, hash-derived); tool wrappers **de-anonymize** before market-data API calls, then **re-scrub** responses; news headlines additionally pass through a lightweight proper-noun scrubber. Frozen E1 runs use **`enable_anonymization=True`** (default in `backtest_mvp.py`). We do not ablate anonymization in Section 4—reporting with it **on** is a conservative choice that reduces name-based bias when comparing regimes and tickers.
+
+### Backtest metrics
+
+The paper ledger records daily agent equity after fees. We report **total return** on agent equity; **maximum drawdown (MDD)** as peak-to-trough decline on the agent equity curve, with **buy-and-hold MDD** on the same underlying adjusted closes for comparison; and **Sharpe ratio** as mean daily simple return divided by its standard deviation, scaled by $\sqrt{252}$\footnote{Annualization assumes 252 trading days per year (US equity convention). NSE calendars are typically $\approx$240--250 trading days; we retain 252 for comparability with standard reported Sharpe ratios.}. **No risk-free rate is subtracted** in Frozen E1 (excess Sharpe is future work). Short windows (67--111 trading days) yield noisy Sharpe estimates for discrete-signal agents.
 
 ## Experiments
 
@@ -43,30 +55,63 @@ For each ticker, calendar windows in **`regime-timeranges`** are labeled **bear*
 
 ### Protocol and results
 
-**Table 1.** Four frozen runs.
+**Table 1.** Four frozen runs. Sharpe is computed on **agent** daily equity returns (annualized; see footnote in Section 3.4; **no risk-free rate** subtracted).
 
-| Ticker | Regime | Window | Days | B&H | Agent | End equity | B/H/S |
-|--------|--------|--------|------|-----|-------|------------|-------|
-| RELIANCE | Bear | 2024-08-01 .. 2025-01-03 | 111 | -17.4% | -7.5% | 92,459 | 7/28/76 |
-| RELIANCE | Bull | 2025-01-01 .. 2025-06-03 | 108 | +15.1% | +5.6% | 105,559 | 9/25/74 |
-| TCS | Bear | 2024-12-02 .. 2025-04-03 | 88 | -20.4% | -4.8% | 95,166 | 12/24/52 |
-| TCS | Bull | 2024-06-03 .. 2024-09-03 | 67 | +21.9% | +19.6% | 119,607 | 13/14/40 |
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{} l l l r c c c c r c @{}}
+\toprule
+Ticker & Regime & Window & Days & B\&H & Agent & B\&H MDD & Ag. MDD & Sharpe & Buy/Hold/Sell \\
+\midrule
+RELIANCE & Bear & 2024-08-01 - 2025-01-03 & 111 & \mbox{-17.4\%} & \agentpct{-7.5} & \mbox{21.0\%} & \mbox{5.1\%} & \mbox{-3.12} & 7/28/76 \\
+RELIANCE & Bull & 2025-01-01 - 2025-06-03 & 108 & \mbox{+15.1\%} & \agentpct{+5.6} & \mbox{11.0\%} & \mbox{2.8\%} & \mbox{-3.35} & 9/25/74 \\
+TCS & Bear & 2024-12-02 - 2025-04-03 & 88 & \mbox{-20.4\%} & \agentpct{-4.8} & \mbox{23.9\%} & \mbox{6.8\%} & \mbox{-1.83} & 12/24/52 \\
+TCS & Bull & 2024-06-03 - 2024-09-03 & 67 & \mbox{+21.9\%} & \agentpct{+19.6} & \mbox{5.5\%} & \mbox{1.7\%} & \mbox{+4.25} & 13/14/40 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
-**Bear (2/2):** agent loses less than buy-and-hold. **Bull:** RELIANCE lags B&H; TCS nearly tracks B&H. Final signals remain SELL-heavy in most runs.
+\vspace{-0.5\baselineskip}
+
+**Bear (2/2):** agent loses less than buy-and-hold on **total return** and shows **lower path drawdown** (e.g., RELIANCE bear: agent MDD 5.1% vs B&H MDD 21.0%), consistent with SELL-heavy signals and reduced long exposure. **Bull:** RELIANCE lags B&H; TCS nearly tracks B&H. **Sharpe** is negative in three of four runs—including RELIANCE bull (+5.6% return)—because daily equity volatility dominates on short windows; only TCS bull is Sharpe-positive (+4.25). Interpret Sharpe alongside total return and MDD, not in isolation.
+
+\vspace{-0.75\baselineskip}
 
 ### Figures
 
-![Figure 1. Agent vs buy-and-hold equity (2x2 grid).](figures/fig_regime_equity_grid.pdf)
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_regime_equity_grid.pdf}
+\caption{Figure 1. Agent vs buy-and-hold equity (2x2 grid).}
+\end{figure}
 
-![Figure 2. Total returns (four runs).](figures/fig_regime_returns_by_ticker.pdf)
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_regime_returns_by_ticker.pdf}
+\caption{Figure 2. Total returns (four runs).}
+\end{figure}
 
-![Figure 3. Signal counts.](figures/fig_regime_signals_by_ticker.pdf)
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_regime_signals_by_ticker.pdf}
+\caption{Figure 3. Signal counts.}
+\end{figure}
 
-![Figure 4. Bullish analyst-outlook share.](figures/fig_regime_outlook_bullish.pdf)
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_regime_outlook_bullish.pdf}
+\caption{Figure 4. Bullish analyst-outlook share.}
+\end{figure}
+
+\clearpage
 
 ## Conclusion
 
-We presented an open LangGraph stack and **multi-ticker regime-conditioned** evaluation. Bear windows show relative downside protection; bull outcomes are heterogeneous. **Limitations:** two tickers, per-ticker calendars, one LLM.
+We presented an open LangGraph stack and **multi-ticker regime-conditioned** evaluation. Bear windows show relative downside protection on both **return and drawdown**; bull outcomes are heterogeneous. **Limitations:** two tickers, per-ticker calendars, one LLM; anonymization enabled but not ablated; Sharpe without a risk-free benchmark and on short windows.
 
 ## Contributions
 
@@ -78,7 +123,7 @@ We presented an open LangGraph stack and **multi-ticker regime-conditioned** eva
 
 ## Acknowledgements {.unnumbered}
 
-Not applicable.
+The agent graph implementation builds on **TradingAgents** (Xiao et al., 2024; Tauric Research, Apache License 2.0). We thank the authors for open-sourcing the framework.
 
 ## References {.unnumbered}
 

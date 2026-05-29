@@ -26,7 +26,7 @@ Large language models are increasingly used in financial decision pipelines, yet
 
 Researchers are experimenting with large language models (LLMs) inside trading workflows. Yet evaluations rarely ask how the **same implementation** behaves when the **underlying trend** differs—and rarely report results on more than one name.
 
-We present **Hindsight 20/20**, an open **LangGraph** stack focused on *reproducibility and auditable evaluation*. **Structured outputs**, optional **anonymization**, a **simulation end date**, and a **paper backtest** with configurable fees support point-in-time research.
+**Hindsight 20/20** extends the open-source **TradingAgents** multi-agent LangGraph framework (Xiao et al., 2024) with point-in-time data access, optional ticker anonymization, and a reproducible backtest harness; we evaluate this extended stack under exogenous bear and bull windows. **Structured outputs**, a **simulation end date**, and a **paper backtest** with configurable fees support point-in-time research.
 
 **Empirical focus.** We run the **full** pipeline (`PAPER_ABLATION=full`) on **RELIANCE.NS** and **TCS.NS**. For each ticker we pre-specify one **bear** and one **bull** calendar window whose underlying buy-and-hold return meets exogenous thresholds (§4.1). Each of **four runs** starts from **$100,000** paper cash; we compare agent return to **buy-and-hold** on the same window.
 
@@ -56,11 +56,41 @@ Pointers: **`.cursor/memory.md`**.
 
 ### 3.1 Architecture
 
-**`TradingAgentsGraph`**: analysts, **Bull/Bear Researcher** debate (*internal roles*, not §4 market regimes), trader, risk. Same graph for **`run_backtest_mvp`**.
+**`TradingAgentsGraph`**: analysts, **Bull/Bear Researcher** debate (*internal roles*, not §4 market regimes), trader, risk. Core analyst → debate → trader → risk routing follows **TradingAgents** (Xiao et al., 2024); our modifications focus on temporal data policy, schema-constrained outputs, and the backtest/evaluation pipeline described below. Same graph for **`run_backtest_mvp`**.
 
-### 3.2–3.5 Tools, structured outputs, PIT, anonymization
+### 3.2 Tools and structured outputs
 
-As in prior draft (**M3–M5**). Frozen E1 uses anonymization.
+Analyst tools fetch market, news, sentiment, and fundamentals data; stage outputs conform to **Pydantic** schemas (`tradingagents/schemas/outputs.py`, **M3**).
+
+### 3.3 Point-in-time data policy
+
+A **simulation end date** clamps vendor queries so agents cannot access data after the as-of trade date (**M4**).
+
+### 3.4 Ticker anonymization
+
+Large language models trained on public text often encode firm-specific narratives—brand reputation, sector themes, and historical events—tied to ticker symbols and company names. In a point-in-time backtest, that **pretraining leakage** can bias decisions: the same vendor data may elicit different agent behavior on `RELIANCE.NS` versus an unseen alias.
+
+Hindsight 20/20 optionally **anonymizes the issuer** for all LLM-facing prompts and tool outputs (**M5**):
+
+1. **Deterministic ticker aliases** — `TickerMapper.for_real_ticker()` maps each real symbol to a stable synthetic id (`STOCK_####`, SHA-256–derived).
+2. **Round-trip vendor access** — tool wrappers call `resolve_ticker_for_vendor()` to de-anonymize before API calls, then `scrub_ticker_text()` on responses.
+3. **News scrubbing** — `scrub_news_text()` replaces multi-word proper nouns with `PROPER_NOUN` placeholders (heuristic, news-only).
+
+Frozen E1 uses **`enable_anonymization=True`** (default in `backtest_mvp.py`). We do **not** ablate anonymization in §4; reporting with it **on** reduces name-based bias when comparing regimes and tickers.
+
+### 3.5 Backtest metrics
+
+The paper ledger (`tradingagents/backtest/`) records daily agent equity after fees. **`compute_performance_stats`** reports:
+
+| Metric | Definition |
+|--------|------------|
+| **Total return** | \((V_T - V_0) / V_0\) on agent equity |
+| **Max drawdown (MDD)** | Peak-to-trough decline on the agent equity curve; **B&H MDD** computed on buy-and-hold equity from the same adjusted closes |
+| **Sharpe ratio** | Mean daily simple return / stdev, × \(\sqrt{252}\)[^sharpe252]; **no risk-free rate subtracted** in Frozen E1 |
+
+[^sharpe252]: Annualization assumes 252 trading days per year (US equity convention). NSE calendars are typically ≈240–250 trading days; we retain 252 for comparability with standard reported Sharpe ratios.
+
+Short windows (67–111 trading days) yield noisy Sharpe estimates, especially for discrete-signal agents. Excess Sharpe and Sortino/Calmar are implemented but not emphasized in §4.
 
 ### 3.6 Pipeline configuration
 
@@ -68,7 +98,7 @@ As in prior draft (**M3–M5**). Frozen E1 uses anonymization.
 
 ### 3.7 Paper backtest
 
-**`scripts/backtest_mvp.py --dates-csv`** writes schedule CSVs (signals, equity, outlook columns).
+**`scripts/backtest_mvp.py --dates-csv`** writes schedule CSVs (signals, equity, outlook, and analysis columns including MDD and Sharpe).
 
 ### 3.8 Observability
 
@@ -113,19 +143,20 @@ python scripts/backtest_mvp.py --ticker TCS.NS \
 
 ### 4.3 Results
 
-**Table 1.** Agent vs buy-and-hold (frozen CSVs, $100,000 start).
+**Table 1.** Agent vs buy-and-hold (frozen CSVs, $100,000 start). Sharpe is on **agent** daily equity (annualized[^sharpe252]; **no risk-free rate** subtracted).
 
-| Ticker | Regime | Window | Days | B&H | Agent | End equity | Max DD | Sharpe | B/H/S | Fees ($) |
-|--------|--------|--------|------|-----|-------|------------|--------|--------|-------|----------|
-| RELIANCE | Bear | 2024-08-01 .. 2025-01-03 | 111 | −17.43% | −7.54% | 92,459 | 5.11% | −3.12 | 7/28/76 | 1,010 |
-| RELIANCE | Bull | 2025-01-01 .. 2025-06-03 | 108 | +15.09% | +5.56% | 105,559 | 2.80% | −3.35 | 9/25/74 | 635 |
-| TCS | Bear | 2024-12-02 .. 2025-04-03 | 88 | −20.42% | −4.83% | 95,166 | 6.78% | −1.83 | 12/24/52 | 1,910 |
-| TCS | Bull | 2024-06-03 .. 2024-09-03 | 67 | +21.86% | +19.61% | 119,607 | 1.65% | +4.25 | 13/14/40 | 2,198 |
+| Ticker | Regime | Window | Days | B&H | Agent | B&H MDD | Agent MDD | Sharpe | B/H/S | Fees ($) |
+|--------|--------|--------|------|-----|-------|---------|-----------|--------|-------|----------|
+| RELIANCE | Bear | 2024-08-01 - 2025-01-03 | 111 | −17.43% | −7.54% | 21.0% | 5.11% | −3.12 | 7/28/76 | 1,010 |
+| RELIANCE | Bull | 2025-01-01 - 2025-06-03 | 108 | +15.09% | +5.56% | 11.0% | 2.80% | −3.35 | 9/25/74 | 635 |
+| TCS | Bear | 2024-12-02 - 2025-04-03 | 88 | −20.42% | −4.83% | 23.9% | 6.78% | −1.83 | 12/24/52 | 1,910 |
+| TCS | Bull | 2024-06-03 - 2024-09-03 | 67 | +21.86% | +19.61% | 5.5% | 1.65% | +4.25 | 13/14/40 | 2,198 |
 
 **Cross-ticker patterns.**
 
-- **Bear (2/2):** agent **outperforms buy-and-hold** (smaller loss). Both runs are **SELL-heavy** (52–76 SELL days), consistent with reduced long exposure during drawdowns.
-- **Bull (mixed):** RELIANCE agent **lags** B&H (+5.6% vs +15.1%) with 74 SELL vs 9 BUY days—partial rally participation. TCS agent **nearly matches** B&H (+19.6% vs +21.9%) with more balanced activity (13 BUY, 40 SELL). We do **not** claim uniform bull under-performance.
+- **Bear (2/2):** agent **outperforms buy-and-hold** on total return (smaller loss) and shows **lower path drawdown** (e.g., RELIANCE bear: agent MDD 5.1% vs B&H MDD 21.0%). Both runs are **SELL-heavy** (52–76 SELL days), consistent with reduced long exposure during drawdowns.
+- **Bull (mixed):** RELIANCE agent **lags** B&H (+5.6% vs +15.1%) with 74 SELL vs 9 BUY days—partial rally participation. TCS agent **nearly matches** B&H (+19.6% vs +21.9%) with more balanced activity (13 BUY, 40 SELL).
+- **Sharpe:** negative in three of four runs—including RELIANCE bull (+5.6% return)—because daily equity volatility dominates on short windows; only TCS bull is Sharpe-positive (+4.25). We interpret Sharpe alongside total return and MDD, not in isolation.
 
 **Table 2.** Selected outlook / stance shares (% of trading days). Full pivot in notebook.
 
@@ -155,7 +186,7 @@ MPLCONFIGDIR=.mpl_cache .venv/bin/python scripts/generate_paper_figures.py
 
 We presented **Hindsight 20/20** and **multi-ticker regime-conditioned** evaluation on **RELIANCE.NS** and **TCS.NS**. The full pipeline shows **consistent relative protection in bear windows** and **heterogeneous bull-window outcomes**, with reproducible CSV artifacts.
 
-**Limitations.** Two tickers; **different calendars per name**; one LLM; anonymization on; no microstructure; Infosys windows planned but not run. Regimes are **exogenous**, not agent-predicted.
+**Limitations.** Two tickers; **different calendars per name**; one LLM; anonymization on but not ablated; Sharpe without a risk-free benchmark on short windows; no microstructure; Infosys windows planned but not run. Regimes are **exogenous**, not agent-predicted.
 
 ---
 
@@ -168,6 +199,12 @@ We presented **Hindsight 20/20** and **multi-ticker regime-conditioned** evaluat
 5. **Backtest harness and artifacts** (S5 / M6).
 
 **Not claimed:** SOTA returns; regime prediction; ablation studies in §4.
+
+---
+
+## Acknowledgements
+
+The agent graph implementation builds on **TradingAgents** (Xiao et al., 2024; Tauric Research, Apache License 2.0). We thank the authors for open-sourcing the framework.
 
 ---
 
