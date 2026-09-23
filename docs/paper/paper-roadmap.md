@@ -23,4 +23,6 @@
 
 ## Submission
 
-Venue: [Algorithmic Finance](https://www.iospress.com/catalog/journals/algorithmic-finance). Build: `./docs/paper/submission/build_ios_package.sh`
+Publish plan (arXiv declined 2026-09; journal first): [publish-plan.md](publish-plan.md).
+
+Venue target: [Algorithmic Finance](https://journals.sagepub.com/home/alg) (SAGE, transferred from IOS Press 2025-01-01). Current build still targets IOS: `./docs/paper/submission/build_ios_package.sh`.
