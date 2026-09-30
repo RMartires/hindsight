@@ -17,21 +17,22 @@ Do not resubmit this manuscript to arXiv as-is. Repeat uploads of declined work 
 
 ## Phase 1 — Stop the bleeding (this week)
 
-- [ ] Do not resubmit to arXiv. Not the same PDF, not a light revision.
-- [ ] Do not appeal yet. An appeal without a journal DOI will be denied on the account restriction alone.
-- [ ] Upload the current PDF to Zenodo for a free priority timestamp and DOI. This does not satisfy arXiv’s journal-ref requirement.
-- [ ] Archive `MOD-103516` and `submit/7732697` somewhere private (not in `docs/paper/`). You will need them for the later appeal.
+- [x] Do not resubmit to arXiv. Not the same PDF, not a light revision.
+- [x] Do not appeal yet. An appeal without a journal DOI will be denied on the account restriction alone.
+- [x] Archive `MOD-103516` and `submit/7732697` somewhere private (not in `docs/paper/`). You will need them for the later appeal.
 
 ## Phase 2 — Fix what a referee will reject (4–8 weeks)
 
-Two tickers, four windows, and N=1 is the main weakness. Address it before submitting anywhere.
+Two tickers, four windows, and N=1 is the main weakness. The full version of this phase (6 names, 5 seeds on every window, anonymization on and off) is about $700–900 of OpenRouter spend. The four frozen windows already cost about $26 on `qwen/qwen3.5-flash-02-23` (~7 cents per trading day, ~$6.50 per window). Scope below is smaller because of that cost. INFY is deferred, so the next paid step is the TCS seeds only, about **$45**. Anonymization-off is a later optional **$11**.
 
-- [ ] Widen the universe. Run Infosys (already in `regime-timeranges`, never run) plus 2–3 more NSE large-caps. Target 5–6 names.
-- [ ] Multi-seed. At least 5 runs per window with LLM temperature above 0. Report mean and standard deviation. Comparators report 20–50 seeds; matching that is not required, but N=1 cannot stand.
-- [ ] Ablate anonymization. On/off on the same windows, one table. The stack implements it and cites BlindTrade, then does not test it.
-- [ ] Add a non-LLM baseline. Buy-and-hold alone is not enough. Add at least one rules-based strategy (SMA crossover or a simple momentum rule).
-- [ ] Add a statistical test. Bootstrap confidence interval on alpha across seeds, or a paired test of agent vs baseline per window.
-- [ ] Reframe the contribution. Lead with a finding (defensive coordination compresses drawdown and caps rally participation, checked across names and seeds). Present the stack as the instrument that made the finding auditable.
+Before any new run: raise the key limit (it is capped at $40, with about $14 left) and set both model slots back to `qwen/qwen3.5-flash-02-23`. The current `.env` points at `qwen/qwen3-32b` and `qwen/qwen3-235b-a22b-thinking-2507`, which would not match the paper and would cost several times more. Do not rerun the four paid windows.
+
+- [ ] Extra seeds only on the two shorter TCS windows (bull 2024-06-03 .. 2024-09-03, bear 2024-12-02 .. 2025-04-03): four more seeds each, temperature above 0. About $45. Report mean and standard deviation for TCS. RELIANCE stays a single trajectory. Write each seed to its own CSV. Do not overwrite a frozen schedule if one is recovered.
+- [ ] **INFY.NS deferred.** Both regimes, one seed, about $13, already in `regime-timeranges`. Add it only if a referee asks for a third name. Not in this round.
+- [ ] Anonymization off on those same two TCS windows, one seed. About $11. One on/off table, not a full factorial.
+- [x] Add a non-LLM baseline from prices already on disk. SMA crossover or a simple momentum rule. No model calls. Rule: 10/50 SMA state (long when the 10-day average is above the 50-day; flat otherwise), same ledger as Frozen E1 (`zerodha_delivery`, $100,000, zero slippage). Scored 2026-09-25 from Kite cache `tradingagents/dataflows/data_cache/market.duckdb` via `python scripts/rules_baseline.py`. Summary: `results/baselines/sma_summary.csv`. Net vs buy-and-hold: REL bear −1.29% vs −17.43% (alpha +16.14 pp); REL bull −4.43% vs +15.09% (alpha −19.51 pp); TCS bull +13.31% vs +21.86% (alpha −8.55 pp); TCS bear −4.07% vs −20.42% (alpha +16.35 pp).
+- [ ] Bootstrap confidence interval on the TCS seeds, and a paired comparison against the rules baseline. No model calls.
+- [ ] Reframe the contribution around what this budget can support: defensive coordination compresses drawdown and caps rally participation, with seed variance reported for TCS and a single trajectory for RELIANCE. INFY is out unless a referee asks. State that limit in the paper.
 
 ## Phase 3 — Rewrite the manuscript (2–3 weeks, overlaps Phase 2)
 

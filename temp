@@ -29,3 +29,7 @@ pandoc docs/paper/manuscript.md -o paper-draft.pdf --pdf-engine=tectonic
 ./docs/paper/submission/build_ios_package.sh
 
 python scripts/prefetch_market_data.py --ticker TCS.NS --dates-csv results/dates-TCS-june-2024-sept-2024-bull-dates.csv
+
+
+python scripts/prefetch_market_data.py --ticker RELIANCE.NS --start-date 2024-01-01 --end-date 2025-06-30 --lookback-years 1 --no-strict-coverage
+python scripts/prefetch_market_data.py --ticker TCS.NS --start-date 2024-01-01 --end-date 2025-06-30 --lookback-years 1 --no-strict-coverage
