@@ -39,7 +39,7 @@ def format_ohlcv_block(
 
 def get_stock_data(symbol: str, start_date: str, end_date: str) -> str:
     """Retrieve OHLCV from local DuckDB for the given date range."""
-    store = MarketDataStore()
+    store = MarketDataStore(read_only=True)
     try:
         df = store.load_ohlcv_df(symbol, start_date, end_date)
     finally:

@@ -2,7 +2,7 @@
 
 **Goal:** publish the paper in a conventional journal, then use that DOI to appeal the arXiv decline.
 
-**Last updated:** 2026-09-23.
+**Last updated:** 2026-09-30.
 
 **arXiv status:** declined. Notice `MOD-103516` / `submit/7732697` (about two months after submission). Two separate decisions:
 
@@ -23,11 +23,13 @@ Do not resubmit this manuscript to arXiv as-is. Repeat uploads of declined work 
 
 ## Phase 2 — Fix what a referee will reject (4–8 weeks)
 
-Two tickers, four windows, and N=1 is the main weakness. The full version of this phase (6 names, 5 seeds on every window, anonymization on and off) is about $700–900 of OpenRouter spend. The four frozen windows already cost about $26 on `qwen/qwen3.5-flash-02-23` (~7 cents per trading day, ~$6.50 per window). Scope below is smaller because of that cost. INFY is deferred, so the next paid step is the TCS seeds only, about **$45**. Anonymization-off is a later optional **$11**.
+Two tickers, four windows, and N=1 is the main weakness. The full version of this phase (6 names, 5 seeds on every window, anonymization on and off) is about $700–900 of OpenRouter spend. The four frozen windows already cost about $26 on `qwen/qwen3.5-flash-02-23` (~7 cents per trading day, ~$6.50 per window). Scope below is smaller because of that cost. INFY is deferred. One TCS bull seed is done. Four more TCS bull seeds are pending, about **$18**. Anonymization-off is a later optional **$11**.
 
-Before any new run: raise the key limit (it is capped at $40, with about $14 left) and set both model slots back to `qwen/qwen3.5-flash-02-23`. The current `.env` points at `qwen/qwen3-32b` and `qwen/qwen3-235b-a22b-thinking-2507`, which would not match the paper and would cost several times more. Do not rerun the four paid windows.
+The finished seed used `qwen/qwen3.5-flash-02-23` with `LLM_STRUCTURED_OUTPUT_METHOD=json_mode`. The next four have to match that. `.env` is currently `qwen/qwen3.7-flash` and does not set the method, which falls back to `json_schema`. Do not rerun the four paid windows.
 
-- [ ] Extra seeds only on the two shorter TCS windows (bull 2024-06-03 .. 2024-09-03, bear 2024-12-02 .. 2025-04-03): four more seeds each, temperature above 0. About $45. Report mean and standard deviation for TCS. RELIANCE stays a single trajectory. Write each seed to its own CSV. Do not overwrite a frozen schedule if one is recovered.
+- [ ] Extra seeds on TCS bull only (2024-06-03 .. 2024-09-03). **One seed done, four pending.** Report mean and standard deviation once those four finish. RELIANCE stays a single trajectory. The TCS bear window is not in this count. Write each seed to its own CSV. Do not overwrite the finished file or a frozen schedule.
+  - [x] Seed 2, finished 2026-09-30. `results/dates-TCS-june-2024-sept-2024-bull-seed2-jsonmode-dates.csv`. 64 days. Net −1.85% (equity $98,148.65), max drawdown 6.12%, fees $351.32, signals 20 BUY / 31 HOLD / 13 SELL. Buy-and-hold +21.86% (alpha −23.71 pp). This is not the frozen Table 1 trajectory (+19.61%).
+  - [ ] Seeds 3, 4, 5, and 6 pending.
 - [ ] **INFY.NS deferred.** Both regimes, one seed, about $13, already in `regime-timeranges`. Add it only if a referee asks for a third name. Not in this round.
 - [ ] Anonymization off on those same two TCS windows, one seed. About $11. One on/off table, not a full factorial.
 - [x] Add a non-LLM baseline from prices already on disk. SMA crossover or a simple momentum rule. No model calls. Rule: 10/50 SMA state (long when the 10-day average is above the 50-day; flat otherwise), same ledger as Frozen E1 (`zerodha_delivery`, $100,000, zero slippage). Scored 2026-09-25 from Kite cache `tradingagents/dataflows/data_cache/market.duckdb` via `python scripts/rules_baseline.py`. Summary: `results/baselines/sma_summary.csv`. Net vs buy-and-hold: REL bear −1.29% vs −17.43% (alpha +16.14 pp); REL bull −4.43% vs +15.09% (alpha −19.51 pp); TCS bull +13.31% vs +21.86% (alpha −8.55 pp); TCS bear −4.07% vs −20.42% (alpha +16.35 pp).

@@ -19,7 +19,7 @@ BEST_IND_PARAMS: Dict[str, str] = tier1_indicator_descriptions()
 
 def _get_stockstats_indicator_bulk(symbol: str, indicator: str, curr_date: str) -> Dict[str, str]:
     start_date_str, end_date_str = indicator_bulk_date_range(curr_date)
-    store = MarketDataStore()
+    store = MarketDataStore(read_only=True)
     try:
         data = store.load_ohlcv_df(symbol, start_date_str, end_date_str)
     finally:

@@ -52,11 +52,23 @@ class MarketDataStore:
     );
     """
 
-    def __init__(self, db_path: Optional[str] = None, config: Optional[dict] = None):
+    def __init__(
+        self,
+        db_path: Optional[str] = None,
+        config: Optional[dict] = None,
+        *,
+        read_only: bool = False,
+    ):
         self._db_path = db_path or resolve_market_db_path(config)
-        Path(self._db_path).parent.mkdir(parents=True, exist_ok=True)
-        self._conn = duckdb.connect(self._db_path)
-        self._conn.execute(self._SCHEMA)
+        self._read_only = read_only
+        if read_only:
+            if not os.path.isfile(self._db_path):
+                raise LocalDataError(f"No market database at {self._db_path}")
+            self._conn = duckdb.connect(self._db_path, read_only=True)
+        else:
+            Path(self._db_path).parent.mkdir(parents=True, exist_ok=True)
+            self._conn = duckdb.connect(self._db_path)
+            self._conn.execute(self._SCHEMA)
 
     @property
     def db_path(self) -> str:

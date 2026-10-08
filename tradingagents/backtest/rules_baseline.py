@@ -206,7 +206,7 @@ def load_ohlcv_with_warmup(
     start = datetime.strptime(start_date, "%Y-%m-%d")
     # Calendar buffer so ``slow`` trading days fit before the window (weekends, holidays).
     lookback_start = (start - timedelta(days=max(slow * 3, 180))).strftime("%Y-%m-%d")
-    store = MarketDataStore(db_path=path)
+    store = MarketDataStore(db_path=path, read_only=True)
     try:
         frame = store.load_ohlcv_df(symbol, lookback_start, end_date)
     finally:

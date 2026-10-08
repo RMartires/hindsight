@@ -1,0 +1,857 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\usepackage{tabularx,ragged2e}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\usepackage{natbib}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\section{Hindsight Agent: A Multi-Agent for Quantitative Trading System}\label{manuscript-draft-export-to-pdf-latex}
+
+% \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Abstract}\label{abstract}
+
+Large language models are increasingly used in financial decision
+pipelines, yet published agent stacks are often hard to reproduce,
+rarely enforce temporal data boundaries, and seldom report net returns
+after transaction costs. We present \textbf{Hindsight}, an open
+LangGraph stack with structured Pydantic outputs, a
+simulation end date for point-in-time data, ticker anonymization to avoid any llm bias for company names, and a fee-aware paper backtest suite.
+
+The primary contribution is reproducible systems
+engineering, auditable stage artifacts, and frozen CSV
+schedules. As an illustrative case study, we evaluate Hindsights full multi-agent pipeline
+on two liquid large-cap NSE listings---\textbf{RELIANCE.NS} and
+\textbf{TCS.NS}---in four pre-specified regime windows (two
+tickers × exogenous bear/bull labels. one deterministic
+trajectory per window, no seed averaging).
+\textbf{Code and artifacts:}
+\url{https://github.com/RMartires/hindsight}.
+
+
+\subsection{1. Introduction}\label{introduction}
+
+Researchers are experimenting with large language models (LLMs) inside
+trading workflows amid a rapid expansion of LLM-driven agent systems. Yet evaluations rarely ask how the same implementation behaves when the underlying trend differs,
+rarely enforce point-in-time data access at the adapter layer, and
+rarely report net returns after stated transaction costs.
+
+\textbf{What this paper is} \textbf{Hindsight} extends the
+open-source \textbf{TradingAgents} multi-agent LangGraph framework (Xiao
+et al., 2024) with (i) schema-constrained stage outputs, (ii) a
+simulation end date for point-in-time vendor queries, (iii) ticker anonymization, and (iv) a scriptable, fee-aware paper backtest suite tied to frozen CSV artifacts. We document how to build
+and audit such a stack and provide an honest, scoped regime-split case study on two names.
+
+\textbf{What this paper is not.} We do not claim
+state-of-the-art risk-adjusted returns, regime prediction, or
+statistical generalization from a broad equity universe. We do
+not report multi-seed variance (each regime window is
+\textbf{N=1}). Frontier empirical papers (e.g., Jeon and Lee, 2026;
+Miyazaki et al., 2026) average tens of random seeds across index
+universes; our evaluation scope is deliberately narrower and is labeled
+as such (§4.1, Table 3).
+
+Case-study evaluation We run the full multi-agent pipeline
+on \textbf{RELIANCE.NS} and \textbf{TCS.NS}.
+For each ticker we pre-specify one bear and one bull calendar windows.
+Each of four regime windows starts from \textbf{\$100,000} fresh paper cash;
+we compare agent net return to buy-and-hold on the same window.
+
+
+\subsection{2. Related Work}\label{related-work}
+
+\textbf{LLM agents and classic MAS.} Multi-agent frameworks orchestrate
+specialist roles for trading and finance (Xiao et al., 2024; Yu et al.,
+2023; Yang et al., 2023). Bădică et al.~(2025) situate this wave as a
+shift from explicitly programmed BDI-style agents to emergent LLM
+behaviors raising new demands for verifiable coordination and audit
+trails. While \textbf{TradingAgents} (Xiao et al., 2024) provides the
+foundational analyst → debate → trader graph that we extend, it does not
+ship adapter-level temporal clamps, schema-persisted stage artifacts, or
+a fee-aware replication harness. \textbf{AlphaAgents} (Zhao et al.,
+2025) validates institution-style role separation (Fundamental,
+Sentiment, Valuation) with structured debate; \textbf{QuantAgents} (Li
+et al., 2025) emphasizes manager-led meetings and
+simulated trading feedback both comparators for our Bull/Bear debate
+loop, but neither foregrounds point-in-time vendor routing or frozen
+schedule CSVs as first-class outputs.
+
+
+\textbf{Methodological standards, leakage, and overfitting} are central challenges in current benchmarks. \citet{Nguyen2026Toward} survey existing LLM financial multi-agent frameworks, exposing widespread vulnerabilities to transaction cost neglect and regime-shift blindness. To establish rigorous cross-system comparisons, they propose a set of five Consolidated Minimum Standards and introduce the \textbf{Coordination Breakeven Spread} (CBS) to explicitly measure the net-of-cost alpha generated by multi-agent coordination relative to trading drag. we report a simplified fee-and-turnover breakeven in §4.5 and defer full latency CBS to future work. Bailey et al.~(2014) show that undisclosed configuration search makes strong in-sample backtests statistically
+cheap to manufacture; Hindsight responds with pre-specified
+windows marking different regimes, frozen artifacts, and explicit
+N=1 scope rather than implied generalization.
+
+\textbf{Point-in-time policy and anonymization.} Early LLM trading
+papers often relied on prompt-level ``do not peek'' instructions. \citet{Nguyen2026Toward} treat contamination control and
+net-of-cost returns as minimum standards. Hindsight implements
+the former via a simulation end date at vendor routing
+ and the latter via a Zerodha delivery paper
+ledger. Jeon and Lee (2026) (\textbf{BlindTrade}) provide the strongest
+anonymization-first defense: tickers like ``AAPL'' can trigger memorized
+pretraining associations rather than fresh reasoning; they anonymize
+S\&P 500 constituents daily and report Sharpe 1.40 ± 0.22 across
+20 seeds. Hindsight's \textbf{\texttt{STOCK\_\#\#\#\#}} aliases (§3.5) pursue the same goal within a LangGraph replication stack
+
+\textbf{Fine-grained tasks and coordination topology.} Miyazaki et
+al.~(2026) show that fine-grained analyst tasks (e.g., explicit
+ratio and indicator computations) outperform coarse ``analyze
+fundamentals'' prompts under leakage-controlled TOPIX-style evaluation
+with 50 trials. Our market and fundamentals analysts are
+tool-bound to concrete fetches and Tier-1 indicators
+(§3.2) aligning architecture with that finding without claiming
+comparable universe-scale statistics. Dewansh (2026) frames
+explainable stability and rationale persistence as
+audit criteria for orchestrated trading agents; our Pydantic stage
+outputs and wide schedule CSVs are designed to support that traceability
+(outlook → stance → \texttt{final\_signal}), even though we do not
+formally score policy convergence.
+
+\textbf{Benchmarks, simulators, and live evaluation.} Qian et al.~(2026)
+introduce the \textbf{Agent Market Arena (AMA)}, a lifelong multi-market
+benchmark showing that \textbf{agent architecture} often matters more
+than LLM backbone choice, a motivation for holding the model fixed
+(\texttt{qwen/qwen3.5-flash-02-23}) and varying regime context in §4.
+Papadakis et al.~(2025) (\textbf{StockSim}) define order-level
+simulation with latency, slippage, and limit-order-book microstructure;
+our paper ledger is candlestick-level with stated fees and \textbf{no
+LOB claim}, treating StockSim-class realism as aspirational future work.
+
+\textbf{Empirical scope vs frontier benchmarks.} Jeon and Lee (2026), Li
+et al.~(2025), and Miyazaki et al.~(2026) optimize for
+\textbf{statistical stress tests} across index universes, seeds, or
+simulated meetings. Hindsight optimizes for \textbf{auditability and
+temporal integrity} on a two-ticker, four-window case study (Table
+3)---complementary, not directly comparable on seeds or universe
+breadth.
+
+\textbf{Positioning summary.} Where \textbf{TradingAgents} supplies the
+graph skeleton and \textbf{BlindTrade} / Nguyen and Pham (2026)
+articulate \emph{what to measure}, Hindsight implements \emph{how
+to reproduce it}: simulation end dates, structured artifacts, net returns, and frozen CSV schedules that regenerate Tables 1--4 without rerunning LLM inference.
+
+
+\subsection{3. Method / System}\label{method-system}
+
+\subsubsection{3.1 Architecture}\label{architecture}
+
+\textbf{TradingAgentsGraph}: \textbf{Analysts} → \textbf{Bull/Bear
+Researchers debate} → \textbf{trader} → \textbf{risk} → \textbf{final decision}.
+Core routing follows \textbf{TradingAgents} (Xiao et al., 2024); our modifications focus on
+temporal data policy, schema-constrained outputs, and the backtest/evaluation pipeline.
+
+\subsubsection{3.2 Analyst task decomposition}\label{analyst-task-decomposition}
+
+Each analyst role is bound to specific tools and emits a
+structured AnalystReport (outlook + narrative). This
+supports traceable rationale from raw data to downstream debate not
+coarse role labels alone.
+
+{\small
+\begin{tabular}{@{} l p{2.4cm} p{3.6cm} p{3.6cm} @{}}
+\toprule
+Stage & Agent & Tools & Concrete tasks \\
+\midrule
+Market & Market analyst &
+  \texttt{get\_stock\_data}\newline
+  \texttt{get\_indicators} &
+Fetch OHLCV; from a fixed 13-indicator Tier-1 catalog
+(50/200 SMA, 10 EMA, MACD line/signal/histogram, RSI,
+Bollinger middle/upper/lower, ATR, VWMA, MFI),
+select up to 8 complementary series \\
+\addlinespace
+Fundamentals & Fundamentals analyst &
+  \texttt{get\_fundamentals}\newline
+  \texttt{get\_balance\_sheet}\newline
+  \texttt{get\_cashflow}\newline
+  \texttt{get\_income\_statement} &
+  Pull statements and issuer profile;
+  analyze revenue, margins, balance-sheet trends \\
+\addlinespace
+News & News analyst &
+  \texttt{get\_news}\newline
+  \texttt{get\_global\_news} &
+  Company-targeted and macro news over a rolling window \\
+\addlinespace
+Sentiment & Social-media analyst &
+  \texttt{get\_news} &
+  Sentiment and social discussion synthesis
+  (company/social queries) \\
+\addlinespace
+Debate & Bull / Bear researchers &
+  --- &
+  Argue buy vs sell thesis from shared evidence \\
+\addlinespace
+Execution & Trader, Risk manager &
+  --- &
+  Propose and gate \textbf{BUY/HOLD/SELL} \\
+\bottomrule
+\end{tabular}
+}
+
+Structured fields (\texttt{market\_outlook},
+\texttt{fundamentals\_outlook}, \texttt{bull\_implied\_stance},
+\texttt{final\_signal}, etc.) are persisted in schedule CSVs for audit, supporting \textbf{explainable stability} in the sense of Dewansh (2026): a coherent trace from evidence to executable action.
+
+\subsubsection{3.3 Tools and structured outputs}\label{tools-and-structured-outputs}
+
+Analyst tool calls respect the simulation end date, it acts as a hard cut-off for data as it
+clamps vendor queries so agents cannot access data after the as-of trade date.
+each stage outputs conform to \textbf{Pydantic} schemas to get a typesafe json object.
+
+\subsubsection{3.5 Ticker anonymization}\label{ticker-anonymization}
+
+LLMs trained on public text encode firm-specific narratives tied to
+ticker symbols. In a point-in-time backtest, that pretraining
+leakage can bias decisions.
+
+Hindsight anonymizes the issuer for all LLM-facing prompts and tool outputs:
+
+\begin{enumerate}
+\item \textbf{Deterministic ticker aliases.}
+  \texttt{TickerMapper.for\_real\_ticker()} maps each real symbol to a
+  stable synthetic id (\texttt{e.g. STOCK\_\#\#\#\#}).
+
+\item \textbf{Round-trip vendor access.}
+  Tool wrappers call \texttt{resolve\_ticker\_for\_vendor()} before API calls,
+  then \texttt{scrub\_ticker\_text()} on responses.
+
+\item \textbf{News scrubbing.}
+  \texttt{scrub\_news\_text()} replaces multi-word proper nouns with
+  \texttt{PROPER\_NOUN} placeholders (heuristic, news-only).
+\end{enumerate}
+
+\subsubsection{3.6 Backtest metrics}\label{backtest-metrics}
+
+The paper ledger records daily agent equity after fees. Primary metrics emphasize \textbf{total
+return}, \textbf{maximum drawdown (MDD)}, and \textbf{fee drag};
+risk-adjusted ratios are secondary on short windows (67--111 trading
+days).
+
+\begin{tabularx}{\linewidth}{@{} l X @{}}\toprule
+Metric & Definition \\
+\midrule
+\textbf{Total return (net)} &
+  $((V_T - V_0) / V_0)$ on agent equity after fees \\
+\addlinespace
+\textbf{Gross return} &
+  Net return plus fees as a fraction of $V_0$ \\
+\addlinespace
+\textbf{Fee drag} &
+  Gross return minus net return \\
+\addlinespace
+\textbf{Alpha vs B\&H} &
+  Agent net return minus buy-and-hold return on the same adjusted closes \\
+\addlinespace
+\textbf{Max drawdown (MDD)} &
+  Peak-to-trough on agent equity;
+  \textbf{B\&H MDD} on $(V_0 \times \mathrm{close}/\mathrm{close}_0)$ \\
+\addlinespace
+\textbf{Excess Sharpe ratio} &
+  Mean daily excess return (over risk-free) / stdev, $\times \sqrt{252}$.\footnotemark \\
+\addlinespace
+\textbf{Sortino / Calmar} &
+  Implemented; reported in Table 2 (secondary) \\
+\bottomrule
+\end{tabularx}
+\footnotetext{Risk-free rate is an India short-rate proxy of 6.5\% p.a.,
+converted to a daily rate $r_f/252$ and applied post-hoc on the frozen equity series.
+Annualization uses $\sqrt{252}$.}
+
+\subsubsection{3.7 Observability}\label{observability}
+To monitor the entire agent run for one day we use Langfuse for observability into out TradingAgent.
+
+\newpage
+\subsection{4. Case Study Evaluation}\label{case-study-evaluation}
+
+\subsubsection{4.1 Evaluation scope and inferential
+limits}\label{evaluation-scope-and-inferential-limits}
+
+\begin{tabularx}{\linewidth}{@{} l X X @{}}
+\toprule
+Dimension & This study & Typical frontier benchmark \\
+\midrule
+\textbf{Universe} &
+  2 liquid NSE large-caps (RELIANCE, TCS) &
+  Index constituents (e.g., S\&P 500, TOPIX 100) \\
+\addlinespace
+\textbf{Regime windows} &
+  4 pre-specified (2 tickers $\times$ bear/bull) &
+  Full sample or rolling panels \\
+\addlinespace
+\textbf{Stochasticity} &
+  \textbf{N=1 trajectory per window} (no seed variance) &
+  20--50 independent trials \\
+\addlinespace
+\textbf{Regime labels} &
+  Exogenous from underlying B\&H ($\pm 10\%$) &
+  Often endogenous or undisclosed \\
+\addlinespace
+\textbf{Bias control} &
+  Simulation end date + Strict anonymization &
+  Strict anonymization (BlindTrade) \\
+\addlinespace
+\textbf{Costs} &
+  Stated delivery fees (net returns) &
+  Often gross returns \\
+\bottomrule
+\end{tabularx}
+
+We treat §4 as an \textbf{illustrative stress test} of one stack under
+contrasting underlying trends---not a hypothesis test about expected
+alpha. Outcomes \textbf{observed in these four windows} should not be
+extrapolated to a broad universe without further study (§5).
+
+\textbf{Pre-specification.} Calendar windows are listed in
+\textbf{regime-timeranges} \textbf{before} agent backtests.
+Regime labels are assigned \textbf{exogenously} from underlying
+buy-and-hold return and are \textbf{independent} of internal Bull/Bear
+Researcher debate roles.
+
+\subsubsection{4.2 Regime definition and
+protocol}\label{regime-definition-and-protocol}
+\addlinespace
+\addlinespace
+\addlinespace
+
+
+\begin{tabular}{@{} l l @{}}
+\toprule
+Regime label & Rule (underlying B\&H on processed window, per ticker) \\
+\midrule
+\textbf{Bear} & Total return \textbf{$\leq -10\%$} \\
+\textbf{Bull} & Total return \textbf{$\geq +10\%$} \\
+\bottomrule
+\end{tabular}
+
+Windows \textbf{differ by ticker} (e.g., TCS bull Jun--Sep 2024;
+RELIANCE bull Jan--Jun 2025). Each run uses \textbf{\$100,000} initial cash.
+\addlinespace
+\addlinespace
+\addlinespace
+
+{\small
+\begin{tabularx}{\linewidth}{@{} l l l X @{}}
+\toprule
+Ticker & Regime & Processed window \\
+\midrule
+RELIANCE.NS & Bear & 2024-08-01 .. 2025-01-03  \\
+\addlinespace
+RELIANCE.NS & Bull & 2025-01-01 .. 2025-06-03 \\
+\addlinespace
+TCS.NS & Bear & 2024-12-02 .. 2025-04-03 \\
+\addlinespace
+TCS.NS & Bull & 2024-06-03 .. 2024-09-03  \\
+\bottomrule
+\end{tabularx}
+}
+
+\subsubsection{4.3 Positioning vs prior agent-trading systems}\label{positioning-vs-prior-agent-trading-systems}
+
+\textbf{Table 3.} Qualitative comparison (see §4.1 for scope limits).
+
+{\small
+\begin{tabularx}{\linewidth}{@{} X X X X X @{}}
+\toprule
+Feature & Hindsight & BlindTrade & QuantAgents & Expert Investment Teams \\
+\midrule
+Primary goal &
+  Reproducible PIT stack + audit trail &
+  Anonymized RL/GNN policy &
+  Simulated agent meetings &
+  Hierarchical analyst teams \\
+\addlinespace
+Architecture &
+  LangGraph (staged) &
+  GNN + RL &
+  Meeting simulation &
+  Manager--analyst hierarchy \\
+\addlinespace
+Stochasticity reported &
+  N=1 per regime window &
+  20 seeds &
+  Multi-year + live tracking &
+  50 trials \\
+\addlinespace
+Universe &
+  2 NSE large-caps &
+  S\&P 500 (PIT) &
+  Multi-asset simulation &
+  TOPIX 100 \\
+\addlinespace
+Bias control &
+  Sim.\ end date + opt.\ anonymization &
+  Strict anonymization &
+  Simulation feedback &
+  Knowledge cutoff controls \\
+\addlinespace
+Costs in backtest &
+  Net (Zerodha delivery) &
+  Varies &
+  Varies &
+  Varies \\
+\addlinespace
+Key \S4 metrics &
+  Return, MDD, fee drag &
+  Sharpe (mean $\pm$ std) &
+  ARR, volatility &
+  Median Sharpe \\
+\bottomrule
+\end{tabularx}
+}
+
+\subsubsection{4.4 Results}\label{results}
+
+\textbf{Table 1.} Agent vs buy-and-hold (frozen CSVs, \$100,000 start).
+Returns and MDD are recomputed from daily \texttt{equity} and \texttt{close}.
+
+\medskip
+\noindent\textbf{(a) Returns.} Net, gross, fee drag, and alpha vs buy-and-hold.
+
+{\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{} l l r r r r r r @{}}
+\toprule
+Ticker & Regime & Days & B\&H & Agent (net) & Gross & Fee drag & $\alpha$ vs B\&H \\
+\midrule
+RELIANCE & Bear & 111 & $-17.43\%$ & $-7.54\%$ & $-6.53\%$ & 1.01 pp & $+9.89$ pp \\
+RELIANCE & Bull & 108 & $+15.09\%$ & $+5.56\%$ & $+6.19\%$ & 0.64 pp & $-9.53$ pp \\
+TCS      & Bear &  88 & $-20.42\%$ & $-4.83\%$ & $-2.92\%$ & 1.91 pp & $+15.59$ pp \\
+TCS      & Bull &  67 & $+21.86\%$ & $+19.61\%$ & $+21.80\%$ & 2.20 pp & $-2.25$ pp \\
+\bottomrule
+\end{tabular}
+}
+
+\medskip
+\noindent\textbf{(b) Drawdown, fees, and signals.}
+MDD is peak-to-trough. Fees are in dollars. B/H/S is buy/hold/sell days.
+
+{\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{} l l r r r r @{}}
+\toprule
+Ticker & Regime & B\&H MDD & Agent MDD & Fees (\$) & B/H/S \\
+\midrule
+RELIANCE & Bear & $21.0\%$ & $5.11\%$ & 1,010 & 7/28/76 \\
+RELIANCE & Bull & $11.0\%$ & $2.80\%$ & 635   & 9/25/74 \\
+TCS      & Bear & $23.9\%$ & $6.78\%$ & 1,910 & 12/24/52 \\
+TCS      & Bull &  $5.5\%$ & $1.65\%$ & 2,198 & 13/14/40 \\
+\bottomrule
+\end{tabular}
+}
+
+\textbf{Table 2.} Secondary risk-adjusted metrics (post-hoc on frozen
+daily equity; excess Sharpe uses \textbf{6.5\% p.a.} risk-free
+rate
+
+\medskip
+\noindent
+Excess Sharpe is the agent or buy-and-hold equity path.
+Sortino and Calmar are on the agent path only.
+
+\medskip
+{\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{} l l r r r r @{}}
+\toprule
+Ticker & Regime &
+\begin{tabular}[b]{@{}r@{}}Excess Sharpe\\(agent)\end{tabular} &
+\begin{tabular}[b]{@{}r@{}}Excess Sharpe\\(B\&H)\end{tabular} &
+Sortino & Calmar \\
+\midrule
+RELIANCE & Bear & $-4.27$ & $-2.51$ & $-3.10$ & $-0.96$ \\
+RELIANCE & Bull & $+0.74$ & $+1.25$ & $+3.67$ & $+1.94$ \\
+TCS      & Bear & $-2.69$ & $-3.13$ & $-2.25$ & $-0.71$ \\
+TCS      & Bull & $+3.86$ & $+3.27$ & $+24.22$ & $+11.88$ \\
+\bottomrule
+\end{tabular}
+}
+
+Short windows and discrete daily rebalancing make risk ratios
+\textbf{noisy}; we interpret Table 2 alongside Table 1, not in
+isolation. RELIANCE bull is positive on total return (+5.6\%) with
+positive excess Sharpe (+0.74) but lags B\&H on alpha (−9.53 pp).
+
+\textbf{Cross-ticker patterns (observed in these windows).}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Bear (2/2):} agent \textbf{loses less} than B\&H on total
+  return and shows \textbf{markedly lower MDD} (e.g., RELIANCE bear:
+  5.1\% vs 21.0\%). Both runs are \textbf{SELL-heavy}, consistent with
+  reduced long exposure during drawdowns.
+\item
+  \textbf{Bull (mixed):} TCS agent \textbf{nearly tracks} B\&H (+19.6\%
+  vs +21.9\%, α −2.25 pp); RELIANCE agent \textbf{lags} (+5.6\% vs
+  +15.1\%, α −9.53 pp) with 74 SELL vs 9 BUY days.
+\end{itemize}
+
+\textbf{Table 4.} Selected outlook / stance shares (\% of trading days).
+Full pivot in notebook.
+
+\medskip
+\noindent
+Shares are percent of trading days.
+Market columns are the market analyst's outlook.
+Stance columns are the bull researcher's buy share and the bear researcher's sell share.
+
+\medskip
+{
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{} l l r r r r @{}}
+\toprule
+Ticker & Regime &
+\begin{tabular}[b]{@{}r@{}}Market\\bullish\end{tabular} &
+\begin{tabular}[b]{@{}r@{}}Market\\bearish\end{tabular} &
+\begin{tabular}[b]{@{}r@{}}Bull stance\\buy\end{tabular} &
+\begin{tabular}[b]{@{}r@{}}Bear stance\\sell\end{tabular} \\
+\midrule
+RELIANCE & Bear & 10.8 & 31.5 & 100.0 & 88.3 \\
+RELIANCE & Bull & 24.1 & 19.4 &  94.4 & 77.8 \\
+TCS      & Bear & 22.7 & 33.0 &  71.6 & 53.4 \\
+TCS      & Bull & 46.3 & 14.9 &  64.2 & 44.8 \\
+\bottomrule
+\end{tabular}
+}
+
+Internal \textbf{bull researcher} stances can remain buy-leaning while
+\textbf{final signals} stay defensive downstream trader and risk
+stages drive executable actions.
+
+\subsubsection{4.5 Transaction-cost breakeven and architectural
+boundaries}\label{transaction-cost-breakeven-and-architectural-boundaries}
+
+\textbf{Fee drag vs alpha.} Fee drag is modest (0.6--2.2 pp of initial
+capital; Table 1). It does not explain RELIANCE bull
+under-participation: the −9.53 pp alpha gap dominates
+0.64 pp fee drag. In bear windows, defensive positioning yields
+positive alpha (+9.89 pp REL, +15.59 pp TCS) despite similar
+fee levels suggesting exposure management, not costs, drives
+regime-split outcomes.
+
+\textbf{Simplified breakeven spread.} Let (K) be non-HOLD signal days
+and (F) total fees. A coarse \textbf{fee-and-turnover breakeven} is the
+average daily edge required to justify rebalancing: (F / (V\_0
+\cdot K)). For RELIANCE bull ((K=83) actionable days, (F=\$635)), this
+is ≈\textbf{7.7 bps/day} far below the \textbf{88
+bps/day}
+\noindent
+implied alpha shortfall ((9.53\%/108) days). The binding
+constraint is \textbf{SELL-heavy coordination} (74 SELL days), not
+delivery fees alone.
+
+\textbf{Architectural boundary (hypothesis).} Multi-stage debate →
+trader → risk can \textbf{compress drawdown} in bear windows but
+\textbf{cap rally participation} in bull windows when final policy stays
+defensive despite buy-leaning researcher stances (Table 4). RELIANCE
+bull exemplifies this boundary; TCS bull shows the same stack can
+\textbf{nearly track} B\&H when signal balance is less skewed (13 BUY,
+40 SELL). We frame this as \textbf{regime × issuer interaction under one
+architecture}, not a universal win/loss verdict.
+
+We do \textbf{not} estimate latency-driven slippage (full
+\textbf{Coordination Breakeven Spread} per Nguyen and Pham, 2026); that
+remains future work alongside StockSim-class order-level simulation
+(Papadakis et al., 2025).
+
+\subsubsection{4.6 Figures}\label{figures}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{MPLCONFIGDIR}\OperatorTok{=}\NormalTok{.mpl\_cache }\ExtensionTok{.venv/bin/python}\NormalTok{ scripts/generate\_paper\_figures.py}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{\texttt{fig\_regime\_equity\_grid}} --- 2×2 agent vs B\&H
+  panels\\
+\item
+  \textbf{\texttt{fig\_regime\_returns\_by\_ticker}} --- total return
+  bars (four runs)\\
+\item
+  \textbf{\texttt{fig\_regime\_signals\_by\_ticker}} --- BUY/HOLD/SELL
+  counts\\
+\item
+  \textbf{\texttt{fig\_regime\_outlook\_bullish}} --- bullish
+  analyst-outlook share heatmap
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Conclusion}\label{conclusion}
+
+We presented \textbf{Hindsight 20/20}, a reproducible point-in-time
+LangGraph stack with structured outputs, optional anonymization, and
+fee-aware backtesting, plus a \textbf{scoped four-window case study} on
+\textbf{RELIANCE.NS} and \textbf{TCS.NS}. In the \textbf{observed bear
+windows}, the full pipeline shows \textbf{lower loss and drawdown} than
+buy-and-hold; \textbf{bull-window outcomes are heterogeneous},
+consistent with an architectural trade-off between defensive
+coordination and rally participation.
+
+\textbf{Limitations and future work.}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Inferential scope:} N=1 per regime window; no multi-seed
+  variance; two tickers---not an index universe.
+\item
+  \textbf{Calendars:} Per-ticker windows are not synchronous; no shared
+  macro calendar claim.
+\item
+  \textbf{Model and ablations:} Single LLM
+  (\texttt{qwen/qwen3.5-flash-02-23}); anonymization on but not ablated;
+  \texttt{a1}--\texttt{a3} presets not evaluated in §4.
+\item
+  \textbf{Metrics:} Short windows; risk ratios are secondary; no
+  latency/slippage CBS; Infosys windows in \texttt{regime-timeranges}
+  planned but not run.
+\item
+  \textbf{Future empirical work (out of scope here):} multi-seed trials,
+  broader PIT universes, anonymization ablations, and full CBS with
+  measured agent latency.
+\end{itemize}
+
+Regimes are \textbf{exogenous labels}, not agent predictions.
+\textbf{Not claimed:} SOTA returns; regime forecasting; statistical
+generalization beyond the four frozen windows.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Contributions}\label{contributions}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Reproducible backtest harness and frozen artifacts} ---
+  fee-aware paper ledger, schedule CSVs, replication scripts (S5 /
+  M6).\\
+\item
+  \textbf{Point-in-time data policy and optional anonymization} ---
+  simulation end date at vendor routing; deterministic ticker aliases
+  (S4 / M4--M5).\\
+\item
+  \textbf{Structured stage outputs} --- Pydantic-constrained artifacts
+  for audit and traceability (S3 / M3).\\
+\item
+  \textbf{Multi-agent decision graph} with tool-bound analyst
+  decomposition (S1 / M1).\\
+\item
+  \textbf{Honest regime-conditioned case study} --- four pre-specified
+  windows, documented limits, architectural-boundary interpretation (S2
+  / E1).
+\end{enumerate}
+
+\textbf{Not claimed:} SOTA returns; regime prediction; multi-seed
+benchmarks; ablation studies in §4.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Acknowledgements}\label{acknowledgements}
+
+The agent graph implementation builds on \textbf{TradingAgents} (Xiao et
+al., 2024; Tauric Research, Apache License 2.0). We thank the authors
+for open-sourcing the framework.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{References}\label{references}
+
+Badica, C., Badica, A., Ganzha, M., Ivanović, M., Paprzycki, M.,
+Selişteanu, D. and Wrona, Z., 2025. Contemporary Agent Technology:
+LLM-Driven Advancements vs Classic Multi-Agent Systems. \emph{arXiv
+preprint} arXiv:2509.02515 {[}cs.MA{]}. https://arxiv.org/abs/2509.02515
+
+Bailey, D.H., Borwein, J.M., López de Prado, M. and Zhu, Q.J., 2014.
+Pseudo-Mathematics and Financial Charlatanism: The Effects of Backtest
+Overfitting on Out-of-Sample Performance. \emph{Notices of the American
+Mathematical Society}, 61(5), pp.458--471.
+https://doi.org/10.1090/noti1105
+
+Dewansh, S., 2026. Policy Convergence and Explainable Stability in
+Orchestrated Multi-Agent LLM Trading Frameworks. \emph{International
+Journal of Advanced Engineering and Management Science}, 12(2),
+pp.058--064. https://doi.org/10.22161/ijaems.122.8
+
+Jeon, J. and Lee, H., 2026. Can Blindfolded LLMs Still Trade? An
+Anonymization-First Framework for Portfolio Optimization. \emph{arXiv
+preprint} arXiv:2603.17692 {[}cs.LG{]}. https://arxiv.org/abs/2603.17692
+
+Li, X., Zeng, Y., Xing, X., Xu, J. and Xu, X., 2025. QuantAgents:
+Towards Multi-agent Financial System via Simulated Trading. In
+\emph{Findings of the Association for Computational Linguistics: EMNLP
+2025}, pp.17438--17464, Suzhou, China.
+https://doi.org/10.18653/v1/2025.findings-emnlp.945
+
+Miyazaki, K., Kawahara, T., Roberts, S. and Zohren, S., 2026. Toward
+Expert Investment Teams: A Multi-Agent LLM System with Fine-Grained
+Trading Tasks. \emph{arXiv preprint} arXiv:2602.23330 {[}cs.AI{]}.
+https://arxiv.org/abs/2602.23330
+
+Nguyen, P. and Pham, T., 2026. Toward Reliable Evaluation of LLM-Based
+Financial Multi-Agent Systems: Taxonomy, Coordination Primacy, and Cost
+Awareness. \emph{arXiv preprint} arXiv:2603.27539 {[}cs.MA{]}.
+https://arxiv.org/abs/2603.27539
+
+Papadakis, C., Filandrianos, G., Dimitriou, A., Lymperaiou, M., Thomas,
+K. and Stamou, G., 2025. StockSim: A Dual-Mode Order-Level Simulator for
+Evaluating Multi-Agent LLMs in Financial Markets. \emph{arXiv preprint}
+arXiv:2507.09255 {[}cs.CE{]}. https://arxiv.org/abs/2507.09255
+
+Qian, L., Peng, X., Wang, Y., Zhang, V.J., He, H., Li, Z., Smith, H.,
+Han, Y., He, Y., Li, H., Cao, Y., Yu, Y., Lopez-Lira, A., Lu, P., Nie,
+J.-Y., Xiong, G., Huang, J. and Ananiadou, S., 2026. When Agents Trade:
+Live Multi-Market Trading Arena for LLM Agents. In \emph{Proceedings of
+the ACM Web Conference 2026}. https://doi.org/10.1145/3774904.3792821
+
+Xiao, Y., Sun, E., Luo, D. and Wang, W., 2024. TradingAgents:
+Multi-Agents LLM Financial Trading Framework. \emph{arXiv preprint}
+arXiv:2412.20138 {[}q-fin.TR{]}. https://arxiv.org/abs/2412.20138
+
+Yang, H., Liu, X.-Y. and Wang, C.D., 2023. FinGPT: Open-Source Financial
+Large Language Models. \emph{arXiv preprint} arXiv:2306.06031
+{[}q-fin.ST{]}. https://arxiv.org/abs/2306.06031
+
+Yu, Y., Li, H., Chen, Z., Jiang, Y., Li, Y., Zhang, D., Liu, R., Suchow,
+J.W. and Khashanah, K., 2023. FinMem: A Performance-Enhanced LLM Trading
+Agent with Layered Memory and Character Design. \emph{arXiv preprint}
+arXiv:2311.13743 {[}q-fin.CP{]}. https://arxiv.org/abs/2311.13743
+
+Zhao, T., Lyu, J., Jones, S., Garber, H., Pasquali, S. and Mehta, D.,
+2025. AlphaAgents: Large Language Model based Multi-Agents for Equity
+Portfolio Constructions. \emph{arXiv preprint} arXiv:2508.11152
+{[}q-fin.ST{]}. https://arxiv.org/abs/2508.11152
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Changelog}\label{changelog}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.4286}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5714}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Date
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Change
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+2026-05-29 & Expanded references and Related Work contrasts (Nguyen and
+Pham, Jeon and Lee, Bailey et al., Miyazaki et al., Li et al., Zhao et
+al., Papadakis et al., Qian et al., Dewansh, Bădică et al.). \\
+2026-05-29 & Multi-ticker Frozen E1: TCS + completed REL bull through
+2025-06-03. \\
+\end{longtable}
+}
+
+\end{document}

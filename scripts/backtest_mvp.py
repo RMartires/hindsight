@@ -355,6 +355,15 @@ def main() -> int:
     if langfuse_handler is not None:
         callbacks.append(langfuse_handler)
 
+    if schedule_path is not None:
+        # One directory per schedule so two seeds can run without sharing a log file.
+        config["state_log_dir"] = str(
+            Path("eval_results")
+            / args.ticker.strip()
+            / "TradingAgentsStrategy_logs"
+            / schedule_path.stem
+        )
+
     graph = TradingAgentsGraph(
         debug=args.debug,
         config=config,

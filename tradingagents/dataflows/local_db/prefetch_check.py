@@ -21,7 +21,11 @@ def verify_local_ohlcv_coverage(
         return
 
     sym = normalize_symbol_key(symbol)
-    store = MarketDataStore(db_path=db_path) if db_path else MarketDataStore()
+    store = (
+        MarketDataStore(db_path=db_path, read_only=True)
+        if db_path
+        else MarketDataStore(read_only=True)
+    )
     try:
         present = store.dates_present(sym, trade_dates)
     finally:
