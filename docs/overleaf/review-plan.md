@@ -20,14 +20,14 @@ Tick items off as they land on Overleaf.
 - [x] **B0. Reference verification.** All 13 entries checked against arXiv API / Crossref on 2026-10-12. 12 matched. **Qian et al.** was wrong: the WWW 2026 DOI `10.1145/3774904.3792821` does not resolve and no WWW record exists; real title is "...Trading **Benchmark** for LLM Agents" (not "Arena"); author list had a non-existent "Li, Z.". Now cited as arXiv:2510.11695 (2025), key `qian2025agent`; in-text year renders as 2025. Dewansh journal name corrected to "…Engineering, Management and Science", pages 58–64.
   - [ ] Propagate the Qian fix to `docs/paper/manuscript.md` (line 305), `docs/paper/submission/ios_manuscript.md` (line 208), and root `manuscript.tex` (lines 990–991), which still carry the bad DOI.
 
-- [ ] **B1. Anonymization: optional or mandatory?** §3.5 says it is applied to "all LLM-facing prompts"; code has a flag (`enable_anonymization`, default off in `tradingagents/default_config.py`, defaulted on by `scripts/backtest_mvp.py`). §4.1 says "Strict anonymization", Table 3 says "opt. anonymization", Conclusion says "optional anonymization". Use one framing everywhere: "optional; enabled in all four reported runs".
-- [ ] **B2. System name.** Title/abstract/intro say "Hindsight"; Conclusion says "Hindsight 20/20". Pick one.
-- [ ] **B3. Title grammar.** "A Multi-Agent for Quantitative Trading System" → "A Multi-Agent System for Quantitative Trading". Remove leftover `\label{manuscript-draft-export-to-pdf-latex}`.
-- [ ] **B4. Section numbering.** §3.3 jumps to §3.5 (no 3.4), then 3.6, 3.7. Renumber 3.1–3.6.
-- [ ] **B5. Table numbering by appearance.** Table 3 (§4.3) appears before Table 1 (§4.4); Table 4 follows Table 2. Renumber in order of appearance or accept and note it.
-- [ ] **B6. Table 4 preamble redundancy.** Caption says "(% of trading days)" and the note repeats "Shares are percent of trading days." Drop one.
-- [ ] **B7. `regime-timeranges`** in §4.1 is a file; use `\texttt{}` not `\textbf{}`.
-- [ ] **B8. Internal codes** in Contributions ("S5 / M6", "S4 / M4--M5", "S2 / E1") and `a1`–`a3` presets in Limitations mean nothing to a reader. Remove or explain in one sentence.
+- [x] **B1. Anonymization: optional or mandatory?** Decision: mandatory (on in all reported runs). Table 3 "opt. anonymization" → "strict anonymization"; Conclusion "optional anonymization" → "mandatory ticker anonymization"; Contributions "optional anonymization" → "mandatory anonymization". §3.5 ("all LLM-facing prompts") and §4.1 ("Strict anonymization") already matched. Limitations bullet "anonymization on but not ablated" kept as is.
+- [x] **B2. System name.** "Hindsight" everywhere; the single "Hindsight 20/20" in the Conclusion is replaced.
+- [x] **B3. Title grammar.** Now "Hindsight Agent: A Multi-Agent System for Quantitative Trading"; label renamed to `\label{title}`.
+- [x] **B4. Section numbering.** 3.5→3.4 (anonymization), 3.6→3.5 (metrics), 3.7→3.6 (observability). The only in-text cross-ref to the old §3.5 (Related Work, aliases sentence) now says §3.4. No references to old §3.6/§3.7 existed.
+- [x] **B5. Table numbering by appearance.** Renumbered: qualitative comparison (§4.3) is now Table 1, agent vs buy-and-hold is Table 2, secondary risk metrics is Table 3, stance shares stays Table 4. All seven in-text mentions updated (§1, §3.5 metrics table, §4.3, §4.4 ×3, §4.5). Tables are hand-numbered text, no `\label`/`\ref`.
+- [x] **B6. Table 4 preamble redundancy.** Dropped the note sentence; caption keeps "(% of trading days)".
+- [x] **B7. `regime-timeranges`** now `\texttt{}` in §4.1 (the §5 mention already was).
+- [x] **B8. Internal codes** removed from all five Contributions items (also dropped the trailing Pandoc `\\` on each item). Limitations bullet now describes the presets in words: "reduced-pipeline presets (market analyst only; all analysts without debate; debate without the risk stage) are implemented but not evaluated in §4" (mirrors `tradingagents/paper_ablation.py` a1/a2/a3).
 - [ ] **B9. Multi-seed status.** `results/` now has TCS bull seeds 2–7. Paper says N=1 throughout. Fine for this draft, but update the Limitations bullet "no multi-seed variance" if those seeds ship.
 
 ## C. Prose

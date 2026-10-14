@@ -109,7 +109,7 @@
 
 \begin{document}
 
-\section{Hindsight Agent: A Multi-Agent for Quantitative Trading System}\label{manuscript-draft-export-to-pdf-latex}
+\section{Hindsight Agent: A Multi-Agent System for Quantitative Trading}\label{title}
 
 % \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -153,7 +153,7 @@ not report multi-seed variance (each regime window is
 \textbf{N=1}). Frontier empirical papers
 \citep[e.g.,][]{jeon2026blindtrade,miyazaki2026expert} average tens of random seeds across index
 universes; our evaluation scope is deliberately narrower and is labeled
-as such (§4.1, Table 3).
+as such (§4.1, Table 1).
 
 Case-study evaluation We run the full multi-agent pipeline
 on \textbf{RELIANCE.NS} and \textbf{TCS.NS}.
@@ -196,7 +196,7 @@ ledger. \citet{jeon2026blindtrade} (\textbf{BlindTrade}) provide the strongest
 anonymization-first defense: tickers like ``AAPL'' can trigger memorized
 pretraining associations rather than fresh reasoning; they anonymize
 S\&P 500 constituents daily and report Sharpe $1.40 \pm 0.22$ across
-20 seeds. Hindsight's \textbf{\texttt{STOCK\_\#\#\#\#}} aliases (§3.5) pursue the same goal within a LangGraph replication stack
+20 seeds. Hindsight's \textbf{\texttt{STOCK\_\#\#\#\#}} aliases (§3.4) pursue the same goal within a LangGraph replication stack
 
 \textbf{Fine-grained tasks and coordination topology.}
 \citet{miyazaki2026expert} show that fine-grained analyst tasks (e.g., explicit
@@ -304,7 +304,7 @@ Analyst tool calls respect the simulation end date, it acts as a hard cut-off fo
 clamps vendor queries so agents cannot access data after the as-of trade date.
 each stage outputs conform to \textbf{Pydantic} schemas to get a typesafe json object.
 
-\subsubsection{3.5 Ticker anonymization}\label{ticker-anonymization}
+\subsubsection{3.4 Ticker anonymization}\label{ticker-anonymization}
 
 LLMs trained on public text encode firm-specific narratives tied to
 ticker symbols. In a point-in-time backtest, that pretraining
@@ -326,7 +326,7 @@ Hindsight anonymizes the issuer for all LLM-facing prompts and tool outputs:
   \texttt{PROPER\_NOUN} placeholders (heuristic, news-only).
 \end{enumerate}
 
-\subsubsection{3.6 Backtest metrics}\label{backtest-metrics}
+\subsubsection{3.5 Backtest metrics}\label{backtest-metrics}
 
 The paper ledger records daily agent equity after fees. Primary metrics emphasize \textbf{total
 return}, \textbf{maximum drawdown (MDD)}, and \textbf{fee drag};
@@ -356,14 +356,14 @@ Metric & Definition \\
   Mean daily excess return (over risk-free) / stdev, $\times \sqrt{252}$.\footnotemark \\
 \addlinespace
 \textbf{Sortino / Calmar} &
-  Implemented; reported in Table 2 (secondary) \\
+  Implemented; reported in Table 3 (secondary) \\
 \bottomrule
 \end{tabularx}
 \footnotetext{Risk-free rate is an India short-rate proxy of 6.5\% p.a.,
 converted to a daily rate $r_f/252$ and applied post-hoc on the frozen equity series.
 Annualization uses $\sqrt{252}$.}
 
-\subsubsection{3.7 Observability}\label{observability}
+\subsubsection{3.6 Observability}\label{observability}
 To monitor the entire agent run for one day we use Langfuse for observability into out TradingAgent.
 
 \newpage
@@ -408,7 +408,7 @@ alpha. Outcomes \textbf{observed in these four windows} should not be
 extrapolated to a broad universe without further study (§5).
 
 \textbf{Pre-specification.} Calendar windows are listed in
-\textbf{regime-timeranges} \textbf{before} agent backtests.
+\texttt{regime-timeranges} \textbf{before} agent backtests.
 Regime labels are assigned \textbf{exogenously} from underlying
 buy-and-hold return and are \textbf{independent} of internal Bull/Bear
 Researcher debate roles.
@@ -447,7 +447,7 @@ TCS.NS & Bull & 2024-06-03 .. 2024-09-03 \\
 
 \subsubsection{4.3 Positioning vs prior agent-trading systems}\label{positioning-vs-prior-agent-trading-systems}
 
-\textbf{Table 3.} Qualitative comparison (see §4.1 for scope limits).
+\textbf{Table 1.} Qualitative comparison (see §4.1 for scope limits).
 
 {\small
 \begin{tabularx}{\linewidth}{@{} X X X X X @{}}
@@ -479,7 +479,7 @@ Universe &
   TOPIX 100 \\
 \addlinespace
 Bias control &
-  Sim.\ end date + opt.\ anonymization &
+  Sim.\ end date + strict anonymization &
   Strict anonymization &
   Simulation feedback &
   Knowledge cutoff controls \\
@@ -501,7 +501,7 @@ Key \S4 metrics &
 
 \subsubsection{4.4 Results}\label{results}
 
-\textbf{Table 1.} Agent vs buy-and-hold (frozen CSVs, \$100,000 start).
+\textbf{Table 2.} Agent vs buy-and-hold (frozen CSVs, \$100,000 start).
 Returns and MDD are recomputed from daily \texttt{equity} and \texttt{close}.
 
 \medskip
@@ -539,7 +539,7 @@ TCS      & Bull &  $5.5\%$ & $1.65\%$ & 2,198 & 13/14/40 \\
 \end{tabular}
 }
 
-\textbf{Table 2.} Secondary risk-adjusted metrics (post-hoc on frozen
+\textbf{Table 3.} Secondary risk-adjusted metrics (post-hoc on frozen
 daily equity; excess Sharpe uses \textbf{6.5\% p.a.} risk-free
 rate).
 
@@ -567,7 +567,7 @@ TCS      & Bull & $+3.86$ & $+3.27$ & $+24.22$ & $+11.88$ \\
 }
 
 Short windows and discrete daily rebalancing make risk ratios
-\textbf{noisy}; we interpret Table 2 alongside Table 1, not in
+\textbf{noisy}; we interpret Table 3 alongside Table 2, not in
 isolation. RELIANCE bull is positive on total return (+5.6\%) with
 positive excess Sharpe ($+0.74$) but lags B\&H on alpha ($-9.53$ pp).
 
@@ -591,7 +591,6 @@ Full pivot in notebook.
 
 \medskip
 \noindent
-Shares are percent of trading days.
 Market columns are the market analyst's outlook.
 Stance columns are the bull researcher's buy share and the bear researcher's sell share.
 
@@ -622,7 +621,7 @@ stages drive executable actions.
 boundaries}\label{transaction-cost-breakeven-and-architectural-boundaries}
 
 \textbf{Fee drag vs alpha.} Fee drag is modest (0.6--2.2 pp of initial
-capital; Table 1). It does not explain RELIANCE bull
+capital; Table 2). It does not explain RELIANCE bull
 under-participation: the $-9.53$ pp alpha gap dominates
 0.64 pp fee drag. In bear windows, defensive positioning yields
 positive alpha (+9.89 pp REL, +15.59 pp TCS) despite similar
@@ -680,8 +679,8 @@ remains future work alongside StockSim-class order-level simulation
 
 \subsection{5. Conclusion}\label{conclusion}
 
-We presented \textbf{Hindsight 20/20}, a reproducible point-in-time
-LangGraph stack with structured outputs, optional anonymization, and
+We presented \textbf{Hindsight}, a reproducible point-in-time
+LangGraph stack with structured outputs, mandatory ticker anonymization, and
 fee-aware backtesting, plus a \textbf{scoped four-window case study} on
 \textbf{RELIANCE.NS} and \textbf{TCS.NS}. In the \textbf{observed bear
 windows}, the full pipeline shows \textbf{lower loss and drawdown} than
@@ -702,7 +701,9 @@ coordination and rally participation.
 \item
   \textbf{Model and ablations:} Single LLM
   (\texttt{qwen/qwen3.5-flash-02-23}); anonymization on but not ablated;
-  \texttt{a1}--\texttt{a3} presets not evaluated in §4.
+  reduced-pipeline presets (market analyst only; all analysts without
+  debate; debate without the risk stage) are implemented but not
+  evaluated in §4.
 \item
   \textbf{Metrics:} Short windows; risk ratios are secondary; no
   latency/slippage CBS; Infosys windows in \texttt{regime-timeranges}
@@ -726,22 +727,19 @@ generalization beyond the four frozen windows.
 \tightlist
 \item
   \textbf{Reproducible backtest harness and frozen artifacts} ---
-  fee-aware paper ledger, schedule CSVs, replication scripts (S5 /
-  M6).\\
+  fee-aware paper ledger, schedule CSVs, replication scripts.
 \item
-  \textbf{Point-in-time data policy and optional anonymization} ---
-  simulation end date at vendor routing; deterministic ticker aliases
-  (S4 / M4--M5).\\
+  \textbf{Point-in-time data policy and mandatory anonymization} ---
+  simulation end date at vendor routing; deterministic ticker aliases.
 \item
   \textbf{Structured stage outputs} --- Pydantic-constrained artifacts
-  for audit and traceability (S3 / M3).\\
+  for audit and traceability.
 \item
   \textbf{Multi-agent decision graph} with tool-bound analyst
-  decomposition (S1 / M1).\\
+  decomposition.
 \item
   \textbf{Honest regime-conditioned case study} --- four pre-specified
-  windows, documented limits, architectural-boundary interpretation (S2
-  / E1).
+  windows, documented limits, architectural-boundary interpretation.
 \end{enumerate}
 
 \textbf{Not claimed:} SOTA returns; regime prediction; multi-seed
