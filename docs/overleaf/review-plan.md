@@ -8,7 +8,7 @@ Tick items off as they land on Overleaf.
 
 - [x] **A1. §4.5 unwrapped math.** Pandoc's `\(...\)` became bare parentheses: `(K)`, `(F)`, `(F / (V\_0 \cdot K))`, `((K=83)`, `(F=\$635)`, `((9.53\%/108) days)`. `\cdot` outside math mode is a hard error. Replace with `$K$`, `$F$`, `$F/(V_0 \cdot K)$`, `$K=83$`, `$F=\$635$`, `$9.53\%/108$`.
 - [x] **A2. Stray `\addlinespace` outside tables** in §4.2 (two blocks of three, around lines 414–416 and 430–432). Expands to `\noalign` and errors outside a tabular. Replace with `\medskip` or delete.
-- [ ] **A3. `\citet{Nguyen2026Toward}`** at lines 181 and 187 with `natbib` loaded but no `\bibliography`. Prints `(?)`. Change both to inline "Nguyen and Pham (2026)" to match the rest of the paper, then drop `\usepackage{natbib}`.
+- [x] **A3. `\citet{Nguyen2026Toward}`** at lines 181 and 187 with `natbib` loaded but no `\bibliography`. Resolved the other way: all 13 references now live in `references.bib` (plainnat, author-year); every inline "Author (Year)" is a `\citet`/`\citep`/`\citealp`; the hand-typed References section is replaced by `\bibliography{references}`. Upload `references.bib` to the Overleaf project alongside `main.tex`.
 - [ ] **A4. Table 2 caption unterminated** (lines 544–546). Opening `(` never closed, no period after "risk-free rate". End it with `...risk-free rate).`
 - [ ] **A5. Unicode `α`** in §4.4 bullets and §4.5 is not available under pdfLaTeX + T1. Use `$\alpha$`. Also prefer `$\times$`, `$\rightarrow$`, `$\approx$`, `$-$` over `×`, `→`, `≈`, `−` throughout.
 - [ ] **A6. `\textbf{$\leq -10\%$}`** in the regime-rule table. `\textbf` does not bold math; use `$\leq -10\%$`.
@@ -16,6 +16,9 @@ Tick items off as they land on Overleaf.
 - [ ] **A8. Stray `\noindent`** mid-paragraph at line 640. Remove.
 
 ## B. Factual and internal consistency
+
+- [x] **B0. Reference verification.** All 13 entries checked against arXiv API / Crossref on 2026-10-12. 12 matched. **Qian et al.** was wrong: the WWW 2026 DOI `10.1145/3774904.3792821` does not resolve and no WWW record exists; real title is "...Trading **Benchmark** for LLM Agents" (not "Arena"); author list had a non-existent "Li, Z.". Now cited as arXiv:2510.11695 (2025), key `qian2025agent`; in-text year renders as 2025. Dewansh journal name corrected to "…Engineering, Management and Science", pages 58–64.
+  - [ ] Propagate the Qian fix to `docs/paper/manuscript.md` (line 305), `docs/paper/submission/ios_manuscript.md` (line 208), and root `manuscript.tex` (lines 990–991), which still carry the bad DOI.
 
 - [ ] **B1. Anonymization: optional or mandatory?** §3.5 says it is applied to "all LLM-facing prompts"; code has a flag (`enable_anonymization`, default off in `tradingagents/default_config.py`, defaulted on by `scripts/backtest_mvp.py`). §4.1 says "Strict anonymization", Table 3 says "opt. anonymization", Conclusion says "optional anonymization". Use one framing everywhere: "optional; enabled in all four reported runs".
 - [ ] **B2. System name.** Title/abstract/intro say "Hindsight"; Conclusion says "Hindsight 20/20". Pick one.
