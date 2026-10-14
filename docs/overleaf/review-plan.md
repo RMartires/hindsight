@@ -9,11 +9,11 @@ Tick items off as they land on Overleaf.
 - [x] **A1. §4.5 unwrapped math.** Pandoc's `\(...\)` became bare parentheses: `(K)`, `(F)`, `(F / (V\_0 \cdot K))`, `((K=83)`, `(F=\$635)`, `((9.53\%/108) days)`. `\cdot` outside math mode is a hard error. Replace with `$K$`, `$F$`, `$F/(V_0 \cdot K)$`, `$K=83$`, `$F=\$635$`, `$9.53\%/108$`.
 - [x] **A2. Stray `\addlinespace` outside tables** in §4.2 (two blocks of three, around lines 414–416 and 430–432). Expands to `\noalign` and errors outside a tabular. Replace with `\medskip` or delete.
 - [x] **A3. `\citet{Nguyen2026Toward}`** at lines 181 and 187 with `natbib` loaded but no `\bibliography`. Resolved the other way: all 13 references now live in `references.bib` (plainnat, author-year); every inline "Author (Year)" is a `\citet`/`\citep`/`\citealp`; the hand-typed References section is replaced by `\bibliography{references}`. Upload `references.bib` to the Overleaf project alongside `main.tex`.
-- [ ] **A4. Table 2 caption unterminated** (lines 544–546). Opening `(` never closed, no period after "risk-free rate". End it with `...risk-free rate).`
-- [ ] **A5. Unicode `α`** in §4.4 bullets and §4.5 is not available under pdfLaTeX + T1. Use `$\alpha$`. Also prefer `$\times$`, `$\rightarrow$`, `$\approx$`, `$-$` over `×`, `→`, `≈`, `−` throughout.
-- [ ] **A6. `\textbf{$\leq -10\%$}`** in the regime-rule table. `\textbf` does not bold math; use `$\leq -10\%$`.
-- [ ] **A7. §4.2 windows table** declared `{l l l X}` (4 columns) but rows have 3 cells. Change to `\begin{tabular}{@{} l l l @{}}` and drop `tabularx` there.
-- [ ] **A8. Stray `\noindent`** mid-paragraph at line 640. Remove.
+- [x] **A4. Table 2 caption unterminated** (lines 544–546). Opening `(` never closed, no period after "risk-free rate". End it with `...risk-free rate).`
+- [x] **A5. Unicode `α`** in §4.4 bullets and §4.5 is not available under pdfLaTeX + T1. Use `$\alpha$`. Also prefer `$\times$`, `$\rightarrow$`, `$\approx$`, `$-$` over `×`, `→`, `≈`, `−` throughout.
+- [x] **A6. `\textbf{$\leq -10\%$}`** in the regime-rule table. `\textbf` does not bold math; use `$\leq -10\%$`.
+- [x] **A7. §4.2 windows table** declared `{l l l X}` (4 columns) but rows have 3 cells. Change to `\begin{tabular}{@{} l l l @{}}` and drop `tabularx` there.
+- [x] **A8. Stray `\noindent`** mid-paragraph at line 640. Remove.
 
 ## B. Factual and internal consistency
 

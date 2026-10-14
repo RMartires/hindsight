@@ -127,7 +127,7 @@ engineering, auditable stage artifacts, and frozen CSV
 schedules. As an illustrative case study, we evaluate Hindsights full multi-agent pipeline
 on two liquid large-cap NSE listings---\textbf{RELIANCE.NS} and
 \textbf{TCS.NS}---in four pre-specified regime windows (two
-tickers × exogenous bear/bull labels. one deterministic
+tickers $\times$ exogenous bear/bull labels. one deterministic
 trajectory per window, no seed averaging).
 \textbf{Code and artifacts:}
 \url{https://github.com/RMartires/hindsight}.
@@ -171,7 +171,7 @@ specialist roles for trading and finance
 shift from explicitly programmed BDI-style agents to emergent LLM
 behaviors raising new demands for verifiable coordination and audit
 trails. While \textbf{TradingAgents} \citep{xiao2024tradingagents} provides the
-foundational analyst → debate → trader graph that we extend, it does not
+foundational analyst $\rightarrow$ debate $\rightarrow$ trader graph that we extend, it does not
 ship adapter-level temporal clamps, schema-persisted stage artifacts, or
 a fee-aware replication harness. \textbf{AlphaAgents}
 \citep{zhao2025alphaagents} validates institution-style role separation (Fundamental,
@@ -195,7 +195,7 @@ the former via a simulation end date at vendor routing
 ledger. \citet{jeon2026blindtrade} (\textbf{BlindTrade}) provide the strongest
 anonymization-first defense: tickers like ``AAPL'' can trigger memorized
 pretraining associations rather than fresh reasoning; they anonymize
-S\&P 500 constituents daily and report Sharpe 1.40 ± 0.22 across
+S\&P 500 constituents daily and report Sharpe $1.40 \pm 0.22$ across
 20 seeds. Hindsight's \textbf{\texttt{STOCK\_\#\#\#\#}} aliases (§3.5) pursue the same goal within a LangGraph replication stack
 
 \textbf{Fine-grained tasks and coordination topology.}
@@ -209,7 +209,7 @@ comparable universe-scale statistics. \citet{dewansh2026policy} frames
 explainable stability and rationale persistence as
 audit criteria for orchestrated trading agents; our Pydantic stage
 outputs and wide schedule CSVs are designed to support that traceability
-(outlook → stance → \texttt{final\_signal}), even though we do not
+(outlook $\rightarrow$ stance $\rightarrow$ \texttt{final\_signal}), even though we do not
 formally score policy convergence.
 
 \textbf{Benchmarks, simulators, and live evaluation.} \citet{qian2025agent}
@@ -240,8 +240,8 @@ to reproduce it}: simulation end dates, structured artifacts, net returns, and f
 
 \subsubsection{3.1 Architecture}\label{architecture}
 
-\textbf{TradingAgentsGraph}: \textbf{Analysts} → \textbf{Bull/Bear
-Researchers debate} → \textbf{trader} → \textbf{risk} → \textbf{final decision}.
+\textbf{TradingAgentsGraph}: \textbf{Analysts} $\rightarrow$ \textbf{Bull/Bear
+Researchers debate} $\rightarrow$ \textbf{trader} $\rightarrow$ \textbf{risk} $\rightarrow$ \textbf{final decision}.
 Core routing follows \textbf{TradingAgents} \citep{xiao2024tradingagents}; our modifications focus on
 temporal data policy, schema-constrained outputs, and the backtest/evaluation pipeline.
 
@@ -420,8 +420,8 @@ protocol}\label{regime-definition-and-protocol}
 \toprule
 Regime label & Rule (underlying B\&H on processed window, per ticker) \\
 \midrule
-\textbf{Bear} & Total return \textbf{$\leq -10\%$} \\
-\textbf{Bull} & Total return \textbf{$\geq +10\%$} \\
+\textbf{Bear} & Total return $\leq -10\%$ \\
+\textbf{Bull} & Total return $\geq +10\%$ \\
 \bottomrule
 \end{tabular}
 
@@ -430,19 +430,19 @@ RELIANCE bull Jan--Jun 2025). Each run uses \textbf{\$100,000} initial cash.
 
 \medskip
 {\small
-\begin{tabularx}{\linewidth}{@{} l l l X @{}}
+\begin{tabular}{@{} l l l @{}}
 \toprule
 Ticker & Regime & Processed window \\
 \midrule
-RELIANCE.NS & Bear & 2024-08-01 .. 2025-01-03  \\
+RELIANCE.NS & Bear & 2024-08-01 .. 2025-01-03 \\
 \addlinespace
 RELIANCE.NS & Bull & 2025-01-01 .. 2025-06-03 \\
 \addlinespace
 TCS.NS & Bear & 2024-12-02 .. 2025-04-03 \\
 \addlinespace
-TCS.NS & Bull & 2024-06-03 .. 2024-09-03  \\
+TCS.NS & Bull & 2024-06-03 .. 2024-09-03 \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 }
 
 \subsubsection{4.3 Positioning vs prior agent-trading systems}\label{positioning-vs-prior-agent-trading-systems}
@@ -541,7 +541,7 @@ TCS      & Bull &  $5.5\%$ & $1.65\%$ & 2,198 & 13/14/40 \\
 
 \textbf{Table 2.} Secondary risk-adjusted metrics (post-hoc on frozen
 daily equity; excess Sharpe uses \textbf{6.5\% p.a.} risk-free
-rate
+rate).
 
 \medskip
 \noindent
@@ -569,7 +569,7 @@ TCS      & Bull & $+3.86$ & $+3.27$ & $+24.22$ & $+11.88$ \\
 Short windows and discrete daily rebalancing make risk ratios
 \textbf{noisy}; we interpret Table 2 alongside Table 1, not in
 isolation. RELIANCE bull is positive on total return (+5.6\%) with
-positive excess Sharpe (+0.74) but lags B\&H on alpha (−9.53 pp).
+positive excess Sharpe ($+0.74$) but lags B\&H on alpha ($-9.53$ pp).
 
 \textbf{Cross-ticker patterns (observed in these windows).}
 
@@ -582,8 +582,8 @@ positive excess Sharpe (+0.74) but lags B\&H on alpha (−9.53 pp).
   reduced long exposure during drawdowns.
 \item
   \textbf{Bull (mixed):} TCS agent \textbf{nearly tracks} B\&H (+19.6\%
-  vs +21.9\%, α −2.25 pp); RELIANCE agent \textbf{lags} (+5.6\% vs
-  +15.1\%, α −9.53 pp) with 74 SELL vs 9 BUY days.
+  vs +21.9\%, $\alpha$ $-2.25$ pp); RELIANCE agent \textbf{lags} (+5.6\% vs
+  +15.1\%, $\alpha$ $-9.53$ pp) with 74 SELL vs 9 BUY days.
 \end{itemize}
 
 \textbf{Table 4.} Selected outlook / stance shares (\% of trading days).
@@ -623,7 +623,7 @@ boundaries}\label{transaction-cost-breakeven-and-architectural-boundaries}
 
 \textbf{Fee drag vs alpha.} Fee drag is modest (0.6--2.2 pp of initial
 capital; Table 1). It does not explain RELIANCE bull
-under-participation: the −9.53 pp alpha gap dominates
+under-participation: the $-9.53$ pp alpha gap dominates
 0.64 pp fee drag. In bear windows, defensive positioning yields
 positive alpha (+9.89 pp REL, +15.59 pp TCS) despite similar
 fee levels suggesting exposure management, not costs, drives
@@ -633,18 +633,18 @@ regime-split outcomes.
 and $F$ total fees. A coarse \textbf{fee-and-turnover breakeven} is the
 average daily edge required to justify rebalancing: $F / (V_0 \cdot K)$.
 For RELIANCE bull ($K=83$ actionable days, $F=\$635$), this
-is ≈\textbf{7.7 bps/day} far below the \textbf{88 bps/day}
+is $\approx$\textbf{7.7 bps/day} far below the \textbf{88 bps/day}
 implied alpha shortfall ($9.53\%/108$ days). The binding
 constraint is \textbf{SELL-heavy coordination} (74 SELL days), not
 delivery fees alone.
 
-\textbf{Architectural boundary (hypothesis).} Multi-stage debate →
-trader → risk can \textbf{compress drawdown} in bear windows but
+\textbf{Architectural boundary (hypothesis).} Multi-stage debate $\rightarrow$
+trader $\rightarrow$ risk can \textbf{compress drawdown} in bear windows but
 \textbf{cap rally participation} in bull windows when final policy stays
 defensive despite buy-leaning researcher stances (Table 4). RELIANCE
 bull exemplifies this boundary; TCS bull shows the same stack can
 \textbf{nearly track} B\&H when signal balance is less skewed (13 BUY,
-40 SELL). We frame this as \textbf{regime × issuer interaction under one
+40 SELL). We frame this as \textbf{regime $\times$ issuer interaction under one
 architecture}, not a universal win/loss verdict.
 
 We do \textbf{not} estimate latency-driven slippage (full
@@ -663,7 +663,7 @@ remains future work alongside StockSim-class order-level simulation
 \begin{itemize}
 \tightlist
 \item
-  \textbf{\texttt{fig\_regime\_equity\_grid}} --- 2×2 agent vs B\&H
+  \textbf{\texttt{fig\_regime\_equity\_grid}} --- $2\times2$ agent vs B\&H
   panels\\
 \item
   \textbf{\texttt{fig\_regime\_returns\_by\_ticker}} --- total return
