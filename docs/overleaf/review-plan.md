@@ -34,15 +34,15 @@ Tick items off as they land on Overleaf.
 
 ### C1. Typos and grammar
 
-- [ ] Abstract: "any llm bias" → "LLM"; "Hindsights full" → "Hindsight's"; "(two tickers × exogenous bear/bull labels. one deterministic…)" → semicolon; "The primary contribution is X, Y, and Z" → "contributions are".
-- [ ] Intro: `\textbf{What this paper is} \textbf{Hindsight} extends` — missing period after "is"; "Case-study evaluation We run" — needs period and bold lead to match siblings; "one bear and one bull calendar windows" → "window".
-- [ ] §2: "behaviors raising new demands" → "behaviors, raising"; "simulated trading feedback both comparators" → "feedback; both are comparators"; lowercase sentence start "we report a simplified…" (line 181); missing period after "replication stack" (line 195); "(§3.2) aligning" → "(§3.2), aligning"; "Jeon and Lee (2026) (\textbf{BlindTrade})" → "Jeon and Lee's BlindTrade (2026)".
-- [ ] §3.3 comma-splice run-on. Suggested: "Analyst tool calls respect the simulation end date: vendor queries are clamped so no data after the as-of trade date is returned. Each stage emits a Pydantic-validated object, giving typed JSON artifacts."
-- [ ] §3.5: move "e.g." outside `\texttt{}` in `(\texttt{e.g. STOCK\_\#\#\#\#})`.
-- [ ] §3.7: "into out TradingAgent" → "our". Expand to say what is traced (per-stage LLM calls, tool calls, tokens/cost per trading day) or fold into §3.3.
-- [ ] §4.4: "stay defensive downstream trader and risk stages drive" — restore separator: "stay defensive; downstream trader…".
-- [ ] §4.5: "fee levels suggesting" → "fee levels, suggesting".
-- [ ] References: "Badica" (refs) vs "Bădică" (text). Make consistent.
+- [x] Abstract: "any llm bias" → "LLM"; "Hindsights full" → "Hindsight's"; "(two tickers × exogenous bear/bull labels. one deterministic…)" → semicolon; "The primary contribution is X, Y, and Z" → "contributions are".
+- [x] Intro: `\textbf{What this paper is} \textbf{Hindsight} extends` — missing period after "is"; "Case-study evaluation We run" — needs period and bold lead to match siblings; "one bear and one bull calendar windows" → "window".
+- [x] §2: "behaviors raising new demands" → "behaviors, raising"; "simulated trading feedback both comparators" → "feedback; both are comparators"; lowercase sentence start "we report a simplified…"; missing period after "replication stack"; "(§3.2) aligning" → "(§3.2), aligning"; BlindTrade sentence now `\citeauthor{}'s \textbf{BlindTrade} \citeyearpar{}` → "Jeon and Lee's BlindTrade (2026)". Also caught a line-wrapped "(Table 3)" in the "Empirical scope" paragraph that B5 missed; now "(Table 1)".
+- [x] §3.3 comma-splice run-on rewritten as suggested.
+- [x] §3.4: "e.g." moved outside `\texttt{}` (`e.g.\ \texttt{STOCK\_\#\#\#\#}`).
+- [x] §3.6 Observability: "out" → fixed and expanded to four sentences: Langfuse via the LangChain callback handler, one trace per (ticker, trade date) with LLM calls / tool calls / tokens / latency, session-id keyed, complements §3.3 artifacts. Matches `tradingagents/observability/langfuse_config.py`.
+- [x] §4.4: "stay defensive; downstream trader…".
+- [x] §4.5: "fee levels, suggesting".
+- [x] References: resolved by B0 — `references.bib` uses `B{\u{a}}dic{\u{a}}`, and in-text mentions are `\citet`, so both render "Bădică". The only literal "Bădică" left is in the Changelog table, which goes with D2.
 
 ### C2. AI-voice leftovers
 
