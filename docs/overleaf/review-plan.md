@@ -46,19 +46,20 @@ Tick items off as they land on Overleaf.
 
 ### C2. AI-voice leftovers
 
-- [ ] **Bold density.** Nearly every noun phrase is `\textbf{}`. Keep bold for paragraph leads and first use of a defined term. Unbold: "loses less", "markedly lower MDD", "SELL-heavy", "noisy", "not", "N=1", "\$100,000", "compress drawdown", "cap rally participation", "nearly track".
-- [ ] **"honest"** appears twice ("honest, scoped regime-split case study"; "Honest regime-conditioned case study"). Replace with "scoped" / "pre-specified".
-- [ ] **Duplicate "Not claimed:" block** in Conclusion and Contributions. Keep one.
-- [ ] **Templated framings**, trim to one: "articulate *what to measure*, Hindsight implements *how to reproduce it*"; "complementary, not directly comparable"; "not a universal win/loss verdict"; "illustrative stress test".
-- [ ] **Intro "Case-study evaluation" paragraph** repeats the abstract nearly verbatim. Cut or rewrite.
+- [x] **Bold density.** ~40 emphasis-only `\textbf{}` removed (all the listed ones plus tickers, "6.5% p.a.", "7.7/88 bps/day", "before/exogenously/independent", "differ by ticker", "no LOB claim", "agent architecture", "statistical stress tests", "auditability and temporal integrity", Conclusion result phrases, repeat mentions of TradingAgents/BlindTrade, fig names, `STOCK_####`). Kept: paragraph and item leads, table captions and row headers, §3.1 pipeline stage names, §3.5 primary-metric definitions, first mention of each named system in §2. "explainable stability" is now `\emph{}` (borrowed term).
+- [x] **"honest"** gone: Intro → "a scoped, pre-specified regime-split case study"; Contributions → "Pre-specified regime-conditioned case study --- four windows fixed before any agent run, …".
+- [x] **Duplicate "Not claimed:" block.** Kept the Conclusion one, merged in "multi-seed benchmarks; ablation results" from the Contributions copy, and deleted the latter.
+- [x] **Templated framings.** Kept "articulate *what to measure* / implements *how to reproduce it*" (Positioning summary). Rewrote the other three plainly: §2 "the comparison there is qualitative, since the studies differ in seeds and universe breadth"; §4.1 "Section 4 describes how one stack behaves under contrasting underlying trends. It does not test a hypothesis about expected alpha…"; §4.5 "We read this as a regime-by-issuer interaction within one architecture."
+- [x] **Intro "Case-study evaluation" paragraph** rewritten as a results preview instead of a setup repeat: \$100k per window, bear windows lose/draw down less, bull windows trail by 2.3 pp (TCS) and 9.5 pp (RELIANCE), pointer to §4 and §4.5. Numbers match Table 2 alphas.
 
 ## D. Structure and cleanup
 
-- [ ] **D1. §4.6 Figures** has a bash command and filename bullets, no figures. Either `\includegraphics` the four PDFs (see `docs/paper/submission/ios_manuscript.md` for the block) or delete the section.
-- [ ] **D2. Changelog section** should not ship; it is also the last `longtable`/`minipage` block. Delete.
-- [ ] **D3. `\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}`** separators are Markdown `---` artifacts. Remove all.
-- [ ] **D4. Preamble.** After D2, drop the ~40 syntax-highlighting `\newcommand{...Tok}` macros, `longtable`, `calc`, `footnotehyper`/`footnote`, `\makesavenoteenv`, `\newcounter{none}`, and the `\patchcmd\longtable` block. Keep `booktabs`, `array`, `tabularx`, `ragged2e`, `hyperref`/`bookmark`.
-- [ ] **D5. Title block.** `\author{}`/`\date{}` are empty and there is no `\maketitle`; title is a `\section`. OK for draft; swap to `\title`/`\author`/`\maketitle` when a venue template is chosen.
+- [x] **D1. §4.6 Figures.** Four PDFs copied to `docs/overleaf/figures/` and included as `figure` floats with captions and labels (`fig:equity-grid`, `fig:returns`, `fig:signals`, `fig:outlook-bullish`); bash block and bullets replaced by one sentence naming the regeneration script. **Upload the `figures/` folder to Overleaf with `main.tex` and `references.bib`.**
+- [x] **D2. Changelog section** deleted (with its `longtable`/`minipage` block).
+- [x] **D3. `\rule` separators** all removed (six, plus the commented one under the title).
+- [x] **D4. Preamble** rewritten from 108 lines to ~35: dropped all `...Tok` macros, `Shaded`/`Highlighting`, `fancyvrb`, `color`, `longtable`, `calc`, `etoolbox` patch, `footnotehyper`/`footnote`, `\makesavenoteenv`, `\newcounter{none}`, `xmpquote` shim, `pdfcreator=pandoc`; added `graphicx` + `\graphicspath{{figures/}}` for D1. Kept `booktabs`, `array`, `tabularx`, `ragged2e`, `natbib`, `bookmark`/`hyperref`, `xurl`, `microtype`, `parskip`, `\tightlist`.
+  - Verified with `tectonic` (installed via Homebrew, 2026-10-19): clean compile, 14 pages, 13 bib entries, no undefined refs/citations. Fixed three pre-existing overfull boxes along the way (§3.2 table columns narrowed to 2.2/3.3/3.3 cm; field-list and `resolve_ticker_for_vendor()` sentences reflowed). Remaining: one 0.6 pt overfull in a §3.2 table cell, invisible.
+- [x] **D5. Title block.** Now `\title{}`/`\author{}`/`\maketitle` with the author block from `ios_manuscript.md` (Rohit Edward Martires, Independent researcher, Goa, India, email); `\date{}` left empty so no date prints. Abstract is a proper `abstract` environment. `pdftitle`/`pdfauthor` set in `hypersetup`. Compiles clean with `tectonic`. Swap `article` for the venue class when chosen; the title block will carry over.
 
 ## Order of work
 
