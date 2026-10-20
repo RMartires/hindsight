@@ -165,7 +165,7 @@ so the comparison there is qualitative.
 \textbf{Positioning summary.} Where TradingAgents supplies the
 graph skeleton and BlindTrade / \citet{nguyen2026toward}
 articulate \emph{what to measure}, Hindsight implements \emph{how
-to reproduce it}: simulation end dates, structured artifacts, net returns, and frozen CSV schedules that regenerate Tables 1--5 without rerunning LLM inference.
+to reproduce it}: simulation end dates, structured artifacts, net returns, and frozen CSV schedules that regenerate Tables 1--6 without rerunning LLM inference.
 
 
 \subsection{3. Method / System}\label{method-system}
@@ -292,7 +292,7 @@ Metric & Definition \\
   Mean daily excess return (over risk-free) / stdev, $\times \sqrt{252}$.\footnotemark \\
 \addlinespace
 \textbf{Sortino / Calmar} &
-  Implemented; reported in Table 4 (secondary) \\
+  Implemented; reported in Table 5 (secondary) \\
 \bottomrule
 \end{tabularx}
 \footnotetext{Risk-free rate is an India short-rate proxy of 6.5\% p.a.,
@@ -477,10 +477,32 @@ TCS      & Bull &  $5.5\%$ & $1.65\%$ & 2,198 & 13/14/40 \\
 \end{tabular}
 }
 
-The TCS bull row above is one trajectory. Table 3 gives five more runs of that window.
+A 10/50 moving-average rule is a price-only baseline on the same four windows: long when the 10-day average is above the 50-day, otherwise flat. It uses the same ledger (\$100,000, Zerodha delivery fees, no slippage) and no language model.
 
 \medskip
-\noindent\textbf{Table 3.} Five repeat runs of the TCS bull window (\$100,000 start, 64 days).
+\noindent\textbf{Table 3.} 10/50 SMA versus the Table 2 agent (net return and alpha vs buy-and-hold).
+
+\medskip
+{\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{} l l r r r r @{}}
+\toprule
+Ticker & Regime & SMA net & SMA $\alpha$ & Agent net & Agent $\alpha$ \\
+\midrule
+RELIANCE & Bear & $-1.29\%$ & $+16.14$ pp & $-7.54\%$ & $+9.89$ pp \\
+RELIANCE & Bull & $-4.43\%$ & $-19.51$ pp & $+5.56\%$ & $-9.53$ pp \\
+TCS      & Bear & $-4.07\%$ & $+16.35$ pp & $-4.83\%$ & $+15.59$ pp \\
+TCS      & Bull & $+13.31\%$ & $-8.55$ pp & $+19.61\%$ & $-2.25$ pp \\
+\bottomrule
+\end{tabular}
+}
+
+In both bear windows the rule also loses less than buy-and-hold, and by more than the agent. In both bull windows it trails buy-and-hold. The frozen TCS agent beats the rule; the five repeat runs do not (mean $+7.79\%$; Table 4).
+
+The TCS bull row in Table 2 is one trajectory. Table 4 gives five more runs of that window.
+
+\medskip
+\noindent\textbf{Table 4.} Five repeat runs of the TCS bull window (\$100,000 start, 64 days).
 Buy-and-hold is $+21.86\%$ on every run. The Table 2 trajectory is not included. Mean and SD are across these five.
 
 \medskip
@@ -502,7 +524,7 @@ SD & & $2.92$ pp & $2.93$ pp & $0.71$ pp & \\
 \end{tabular}
 }
 
-\textbf{Table 4.} Secondary risk-adjusted metrics (post-hoc on frozen
+\textbf{Table 5.} Secondary risk-adjusted metrics (post-hoc on frozen
 daily equity; excess Sharpe uses 6.5\% p.a.\ risk-free
 rate).
 
@@ -530,7 +552,7 @@ TCS      & Bull & $+3.86$ & $+3.27$ & $+24.22$ & $+11.88$ \\
 }
 
 Short windows and discrete daily rebalancing make risk ratios
-noisy; we interpret Table 4 alongside Table 2, not in
+noisy; we interpret Table 5 alongside Table 2, not in
 isolation. RELIANCE bull is positive on total return (+5.6\%) with
 positive excess Sharpe ($+0.74$) but lags B\&H on alpha ($-9.53$ pp).
 
@@ -547,10 +569,10 @@ positive excess Sharpe ($+0.74$) but lags B\&H on alpha ($-9.53$ pp).
   \textbf{Bull (mixed):} RELIANCE lags (+5.6\% vs
   +15.1\%, $\alpha$ $-9.53$ pp) with 74 SELL vs 9 BUY days.
   On TCS the frozen run nearly tracks buy-and-hold ($-2.3$ pp); the
-  five repeat runs do not (mean $-14.1$ pp; Table 3).
+  five repeat runs do not (mean $-14.1$ pp; Table 4).
 \end{itemize}
 
-\textbf{Table 5.} Selected outlook / stance shares (\% of trading days).
+\textbf{Table 6.} Selected outlook / stance shares (\% of trading days).
 Full pivot in notebook.
 
 \medskip
@@ -590,7 +612,9 @@ under-participation: the $-9.53$ pp alpha gap dominates
 0.64 pp fee drag. In bear windows, defensive positioning yields
 positive alpha (+9.89 pp REL, +15.59 pp TCS) despite similar
 fee levels, suggesting exposure management, not costs, drives
-regime-split outcomes.
+regime-split outcomes. A 10/50 SMA rule shows the same bear-window
+pattern (Table 3), so the smaller bear losses are not specific to the
+agent.
 
 \textbf{Simplified breakeven spread.} Let $K$ be non-HOLD signal days
 and $F$ total fees. A coarse \textbf{fee-and-turnover breakeven} is the
@@ -604,10 +628,10 @@ delivery fees alone.
 \textbf{Architectural boundary (hypothesis).} Multi-stage debate $\rightarrow$
 trader $\rightarrow$ risk can compress drawdown in bear windows but
 cap rally participation in bull windows when final policy stays
-defensive despite buy-leaning researcher stances (Table 5). RELIANCE
+defensive despite buy-leaning researcher stances (Table 6). RELIANCE
 bull lags by 9.5 pp on its single run. TCS bull lags on average:
 mean alpha $-14.1$ pp across five repeat runs, against $-2.3$ pp for the
-frozen run alone (Table 3). We read this as a regime-by-issuer
+frozen run alone (Table 4). We read this as a regime-by-issuer
 interaction within one architecture.
 
 We do not estimate latency-driven slippage (full
@@ -620,7 +644,7 @@ remains future work alongside StockSim-class order-level simulation
 \texttt{scripts/generate\_paper\_figures.py} regenerates
 Figures~\ref{fig:equity-grid}--\ref{fig:outlook-bullish} from the frozen
 schedule CSVs. Each TCS bull panel is that frozen trajectory (Table 2),
-not the five-run mean (Table 3).
+not the five-run mean (Table 4).
 
 \begin{figure}[htbp]
 \centering
@@ -674,17 +698,16 @@ gap is $-2.3$ pp in the frozen run and $-14.1$ pp across five repeat runs.
   macro calendar claim.
 \item
   \textbf{Model and ablations:} Single LLM
-  (\texttt{qwen/qwen3.5-flash-02-23}); anonymization on but not ablated;
-  reduced-pipeline presets (market analyst only; all analysts, no
+  (\texttt{qwen/qwen3.5-flash-02-23}); ticker anonymization on for every
+  reported run; reduced-pipeline presets (market analyst only; all analysts, no
   debate; debate, no risk stage) exist but were not run for §4.
 \item
   \textbf{Metrics:} Short windows; risk ratios are secondary; no
-  latency/slippage CBS; Infosys windows in \texttt{regime-timeranges}
-  planned but not run.
+  latency/slippage CBS.
 \item
   \textbf{Future empirical work (out of scope here):} multi-seed trials
-  on the other three windows, broader PIT universes, anonymization
-  ablations, and full CBS with measured agent latency.
+  on the other three windows, broader PIT universes, and full CBS with
+  measured agent latency.
 \end{itemize}
 
 Regimes are exogenous labels, not agent predictions.
