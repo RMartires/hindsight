@@ -305,10 +305,8 @@ converted to a daily rate $r_f/252$ and applied post-hoc on the frozen equity se
 Annualization uses $\sqrt{252}$.}
 
 \subsubsection{3.6 Observability}\label{observability}
-Each trading day's graph run is traced with Langfuse via its LangChain
-callback handler: one trace per (ticker, trade date), keyed by a session
-id, covering every stage's LLM calls, tool calls, token counts, and
-latency.
+Langfuse traces each trading day's LLM calls, tool calls, token counts,
+and latency.
 
 \newpage
 \subsection{4. Case Study Evaluation}\label{case-study-evaluation}
@@ -350,8 +348,8 @@ Section 4 shows how one stack behaves under two contrasting trends per
 ticker. It is not a test of expected alpha, and results from four
 windows should not be extrapolated to a broad universe (§5).
 
-\textbf{Pre-specification.} Calendar windows are listed in
-\texttt{regime-timeranges} before agent backtests.
+\textbf{Pre-specification.} Calendar windows were fixed before agent
+backtests.
 Regime labels are assigned exogenously from underlying
 buy-and-hold return and are independent of internal Bull/Bear
 Researcher debate roles.
@@ -578,7 +576,6 @@ positive excess Sharpe ($+0.74$) but lags B\&H on alpha ($-9.53$ pp).
 \end{itemize}
 
 \textbf{Table 6.} Selected outlook / stance shares (\% of trading days).
-Full pivot in notebook.
 
 \medskip
 \noindent
@@ -646,10 +643,9 @@ remains future work alongside StockSim-class order-level simulation
 
 \subsubsection{4.6 Figures}\label{figures}
 
-\texttt{scripts/generate\_paper\_figures.py} regenerates
-Figures~\ref{fig:equity-grid}--\ref{fig:outlook-bullish} from the frozen
-schedule CSVs. Each TCS bull panel is that frozen trajectory (Table 2),
-not the five-run mean (Table 4).
+Figures~\ref{fig:equity-grid}--\ref{fig:outlook-bullish} are generated
+from the frozen schedule CSVs. Each TCS bull panel is that frozen
+trajectory (Table 2), not the five-run mean (Table 4).
 
 \begin{figure}[htbp]
 \centering
