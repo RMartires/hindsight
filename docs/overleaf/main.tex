@@ -56,11 +56,15 @@ simulation end date for point-in-time data, ticker anonymization to avoid any LL
 
 The primary contributions are reproducible systems
 engineering, auditable stage artifacts, and frozen CSV
-schedules. As an illustrative case study, we evaluate Hindsight's full multi-agent pipeline
-on two liquid large-cap NSE listings---RELIANCE.NS and
-TCS.NS---in four pre-specified regime windows (two
-tickers $\times$ exogenous bear/bull labels; one trajectory per
-window, plus five further runs on TCS bull).
+schedules. We then run the full pipeline on RELIANCE.NS and TCS.NS,
+one pre-specified bear window and one bull window each, from \$100,000.
+In both bear windows the agent loses less than buy-and-hold and draws
+down less. A 10/50 moving-average rule, with the same fees and no
+language model, does the same and loses even less. In both bull windows
+the agent trails buy-and-hold. The single RELIANCE run trails by 9.5
+percentage points. On TCS the first run trails by 2.3 percentage points;
+five further runs of that window trail by 14.1 on average. The other
+three windows are one run each.
 \textbf{Code and artifacts:}
 \url{https://github.com/RMartires/hindsight}.
 \end{abstract}
@@ -87,12 +91,13 @@ trajectory each. Frontier empirical papers
 universes; our evaluation scope is deliberately narrower and is labeled
 as such (§4.1, Table 1).
 
-\textbf{Case-study evaluation.} Each window starts from \$100,000 of
-paper cash; we compare agent net return and drawdown with buy-and-hold
-on the same dates. In both bear windows the agent loses less, with
-smaller drawdowns. RELIANCE bull trails by 9.5 pp (one run). On TCS
-bull the frozen run trails by 2.3 pp, but five repeat runs average $-14.1$ pp
-(§4.4). §4.5 traces the shortfall to SELL-heavy signals rather than fees.
+\textbf{Case-study evaluation.} Each window starts from \$100,000.
+In both bear windows the agent loses less than buy-and-hold and draws
+down less. A 10/50 moving-average rule does the same, and loses even
+less, so that pattern is not specific to the agent (Table 3). Both bull
+windows trail buy-and-hold. RELIANCE trails by 9.5 pp on its only run.
+On TCS the first run trails by 2.3 pp; five further runs average
+$-14.1$ pp and also finish behind the rule (§4.4).
 
 
 \subsection{2. Related Work}\label{related-work}
@@ -216,11 +221,11 @@ Sentiment & Social-media analyst &
   (company/social queries) \\
 \addlinespace
 Debate & Bull / Bear researchers &
-  --- &
+  none &
   Argue buy vs sell thesis from shared evidence \\
 \addlinespace
 Execution & Trader, Risk manager &
-  --- &
+  none &
   Propose and gate BUY/HOLD/SELL \\
 \bottomrule
 \end{tabular}
@@ -678,13 +683,14 @@ not the five-run mean (Table 4).
 
 \subsection{5. Conclusion}\label{conclusion}
 
-We presented \textbf{Hindsight}, a reproducible point-in-time
-LangGraph stack with structured outputs, mandatory ticker anonymization, and
-fee-aware backtesting, plus a scoped four-window case study on
-RELIANCE.NS and TCS.NS. In the observed bear
-windows, the full pipeline shows lower loss and drawdown than
-buy-and-hold. Both bull windows trail buy-and-hold. On TCS bull that
-gap is $-2.3$ pp in the frozen run and $-14.1$ pp across five repeat runs.
+We built \textbf{Hindsight}, a point-in-time LangGraph stack with
+structured outputs, ticker anonymization on every run, and fee-aware
+backtesting, and ran it on RELIANCE.NS and TCS.NS. In the two bear
+windows the agent loses less than buy-and-hold and draws down less. A
+10/50 moving-average rule does the same. In the two bull windows the
+agent trails buy-and-hold: by 9.5 pp on the single RELIANCE run, and on
+TCS by 2.3 pp in the first run and 14.1 pp on average across five
+further runs.
 
 \textbf{Limitations and future work.}
 
@@ -692,7 +698,7 @@ gap is $-2.3$ pp in the frozen run and $-14.1$ pp across five repeat runs.
 \tightlist
 \item
   \textbf{Inferential scope:} N=1 on three windows; N=5 repeat runs on TCS bull
-  only; two tickers---not an index universe.
+  only; two tickers, not an index universe.
 \item
   \textbf{Calendars:} Per-ticker windows are not synchronous; no shared
   macro calendar claim.
@@ -721,21 +727,21 @@ the four windows.
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
 \item
-  \textbf{Reproducible backtest harness and frozen artifacts} ---
+  \textbf{Reproducible backtest harness and frozen artifacts}:
   fee-aware paper ledger, schedule CSVs, replication scripts.
 \item
-  \textbf{Point-in-time data policy and mandatory anonymization} ---
+  \textbf{Point-in-time data policy and mandatory anonymization}:
   simulation end date at vendor routing; deterministic ticker aliases.
 \item
-  \textbf{Structured stage outputs} --- Pydantic-constrained artifacts
+  \textbf{Structured stage outputs}: Pydantic-constrained artifacts
   for audit and traceability.
 \item
   \textbf{Multi-agent decision graph} with tool-bound analyst
   decomposition.
 \item
-  \textbf{Pre-specified regime-conditioned case study} --- four
-  windows fixed before any agent run, documented limits,
-  architectural-boundary interpretation.
+  \textbf{Regime-split case study}: in bear windows the agent loses
+  less than buy-and-hold and draws down less; in bull windows it trails.
+  Five further runs on TCS bull, and a 10/50 moving-average baseline.
 \end{enumerate}
 
 \subsection{Acknowledgements}\label{acknowledgements}
