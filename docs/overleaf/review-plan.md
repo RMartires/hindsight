@@ -28,7 +28,7 @@ Tick items off as they land on Overleaf.
 - [x] **B6. Table 4 preamble redundancy.** Dropped the note sentence; caption keeps "(% of trading days)".
 - [x] **B7. `regime-timeranges`** now `\texttt{}` in §4.1 (the §5 mention already was).
 - [x] **B8. Internal codes** removed from all five Contributions items (also dropped the trailing Pandoc `\\` on each item). Limitations bullet now describes the presets in words: "reduced-pipeline presets (market analyst only; all analysts without debate; debate without the risk stage) are implemented but not evaluated in §4" (mirrors `tradingagents/paper_ablation.py` a1/a2/a3).
-- [ ] **B9. Multi-seed status.** `results/` now has TCS bull seeds 2–7. Paper says N=1 throughout. Fine for this draft, but update the Limitations bullet "no multi-seed variance" if those seeds ship.
+- [x] **B9. Multi-seed status.** Seeds 2–7 are in Table 3 of `main.tex`. Limitations now say N=1 on three windows and N=7 on TCS bull.
 
 ## C. Prose
 
