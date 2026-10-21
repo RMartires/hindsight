@@ -36,9 +36,19 @@ from .local import (
     get_indicator as get_local_indicator,
 )
 from .local_db.store import LocalDataError
+from .fundamentals_pit import apply_fundamentals_point_in_time
 
 # Configuration and routing logic
 from .config import get_config
+
+_FUNDAMENTAL_PIT_METHODS = frozenset(
+    {
+        "get_fundamentals",
+        "get_balance_sheet",
+        "get_cashflow",
+        "get_income_statement",
+    }
+)
 
 _log = logging.getLogger(__name__)
 
@@ -211,7 +221,10 @@ def route_to_vendor(method: str, *args, **kwargs):
         impl_func = vendor_impl[0] if isinstance(vendor_impl, list) else vendor_impl
 
         try:
-            return impl_func(*args, **kwargs)
+            result = impl_func(*args, **kwargs)
+            if method in _FUNDAMENTAL_PIT_METHODS and isinstance(result, str):
+                result = apply_fundamentals_point_in_time(result)
+            return result
         except LocalDataError as e:
             if len(primary_vendors) > 1:
                 _log.warning(
