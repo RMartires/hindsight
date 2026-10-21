@@ -39,7 +39,7 @@
 | **Bear** | Underlying B&H return **≤ −10%** |
 | **Bull** | Underlying B&H return **≥ +10%** |
 
-**Calendar windows** are pre-specified in `regime-timeranges` **before** agent backtests. Windows **differ by ticker**. Each run uses **fresh $100,000** paper cash.
+**Calendar windows** are pre-specified in `regime-timeranges` **before** agent backtests. Windows **differ by ticker**. Each run uses **fresh INR 100,000** paper cash.
 
 ---
 
@@ -52,18 +52,18 @@
 | TCS.NS | Bear | Dec 2024 – Apr 2025 | 2024-12-02 .. 2025-04-03 | 88 | `results/dates-TCS-dec-2024-april-2025-bear-dates.csv` | `eval_results/dates-TCS-dec-2024-april-2025-bear-dates.log` |
 | TCS.NS | Bull | Jun 2024 – Sep 2024 | 2024-06-03 .. 2024-09-03 | 67 | `results/dates-TCS-june-2024-sept-2024-bull-dates.csv` | `eval_results/dates-TCS-june-2024-sept-2024-bull-dates.log` |
 
-**Shared protocol:** `PAPER_ABLATION=full`; `initial_cash=$100,000`; `cost_model=zerodha_delivery`, `slippage_bps=0`; anonymization enabled; LLM `qwen/qwen3.5-flash-02-23`; driver `scripts/backtest_mvp.py --dates-csv <artifact>`.
+**Shared protocol:** `PAPER_ABLATION=full`; `initial_cash=INR 100,000`; `cost_model=zerodha_delivery`, `slippage_bps=0`; anonymization enabled; LLM `qwen/qwen3.5-flash-02-23`; driver `scripts/backtest_mvp.py --dates-csv <artifact>`.
 
 ### Frozen metrics — Table 1 (primary)
 
-| Ticker | Regime | B&H return | Agent (net) | Gross | Fee drag | α vs B&H | B&H MDD | Agent MDD | Fees ($) | B/H/S |
+| Ticker | Regime | B&H return | Agent (net) | Gross | Fee drag | α vs B&H | B&H MDD | Agent MDD | Fees (INR) | B/H/S |
 |--------|--------|------------|-------------|-------|----------|----------|---------|-----------|----------|-------|
 | RELIANCE | Bear | −17.43% | −7.54% | −6.53% | 1.01 pp | +9.89 pp | 21.0% | 5.11% | 1,010.32 | 7 / 28 / 76 |
 | RELIANCE | Bull | +15.09% | +5.56% | +6.19% | 0.64 pp | −9.53 pp | 11.0% | 2.80% | 635.44 | 9 / 25 / 74 |
 | TCS | Bear | −20.42% | −4.83% | −2.92% | 1.91 pp | +15.59 pp | 23.9% | 6.78% | 1,909.83 | 12 / 24 / 52 |
 | TCS | Bull | +21.86% | +19.61% | +21.80% | 2.20 pp | −2.25 pp | 5.5% | 1.65% | 2,197.78 | 13 / 14 / 40 |
 
-**Source:** daily `equity` and `close` in frozen CSVs; gross = net + fees/$100k.
+**Source:** daily `equity` and `close` in frozen CSVs; gross = net + fees/INR 100k.
 
 ### Frozen metrics — Table 2 (secondary, post-hoc)
 

@@ -9,6 +9,7 @@ from tradingagents.llm_clients.invoke_fallback import (
     invoke_structured_messages_or_plain,
 )
 from tradingagents.schemas import TradeProposal, append_final_tx_line_if_missing
+from tradingagents.agents.utils.currency import INR_AMOUNTS_CLAUSE
 
 
 def create_trader(llm, memory, fallback_llm=None):
@@ -44,7 +45,9 @@ def create_trader(llm, memory, fallback_llm=None):
         messages = [
             {
                 "role": "system",
-                "content": f"""You are a trading agent analyzing market data to make investment decisions. Based on your analysis, provide a specific recommendation to buy, sell, or hold. End with a firm decision and always conclude your response with 'FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL**' to confirm your recommendation. Do not forget to utilize lessons from past decisions to learn from your mistakes. Here is some reflections from similar situatiosn you traded in and the lessons learned: {past_memory_str}{portfolio_section}""",
+                "content": f"""You are a trading agent analyzing market data to make investment decisions. Based on your analysis, provide a specific recommendation to buy, sell, or hold. End with a firm decision and always conclude your response with 'FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL**' to confirm your recommendation. Do not forget to utilize lessons from past decisions to learn from your mistakes. Here is some reflections from similar situatiosn you traded in and the lessons learned: {past_memory_str}{portfolio_section}
+
+{INR_AMOUNTS_CLAUSE}""",
             },
             context,
         ]

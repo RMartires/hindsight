@@ -6,6 +6,7 @@ from tradingagents.agents.utils.agent_states import (
     InvestDebateState,
     RiskDebateState,
 )
+from tradingagents.agents.utils.currency import INR_AMOUNTS_CLAUSE
 
 
 class Propagator:
@@ -23,7 +24,7 @@ class Propagator:
     ) -> Dict[str, Any]:
         """Create the initial state for the agent graph."""
         return {
-            "messages": [("human", company_name)],
+            "messages": [("human", f"{company_name}\n\n{INR_AMOUNTS_CLAUSE}")],
             "company_of_interest": company_name,
             "trade_date": str(trade_date),
             "portfolio_context": portfolio_context,

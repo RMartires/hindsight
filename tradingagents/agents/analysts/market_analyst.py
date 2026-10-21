@@ -8,6 +8,7 @@ from tradingagents.agents.utils.agent_utils import (
 )
 from tradingagents.dataflows.config import get_config
 from tradingagents.agents.utils.analyst_structured import analyst_report_json_for_state
+from tradingagents.agents.utils.currency import INR_AMOUNTS_CLAUSE
 from tradingagents.dataflows.indicator_library import format_tier1_indicator_list_for_prompt
 
 
@@ -41,6 +42,7 @@ def create_market_analyst(llm):
                 + "\n\nCurrent Portfolio Context (holdings/positions/funds):\n"
                 + portfolio_context
             )
+        system_message += "\n\n" + INR_AMOUNTS_CLAUSE
 
         prompt = ChatPromptTemplate.from_messages(
             [

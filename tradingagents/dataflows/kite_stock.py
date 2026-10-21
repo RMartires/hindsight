@@ -112,7 +112,8 @@ def get_stock_data(
         csv_string = df.to_csv(index=False)
         header = f"# Stock data for {symbol.upper()} from {start_date} to {end_date}\n"
         header += f"# Total records: {len(df)}\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        header += "# Currency: INR\n\n"
         return header + csv_string
 
     except Exception as e:
@@ -150,7 +151,10 @@ def get_ltp(symbol: str) -> str:
             raise ValueError(f"Unexpected Kite ltp response for {kite_name}: {data}")
 
         last_price = payload.get("last_price")
-        return f"## LTP for {symbol.upper()} ({resolved['exchange']}:{resolved['tradingsymbol']}): {last_price}"
+        return (
+            f"## LTP for {symbol.upper()} "
+            f"({resolved['exchange']}:{resolved['tradingsymbol']}): INR {last_price}"
+        )
     except Exception as e:
         converted = maybe_convert_to_kite_rate_limit(e)
         if isinstance(converted, KiteRateLimitError):

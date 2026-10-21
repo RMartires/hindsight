@@ -6,6 +6,7 @@ from tradingagents.llm_clients.invoke_fallback import (
     invoke_structured_prompt_or_plain,
 )
 from tradingagents.schemas import BullBearArgument
+from tradingagents.agents.utils.currency import INR_AMOUNTS_CLAUSE
 
 
 def create_bear_researcher(llm, memory, fallback_llm=None):
@@ -54,6 +55,8 @@ Conversation history of the debate: {history}
 Last bull argument: {current_response}
 Reflections from similar situations and lessons learned: {past_memory_str}
 Use this information to deliver a compelling bear argument, refute the bull's claims, and engage in a dynamic debate that demonstrates the risks and weaknesses of investing in the stock. You must also address reflections and learn from lessons and mistakes you made in the past.
+
+{INR_AMOUNTS_CLAUSE}
 """
 
         structured, plain_fallback = invoke_structured_prompt_or_plain(

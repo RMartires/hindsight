@@ -6,7 +6,7 @@ through the decision day. The book starts in cash on the first day of the
 evaluation window (same as the agent runs). History before that window is used
 only to warm the averages.
 
-Costs match Frozen E1: ``zerodha_delivery``, zero slippage, $100,000 start.
+Costs match Frozen E1: ``zerodha_delivery``, zero slippage, INR 100,000 start.
 """
 
 from __future__ import annotations

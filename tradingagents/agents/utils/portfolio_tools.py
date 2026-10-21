@@ -43,7 +43,7 @@ def get_holdings() -> str:
                 ]
             )
 
-        return "## Holdings\n" + _markdown_table(headers, rows)
+        return "## Holdings (INR)\n" + _markdown_table(headers, rows)
     except Exception as e:
         converted = maybe_convert_to_kite_rate_limit(e)
         if isinstance(converted, KiteRateLimitError):
@@ -78,7 +78,7 @@ def get_positions() -> str:
                 )
             return f"### {side_name}\n" + _markdown_table(headers, rows)
 
-        return "## Positions\n" + format_side("Day", day) + "\n\n" + format_side("Net", net)
+        return "## Positions (INR)\n" + format_side("Day", day) + "\n\n" + format_side("Net", net)
     except Exception as e:
         converted = maybe_convert_to_kite_rate_limit(e)
         if isinstance(converted, KiteRateLimitError):
@@ -134,7 +134,7 @@ def get_available_funds() -> str:
         # Include raw payload for debugging/LLM if desired
         raw = json.dumps(margins, indent=2, default=str)
         return (
-            "## Funds and margins\n"
+            "## Funds and margins (INR)\n"
             + "\n\n".join(parts)
             + "\n\n### Raw (debug)\n```json\n"
             + raw

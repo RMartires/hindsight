@@ -33,6 +33,7 @@ def format_ohlcv_block(
     header = f"# Stock data for {normalize_symbol_key(symbol)} from {start_date} to {end_date}\n"
     header += f"# Total records: {len(out)}\n"
     header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+    header += "# Currency: INR\n"
     header += "# Source: local DuckDB cache\n\n"
     return header + csv_string
 

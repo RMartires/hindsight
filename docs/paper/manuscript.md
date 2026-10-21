@@ -30,7 +30,7 @@ Researchers are experimenting with large language models (LLMs) inside trading w
 
 **What this paper is not.** We do **not** claim state-of-the-art risk-adjusted returns, regime *prediction*, or statistical generalization from a broad equity universe. We do **not** report multi-seed variance (each regime window is **N=1**). Frontier empirical papers (e.g., Jeon and Lee, 2026; Miyazaki et al., 2026) average tens of random seeds across index universes; our evaluation scope is deliberately narrower and is labeled as such (§4.1, Table 3).
 
-**Case-study evaluation.** We run the **full** pipeline (`PAPER_ABLATION=full`) on **RELIANCE.NS** and **TCS.NS**. For each ticker we pre-specify one **bear** and one **bull** calendar window in **`regime-timeranges`** before any agent run; labels follow exogenous underlying buy-and-hold thresholds (§4.2). Each of **four regime windows** starts from **$100,000** fresh paper cash; we compare agent **net** return to **buy-and-hold** on the same window.
+**Case-study evaluation.** We run the **full** pipeline (`PAPER_ABLATION=full`) on **RELIANCE.NS** and **TCS.NS**. For each ticker we pre-specify one **bear** and one **bull** calendar window in **`regime-timeranges`** before any agent run; labels follow exogenous underlying buy-and-hold thresholds (§4.2). Each of **four regime windows** starts from **INR 100,000** fresh paper cash; we compare agent **net** return to **buy-and-hold** on the same window.
 
 **Code.** Implementation, frozen evaluation CSVs, and figure scripts: [https://github.com/RMartires/hindsight](https://github.com/RMartires/hindsight).
 
@@ -157,7 +157,7 @@ We treat §4 as an **illustrative stress test** of one stack under contrasting u
 | **Bear** | Total return **≤ −10%** |
 | **Bull** | Total return **≥ +10%** |
 
-Windows **differ by ticker** (e.g., TCS bull Jun–Sep 2024; RELIANCE bull Jan–Jun 2025). Each run uses **$100,000** initial cash.
+Windows **differ by ticker** (e.g., TCS bull Jun–Sep 2024; RELIANCE bull Jan–Jun 2025). Each run uses **INR 100,000** initial cash.
 
 | Ticker | Regime | Processed window | Schedule CSV |
 |--------|--------|------------------|--------------|
@@ -191,9 +191,9 @@ python scripts/backtest_mvp.py --ticker TCS.NS \
 
 ### 4.4 Results
 
-**Table 1.** Agent vs buy-and-hold (frozen CSVs, $100,000 start). **Primary metrics:** net return, MDD, alpha vs B&H, fees. Returns and MDD recomputed from daily `equity` and `close` columns in frozen CSVs.
+**Table 1.** Agent vs buy-and-hold (frozen CSVs, INR 100,000 start). **Primary metrics:** net return, MDD, alpha vs B&H, fees. Returns and MDD recomputed from daily `equity` and `close` columns in frozen CSVs.
 
-| Ticker | Regime | Days | B&H | Agent (net) | Gross | Fee drag | α vs B&H | B&H MDD | Agent MDD | Fees ($) | B/H/S |
+| Ticker | Regime | Days | B&H | Agent (net) | Gross | Fee drag | α vs B&H | B&H MDD | Agent MDD | Fees (INR) | B/H/S |
 |--------|--------|------|-----|-------------|-------|----------|----------|---------|-----------|----------|-------|
 | RELIANCE | Bear | 111 | −17.43% | −7.54% | −6.53% | 1.01 pp | +9.89 pp | 21.0% | 5.11% | 1,010 | 7/28/76 |
 | RELIANCE | Bull | 108 | +15.09% | +5.56% | +6.19% | 0.64 pp | −9.53 pp | 11.0% | 2.80% | 635 | 9/25/74 |
@@ -231,7 +231,7 @@ Internal **bull researcher** stances can remain buy-leaning while **final signal
 
 **Fee drag vs alpha.** Fee drag is modest (0.6–2.2 pp of initial capital; Table 1). It does **not** explain RELIANCE bull under-participation: the **−9.53 pp alpha gap** dominates **0.64 pp** fee drag. In bear windows, defensive positioning yields **positive alpha** (+9.89 pp REL, +15.59 pp TCS) despite similar fee levels—suggesting **exposure management**, not costs, drives regime-split outcomes.
 
-**Simplified breakeven spread.** Let \(K\) be non-HOLD signal days and \(F\) total fees. A coarse **fee-and-turnover breakeven** is the average daily edge required to justify rebalancing: \(F / (V_0 \cdot K)\). For RELIANCE bull (\(K=83\) actionable days, \(F=\$635\)), this is ≈**7.7 bps/day**—far below the **~88 bps/day** implied alpha shortfall (\(9.53\%/108\) days). The binding constraint is **SELL-heavy coordination** (74 SELL days), not delivery fees alone.
+**Simplified breakeven spread.** Let \(K\) be non-HOLD signal days and \(F\) total fees. A coarse **fee-and-turnover breakeven** is the average daily edge required to justify rebalancing: \(F / (V_0 \cdot K)\). For RELIANCE bull (\(K=83\) actionable days, \(F\) of INR 635), this is ≈**7.7 bps/day**—far below the **~88 bps/day** implied alpha shortfall (\(9.53\%/108\) days). The binding constraint is **SELL-heavy coordination** (74 SELL days), not delivery fees alone.
 
 **Architectural boundary (hypothesis).** Multi-stage debate → trader → risk can **compress drawdown** in bear windows but **cap rally participation** in bull windows when final policy stays defensive despite buy-leaning researcher stances (Table 4). RELIANCE bull exemplifies this boundary; TCS bull shows the same stack can **nearly track** B&H when signal balance is less skewed (13 BUY, 40 SELL). We frame this as **regime × issuer interaction under one architecture**, not a universal win/loss verdict.
 

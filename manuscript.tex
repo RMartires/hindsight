@@ -194,7 +194,7 @@ as such (§4.1, Table 3).
 one \textbf{bull} calendar window in \textbf{\texttt{regime-timeranges}}
 before any agent run; labels follow exogenous underlying buy-and-hold
 thresholds (§4.2). Each of \textbf{four regime windows} starts from
-\textbf{\$100,000} fresh paper cash; we compare agent \textbf{net}
+\textbf{INR 100,000} fresh paper cash; we compare agent \textbf{net}
 return to \textbf{buy-and-hold} on the same window.
 
 \textbf{Code.} Implementation, frozen evaluation CSVs, and figure
@@ -548,7 +548,7 @@ Rule (underlying B\&H on processed window, per ticker)
 }
 
 Windows \textbf{differ by ticker} (e.g., TCS bull Jun--Sep 2024;
-RELIANCE bull Jan--Jun 2025). Each run uses \textbf{\$100,000} initial
+RELIANCE bull Jan--Jun 2025). Each run uses \textbf{INR 100,000} initial
 cash.
 
 {\def\LTcaptype{none} % do not increment counter
@@ -640,7 +640,7 @@ volatility & Median Sharpe \\
 
 \subsubsection{4.4 Results}\label{results}
 
-\textbf{Table 1.} Agent vs buy-and-hold (frozen CSVs, \$100,000 start).
+\textbf{Table 1.} Agent vs buy-and-hold (frozen CSVs, INR 100,000 start).
 \textbf{Primary metrics:} net return, MDD, alpha vs B\&H, fees. Returns
 and MDD recomputed from daily \texttt{equity} and \texttt{close} columns
 in frozen CSVs.
@@ -681,7 +681,7 @@ B\&H MDD
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
 Agent MDD
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Fees (\$)
+Fees (INR)
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
 B/H/S
 \end{minipage} \\
@@ -816,7 +816,7 @@ regime-split outcomes.
 \textbf{Simplified breakeven spread.} Let (K) be non-HOLD signal days
 and (F) total fees. A coarse \textbf{fee-and-turnover breakeven} is the
 average daily edge required to justify rebalancing: (F / (V\_0
-\cdot K)). For RELIANCE bull ((K=83) actionable days, (F=\$635)), this
+\cdot K)). For RELIANCE bull ((K=83) actionable days, (F of INR 635)), this
 is ≈\textbf{7.7 bps/day}---far below the \textbf{\textasciitilde88
 bps/day} implied alpha shortfall ((9.53\%/108) days). The binding
 constraint is \textbf{SELL-heavy coordination} (74 SELL days), not

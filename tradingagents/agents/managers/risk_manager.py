@@ -6,6 +6,7 @@ from tradingagents.llm_clients.invoke_fallback import (
     invoke_structured_prompt_or_plain,
 )
 from tradingagents.schemas import RiskAssessment, append_final_tx_line_if_missing
+from tradingagents.agents.utils.currency import INR_AMOUNTS_CLAUSE
 
 
 def create_risk_manager(llm, memory, fallback_llm=None):
@@ -55,7 +56,9 @@ Deliverables:
 
 {portfolio_section}
 
-Focus on actionable insights and continuous improvement. Build on past lessons, critically evaluate all perspectives, and ensure each decision advances better outcomes."""
+Focus on actionable insights and continuous improvement. Build on past lessons, critically evaluate all perspectives, and ensure each decision advances better outcomes.
+
+{INR_AMOUNTS_CLAUSE}"""
 
         structured, plain_fallback = invoke_structured_prompt_or_plain(
             llm,

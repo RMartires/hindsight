@@ -358,6 +358,7 @@ class TradingAgentsGraph:
 
             return (
                 "## Portfolio Context (Kite)\n"
+                + "Amounts below are in INR.\n"
                 + "### Holdings (preview)\n"
                 + json.dumps(holdings_preview, indent=2, default=str)
                 + "\n\n### Positions (preview)\n"

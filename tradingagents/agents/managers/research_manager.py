@@ -6,6 +6,7 @@ from tradingagents.llm_clients.invoke_fallback import (
     invoke_structured_prompt_or_plain,
 )
 from tradingagents.schemas import InvestmentPlanJudgment
+from tradingagents.agents.utils.currency import INR_AMOUNTS_CLAUSE
 
 
 def create_research_manager(llm, memory, fallback_llm=None):
@@ -41,7 +42,9 @@ Here are your past reflections on mistakes:
 
 Here is the debate:
 Debate History:
-{history}"""
+{history}
+
+{INR_AMOUNTS_CLAUSE}"""
         structured, plain_fallback = invoke_structured_prompt_or_plain(
             llm,
             prompt,

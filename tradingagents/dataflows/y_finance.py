@@ -7,6 +7,14 @@ from .stockstats_utils import StockstatsUtils, _clean_dataframe
 from .simulation_context import effective_data_end_date
 from .indicator_library import resolve_tier1_indicator_id, tier1_indicator_descriptions
 
+
+def _inr_currency_line(symbol: str) -> str:
+    """NSE and BSE quotes and statements are rupees. Other listings are left unlabeled."""
+    sym = (symbol or "").upper()
+    if sym.endswith(".NS") or sym.endswith(".BO"):
+        return "# Currency: INR\n"
+    return ""
+
 def get_YFin_data_online(
     symbol: Annotated[str, "ticker symbol of the company"],
     start_date: Annotated[str, "Start date in yyyy-mm-dd format"],
@@ -44,7 +52,9 @@ def get_YFin_data_online(
     # Add header information
     header = f"# Stock data for {symbol.upper()} from {start_date} to {end_date}\n"
     header += f"# Total records: {len(data)}\n"
-    header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+    header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+    header += _inr_currency_line(symbol)
+    header += "\n"
 
     return header + csv_string
 
@@ -265,7 +275,9 @@ def get_fundamentals(
                 lines.append(f"{label}: {value}")
 
         header = f"# Company Fundamentals for {ticker.upper()}\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        header += _inr_currency_line(ticker)
+        header += "\n"
 
         return header + "\n".join(lines)
 
@@ -295,7 +307,9 @@ def get_balance_sheet(
         
         # Add header information
         header = f"# Balance Sheet data for {ticker.upper()} ({freq})\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        header += _inr_currency_line(ticker)
+        header += "\n"
         
         return header + csv_string
         
@@ -325,7 +339,9 @@ def get_cashflow(
         
         # Add header information
         header = f"# Cash Flow data for {ticker.upper()} ({freq})\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        header += _inr_currency_line(ticker)
+        header += "\n"
         
         return header + csv_string
         
@@ -355,7 +371,9 @@ def get_income_statement(
         
         # Add header information
         header = f"# Income Statement data for {ticker.upper()} ({freq})\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        header += _inr_currency_line(ticker)
+        header += "\n"
         
         return header + csv_string
         
@@ -379,7 +397,9 @@ def get_insider_transactions(
         
         # Add header information
         header = f"# Insider Transactions data for {ticker.upper()}\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        header += _inr_currency_line(ticker)
+        header += "\n"
         
         return header + csv_string
         

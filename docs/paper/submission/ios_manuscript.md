@@ -29,7 +29,7 @@ Researchers are experimenting with LLMs inside trading workflows amid rapid grow
 
 **What this paper is not.** We do **not** claim state-of-the-art risk-adjusted returns, regime prediction, or generalization from a broad universe. Each regime window is **N=1** (no multi-seed variance). Frontier benchmarks (Jeon and Lee, 2026; Miyazaki et al., 2026) average many seeds across index universes; our scope is narrower and labeled as such (Section 4.1).
 
-We evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in **four pre-specified regime windows** (bear and bull per ticker), each from \$100,000 paper cash.
+We evaluate the **full** pipeline on **RELIANCE.NS** and **TCS.NS** in **four pre-specified regime windows** (bear and bull per ticker), each from INR 100,000 paper cash.
 
 ## Related Work
 
@@ -92,7 +92,7 @@ Costs & Net (Zerodha) & Varies & Varies & Varies \\
 
 ### Results
 
-**Table 3.** Primary metrics from frozen CSVs (\$100,000 start).
+**Table 3.** Primary metrics from frozen CSVs (INR 100,000 start).
 
 \begin{table}[htbp]
 \centering

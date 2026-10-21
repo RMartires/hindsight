@@ -6,6 +6,7 @@ from tradingagents.llm_clients.invoke_fallback import (
     invoke_structured_prompt_or_plain,
 )
 from tradingagents.schemas import RiskAnalystArgument
+from tradingagents.agents.utils.currency import INR_AMOUNTS_CLAUSE
 
 
 def create_aggressive_debator(llm, fallback_llm=None):
@@ -36,7 +37,9 @@ Latest World Affairs Report: {news_report}
 Company Fundamentals Report: {fundamentals_report}
 Here is the current conversation history: {history} Here are the last arguments from the conservative analyst: {current_conservative_response} Here are the last arguments from the neutral analyst: {current_neutral_response}. If there are no responses from the other viewpoints, do not hallucinate and just present your point.
 
-Engage actively by addressing any specific concerns raised, refuting the weaknesses in their logic, and asserting the benefits of risk-taking to outpace market norms. Maintain a focus on debating and persuading, not just presenting data. Challenge each counterpoint to underscore why a high-risk approach is optimal. Output conversationally as if you are speaking without any special formatting."""
+Engage actively by addressing any specific concerns raised, refuting the weaknesses in their logic, and asserting the benefits of risk-taking to outpace market norms. Maintain a focus on debating and persuading, not just presenting data. Challenge each counterpoint to underscore why a high-risk approach is optimal. Output conversationally as if you are speaking without any special formatting.
+
+{INR_AMOUNTS_CLAUSE}"""
 
         structured, plain_fallback = invoke_structured_prompt_or_plain(
             llm,
