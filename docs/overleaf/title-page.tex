@@ -1,0 +1,62 @@
+\PassOptionsToPackage{unicode,hyperfootnotes=false}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage{parskip}
+\usepackage{bookmark}
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdftitle={Title Page - Hindsight Agent: A Multi-Agent System for Quantitative Trading},
+  pdfauthor={Rohit Edward Martires}}
+
+\title{Hindsight Agent: A Multi-Agent System for Quantitative Trading}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\vspace{-2em}
+
+\subsection*{Author and Corresponding Author Metadata}
+
+\textbf{Author:} Rohit Edward Martires\\
+\textbf{Affiliation:} Independent Researcher, Goa, India\\
+\textbf{Postal Address:} H No. 86B Nagvaddo, Betalbatim, Salcete, Goa, India, 403713
+\textbf{Telephone:} +91 9881611398 \\
+\textbf{Email:} \texttt{rohitmartires14@gmail.com}
+
+\subsection*{Keywords}
+
+large language models, multi-agent systems, algorithmic trading, point-in-time backtesting, Indian equity markets, transaction costs
+
+\subsection*{Acknowledgements}
+
+The agent graph implementation builds on TradingAgents (Xiao et al., 2024; Tauric Research, Apache License 2.0). We thank the authors for open-sourcing the framework.
+
+\textbf{Declaration of generative AI and AI-assisted technologies.} Beyond the evaluated trading model (\texttt{qwen/qwen3.5-flash-02-23}) described in the manuscript, the author used Cursor (with Claude and Gemini language models) for code assistance, manuscript drafting, editing, and formatting. The author reviewed, verified, and edited all code, empirical numbers, figures, citations, and text, and takes full responsibility for the content of the publication.
+
+\subsection*{Author Contributions}
+
+Rohit Edward Martires is the sole author and was responsible for conceptualization, methodology, software implementation, data curation, formal analysis, investigation, visualization, and writing (original draft and review \& editing).
+
+\subsection*{Statements and Declarations}
+
+\textbf{Ethical considerations.} Not applicable. This study is a computational backtest on historical market data and does not involve human participants or animals.
+
+\textbf{Consent to participate.} Not applicable.
+
+\textbf{Consent for publication.} Not applicable.
+
+\textbf{Declaration of conflicting interests.} The author declared no potential conflicts of interest with respect to the research, authorship, and/or publication of this article.
+
+\textbf{Funding.} The author received no financial support for the research, authorship, and/or publication of this article.
+
+\textbf{Data availability.} The source code and backtest runner are publicly available at \url{https://github.com/RMartires/hindsight}. Historical market and fundamental data were obtained from Zerodha Kite Connect, Yahoo Finance, and Alpha Vantage; running the backtest suite reproduces the daily schedule CSVs.
+
+\end{document}

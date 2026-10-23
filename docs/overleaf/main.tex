@@ -24,12 +24,11 @@
 
 % Bibliography
 \usepackage[round]{natbib}
-\bibliographystyle{plainnat}
+\bibliographystyle{SageH}
 \renewcommand{\bibsection}{\subsection{References}\label{references}}
 
 % Links
 \usepackage{bookmark} % loads hyperref
-\IfFileExists{xurl.sty}{\usepackage{xurl}}{}
 \urlstyle{same}
 \hypersetup{
   hidelinks,
@@ -67,6 +66,9 @@ three windows are one run each.
 \textbf{Code:}
 \url{https://github.com/RMartires/hindsight}.
 A backtest rerun writes the schedule CSVs.
+
+\medskip
+\noindent\textbf{Keywords:} large language models, multi-agent systems, algorithmic trading, point-in-time backtesting, Indian equity markets, transaction costs
 \end{abstract}
 
 \subsection{1. Introduction}\label{introduction}
@@ -180,6 +182,7 @@ to reproduce it}: simulation end dates, structured artifacts, and net returns. A
 Researchers debate} $\rightarrow$ \textbf{trader} $\rightarrow$ \textbf{risk} $\rightarrow$ \textbf{final decision}.
 Core routing follows TradingAgents \citep{xiao2024tradingagents}; our modifications focus on
 temporal data policy, schema-constrained outputs, and the backtest/evaluation pipeline.
+Throughout the backtest, the large language model (\texttt{qwen/qwen3.5-flash-02-23}) serves as the evaluated experimental instrument inside the multi-agent decision graph.
 
 \subsubsection{3.2 Analyst task decomposition}\label{analyst-task-decomposition}
 
@@ -744,6 +747,26 @@ the four windows.
 The agent graph implementation builds on TradingAgents
 (\citealp{xiao2024tradingagents}; Tauric Research, Apache License 2.0). We thank the authors
 for open-sourcing the framework.
+
+\textbf{Declaration of generative AI and AI-assisted technologies.} Beyond the evaluated trading model (\texttt{qwen/qwen3.5-flash-02-23}) described in §3--§4, the author used Cursor (with Claude and Gemini language models) for code assistance, manuscript drafting, editing, and formatting. The author reviewed, verified, and edited all code, empirical numbers, figures, citations, and text, and takes full responsibility for the content of the publication.
+
+\subsection{Author Contributions}\label{author-contributions}
+
+Rohit Edward Martires is the sole author and was responsible for conceptualization, methodology, software implementation, data curation, formal analysis, investigation, visualization, and writing (original draft and review \& editing).
+
+\subsection{Statements and Declarations}\label{statements-and-declarations}
+
+\textbf{Ethical considerations.} Not applicable. This study is a computational backtest on historical market data and does not involve human participants or animals.
+
+\textbf{Consent to participate.} Not applicable.
+
+\textbf{Consent for publication.} Not applicable.
+
+\textbf{Declaration of conflicting interests.} The author declared no potential conflicts of interest with respect to the research, authorship, and/or publication of this article.
+
+\textbf{Funding.} The author received no financial support for the research, authorship, and/or publication of this article.
+
+\textbf{Data availability.} The source code and backtest runner are publicly available at \url{https://github.com/RMartires/hindsight}. Historical market and fundamental data were obtained from Zerodha Kite Connect, Yahoo Finance, and Alpha Vantage; running the backtest suite reproduces the daily schedule CSVs.
 
 \bibliography{references}
 
