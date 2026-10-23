@@ -273,8 +273,15 @@ Hindsight anonymizes the issuer for all LLM-facing prompts and tool outputs:
 
 The paper ledger records daily agent equity after fees. Primary metrics emphasize \textbf{total
 return}, \textbf{maximum drawdown (MDD)}, and \textbf{fee drag};
-risk-adjusted ratios are secondary on short windows (67--111 trading
+risk-adjusted ratios are secondary on short windows (64--111 processed
 days).
+
+\textbf{Execution and sizing.} The book holds one stock at a time,
+either fully invested or fully in cash: BUY spends all available cash,
+SELL sells everything, HOLD does nothing. Each signal is based on data
+up to that day's close and is filled at that same close --- a live
+trader could only act in the next session --- so timing flatters the
+results slightly. The SMA baseline (\S 4.4) uses the same rules.
 
 \begin{tabularx}{\linewidth}{@{} l X @{}}\toprule
 Metric & Definition \\
@@ -504,7 +511,7 @@ TCS      & Bull & $+13.31\%$ & $-8.55$ pp & $+19.61\%$ & $-2.25$ pp \\
 
 In both bear windows the rule also loses less than buy-and-hold, and by more than the agent. In both bull windows it trails buy-and-hold. The frozen TCS agent beats the rule; the five repeat runs do not (mean $+7.79\%$; Table 4).
 
-The TCS bull row in Table 2 is one trajectory. Table 4 gives five more runs of that window, on a 64-day subset.
+The TCS bull row in Table 2 is one trajectory. Table 4 gives five more runs of that window over the same calendar dates, counted as 64 trading days; the frozen Table 2 schedule processed 67 weekdays, including three exchange holidays.
 
 \medskip
 \noindent\textbf{Table 4.} Five repeat runs of the TCS bull window (INR 100,000 start, 64 days).
@@ -515,13 +522,13 @@ Buy-and-hold is $+21.86\%$ on every run. The Table 2 trajectory is not included.
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{@{} l r r r r r @{}}
 \toprule
-Run & Days & Net & $\alpha$ vs B\&H & MDD & B/H/S \\
+Repeat & Days & Net & $\alpha$ vs B\&H & MDD & B/H/S \\
 \midrule
-3 & 64 & $+8.23\%$ & $-13.63$ pp & $2.68\%$ & 8/43/13 \\
-4 & 64 & $+4.89\%$ & $-16.97$ pp & $3.11\%$ & 4/39/21 \\
-5 & 64 & $+5.15\%$ & $-16.72$ pp & $1.81\%$ & 11/41/12 \\
-6 & 64 & $+8.64\%$ & $-13.22$ pp & $1.42\%$ & 11/33/20 \\
-7 & 64 & $+12.02\%$ & $-9.84$ pp & $2.74\%$ & 8/41/15 \\
+1 & 64 & $+8.23\%$ & $-13.63$ pp & $2.68\%$ & 8/43/13 \\
+2 & 64 & $+4.89\%$ & $-16.97$ pp & $3.11\%$ & 4/39/21 \\
+3 & 64 & $+5.15\%$ & $-16.72$ pp & $1.81\%$ & 11/41/12 \\
+4 & 64 & $+8.64\%$ & $-13.22$ pp & $1.42\%$ & 11/33/20 \\
+5 & 64 & $+12.02\%$ & $-9.84$ pp & $2.74\%$ & 8/41/15 \\
 \midrule
 Mean & & $+7.79\%$ & $-14.08$ pp & $2.35\%$ & \\
 SD & & $2.92$ pp & $2.93$ pp & $0.71$ pp & \\

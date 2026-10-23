@@ -1,0 +1,7 @@
+Paste this into Sage Track Step 1 (Abstract). Do not use \textbf{}, \url{}, or other LaTeX.
+
+Large language models are increasingly used in financial decision pipelines, yet published agent stacks are often hard to reproduce, rarely enforce temporal data boundaries, and seldom report net returns after transaction costs. We present Hindsight, an open LangGraph stack with structured Pydantic outputs, a simulation end date for point-in-time data, ticker anonymization to avoid any LLM bias for company names, and a fee-aware paper backtest suite.
+
+The primary contributions are reproducible systems engineering and auditable stage artifacts. We then run the full pipeline on RELIANCE.NS and TCS.NS, one bear window and one bull window each, from INR 100,000. In both bear windows the agent loses less than buy-and-hold and draws down less. A 10/50 moving-average rule, with the same fees and no language model, does the same and loses even less. In both bull windows the agent trails buy-and-hold. The single RELIANCE run trails by 9.5 percentage points. On TCS the first run trails by 2.3 percentage points; five further runs of that window trail by 14.1 on average. The other three windows are one run each. Code: https://github.com/RMartires/hindsight. A backtest rerun writes the schedule CSVs.
+
+Keywords (Step 3 if separate): large language models, multi-agent systems, algorithmic trading, point-in-time backtesting, Indian equity markets, transaction costs
